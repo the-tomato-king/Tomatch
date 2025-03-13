@@ -43,8 +43,10 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 	- email
 	- phone_number
 	- location
-		- city
 		- country
+		- provience
+		- city
+		- street_address
 		- postcode
 		- coordinates
 			- latitude
@@ -56,7 +58,7 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 	- updated_at
 	- currency
 	- favorites_stores
-	2. customized_products (sub-collection)
+	1. customized_products (sub-collection)
 		- product_id
 		- name
 		- category
@@ -65,14 +67,14 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 		- barcode
 		- created_at
 		- updated_at
-	3. shopping_lists (sub-collection)
+	2. shopping_lists (sub-collection)
 		- list_id
 		- product_id
 		- product_name
 		- status
 		- created_at
 		- updated_at
-	4. price_records (sub-collection)
+	3. price_records (sub-collection)
 		- record_id
 		- product_id  // references products
 		- store_id    // references stores
@@ -83,7 +85,7 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 		- photo_url
 		- recorded_at
 
-5. products (collection)
+2. products (collection)
 	- product_id
 	- name
 	- category
@@ -91,7 +93,7 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 	- plu_code
 	- barcode
 
-6. stores (collection)
+3. stores (collection)
 	- store_id
 	- name
 	- logo_url
