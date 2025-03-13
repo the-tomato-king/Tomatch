@@ -147,3 +147,11 @@ Sub-Collections under users:
 		- The store is marked as "archived" (inactive) but remains in the database.
 		- Users can choose whether price records remain accessible.
 	- User Confirm: Full Deletion (Cascade Delete): If confirmed, the store and all linked price records will be permanently deleted.
+
+## Development Guide
+
+### Setup
+1. Clone the repository
+2. Install dependencies: `npm install` or `yarn install`
+3. Create a `.env` file in the root directory with the required environment variables
+4. Start the development server: `npm start` or `yarn start`
