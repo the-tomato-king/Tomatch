@@ -28,7 +28,7 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 ### Backend & Database
 - Authentication: Firebase Authentication
 - Database: Firebase Cloud Firestore
-- Storage: 
+- Storage: Amzon AWS S3
 
 ### External APIs
 
