@@ -5,6 +5,10 @@ import ProductCard from "../components/ProductCard";
 import { mockProducts } from "../data/mockData";
 
 const HomeScreen = () => {
+  // useEffect(() => {
+  //   testFirestoreConnection();
+  // }, []); 
+  
   return (
     <View>
       <View style={styles.container}>
