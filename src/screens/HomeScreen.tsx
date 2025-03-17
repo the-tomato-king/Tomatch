@@ -8,11 +8,14 @@ const HomeScreen = () => {
   return (
     <View>
       <View style={styles.container}>
-        <Text style={styles.title}>All Products</Text>
         <FlatList
+          style={styles.list}
           data={mockProducts}
           keyExtractor={(item) => item.product_id}
-          renderItem={({ item }) => <Text>{item.name}</Text>}
+          renderItem={({ item }) => <ProductCard product={item} />}
+          ListEmptyComponent={<Text>No products found</Text>}
+          ListHeaderComponent={<Text style={styles.title}>All Products</Text>}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       </View>
     </View>

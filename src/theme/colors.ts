@@ -1,4 +1,4 @@
-const colors = {
+export const colors = {
   // theme
   primary: "#1A73E8",
   secondary: "#34A853",
@@ -6,7 +6,7 @@ const colors = {
   negative: "#EA4335",
 
   // neutral
-  neutralLightGray: "#F8F9FA",
+  lightGray: "#F8F9FA",
   mediumGray: "#DADCE0",
 
   // text
@@ -17,5 +17,3 @@ const colors = {
   white: "#FFFFFF",
   black: "#000000",
 };
-
-export default colors;
