@@ -70,12 +70,15 @@ export interface PriceRecord {
   recorded_at: Date;
 }
 
+export type ImageType = "emoji" | "image";
+
 // Product
 export interface Product {
   product_id: string;
   name: string;
   category: string;
-  image_url: string;
+  imageType: ImageType;
+  imageSource: string; // emoji string or image url
   plu_code: string;
   barcode: string;
 }

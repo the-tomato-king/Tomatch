@@ -27,6 +27,7 @@ const MainTabNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{
+          title: "All Products",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="home" color={color} size={size} />
           ),
