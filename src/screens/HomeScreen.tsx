@@ -1,7 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
+import { testFirestoreConnection } from '../services/firebase/test';
+
 
 const HomeScreen = () => {
+  // useEffect(() => {
+  //   testFirestoreConnection();
+  // }, []); 
+  
   return (
     <View>
       <Text>HomeScreen</Text>
@@ -12,3 +18,4 @@ const HomeScreen = () => {
 export default HomeScreen
 
 const styles = StyleSheet.create({})
+
