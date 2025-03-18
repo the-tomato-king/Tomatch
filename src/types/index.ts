@@ -7,9 +7,9 @@ export interface User {
   phone_number: string;
   location: Location;
   preferred_unit: PreferredUnit;
+  preferred_currency: string;
   created_at: Date;
   updated_at: Date;
-  currency: string;
   favorites_stores: string[]; // store_ids array
 }
 
@@ -54,17 +54,12 @@ export interface ShoppingList {
   updated_at: Date;
 }
 
-export interface Price {
-  amount: number;
-  currency: string;
-}
-
 // User Price Record
 export interface PriceRecord {
   record_id: string;
   product_id: string;
   store_id: string;
-  price: Price;
+  price: number;
   unit_type: string;
   photo_url: string;
   recorded_at: Date;

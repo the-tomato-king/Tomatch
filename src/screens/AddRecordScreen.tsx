@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   TextInput,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import React, { useState } from "react";
 import { globalStyles } from "../theme/styles";
@@ -12,8 +13,18 @@ import { colors } from "../theme/colors";
 import { UNITS, ALL_UNITS } from "../constants/units";
 import DropDownPicker from "react-native-dropdown-picker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  requestMediaLibraryPermissionsAsync,
+  launchImageLibraryAsync,
+} from "expo-image-picker";
+
+import { createDoc } from "../services/firebase/firebaseHelper";
+import { COLLECTIONS } from "../constants/firebase";
+import { PriceRecord} from "../types";
+
 
 const AddRecordScreen = () => {
+  const [image, setImage] = useState<string | null>(null);
   const [productName, setProductName] = useState("");
   const [storeName, setStoreName] = useState("");
   const [price, setPrice] = useState("");
@@ -29,21 +40,55 @@ const AddRecordScreen = () => {
     }))
   );
 
+  const pickImage = async () => {
+    try {
+      const permissionResult = await requestMediaLibraryPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        alert("You need to enable permission to access the photo library!");
+        return;
+      }
+
+      const result = await launchImageLibraryAsync({
+        mediaTypes: "images",
+        quality: 0.2,
+      });
+
+      if (!result.canceled) {
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      alert("Failed to pick image");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.cardContainer}>
-        <TouchableOpacity style={styles.imageContainer}>
-          <View style={styles.imageContent}>
-            <View style={styles.cameraIconContainer}>
-              <MaterialCommunityIcons
-                name="camera-plus-outline"
-                size={40}
-                color={colors.mediumGray}
-              />
-            </View>
-            <Text style={styles.uploadText}>Click to add photo</Text>
-          </View>
-        </TouchableOpacity>
+        {image ? (
+          <TouchableOpacity
+            style={[styles.imageContainer, { borderWidth: 1, borderStyle: "solid" }]}
+            onPress={pickImage}
+          >
+            <Image source={{ uri: image }} style={styles.previewImage} />
+          </TouchableOpacity>
+        ) : (
+          <>
+            <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
+              <View style={styles.imageContent}>
+                <View style={styles.cameraIconContainer}>
+                  <MaterialCommunityIcons
+                    name="camera-plus-outline"
+                    size={80}
+                    color={colors.mediumGray}
+                  />
+                </View>
+                <Text style={styles.uploadText}>Click to add photo</Text>
+              </View>
+            </TouchableOpacity>
+          </>
+        )}
         <View style={globalStyles.inputsContainer}>
           <View style={globalStyles.inputContainer}>
             <Text style={globalStyles.inputLabel}>Product Name</Text>
@@ -152,11 +197,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   cameraIconContainer: {
-    transform: [{ scaleX: 1.2 }],
+    transform: [{ scaleX: 1.1 }],
     marginBottom: 15,
   },
   uploadText: {
     color: colors.darkGray,
     fontSize: 16,
+  },
+  previewImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 8,
   },
 });
