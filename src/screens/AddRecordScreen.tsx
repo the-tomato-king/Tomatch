@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { globalStyles } from "../theme/styles";
 import { colors } from "../theme/colors";
@@ -20,10 +21,10 @@ import {
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
-import { PriceRecord} from "../types";
-
+import { PriceRecord } from "../types";
 
 const AddRecordScreen = () => {
+  const navigation = useNavigation();
   const [image, setImage] = useState<string | null>(null);
   const [productName, setProductName] = useState("");
   const [storeName, setStoreName] = useState("");
@@ -63,12 +64,58 @@ const AddRecordScreen = () => {
     }
   };
 
+  const handleSave = async () => {
+    try {
+      if (!productName || !storeName || !price || !unitType) {
+        alert("Please fill in all required fields");
+        return;
+      }
+
+      const numericPrice = parseFloat(price);
+      if (isNaN(numericPrice)) {
+        alert("Please enter a valid price");
+        return;
+      }
+
+      const priceRecord: PriceRecord = {
+        record_id: "", // Firebase will generate this
+        product_id: "", // TODO: Link to real product
+        store_id: "", // TODO: Link to real store
+        price: numericPrice,
+        unit_type: unitType,
+        photo_url: image || "",
+        recorded_at: new Date(),
+      };
+
+      const recordId = await createDoc(
+        // TODO: Link to real user
+        COLLECTIONS.USERS +
+          "/user123/" +
+          COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS,
+        priceRecord
+      );
+
+      if (recordId) {
+        alert("Record saved successfully!");
+        navigation.goBack();
+      } else {
+        alert("Failed to save record");
+      }
+    } catch (error) {
+      console.error("Error saving record:", error);
+      alert("Failed to save record");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.cardContainer}>
         {image ? (
           <TouchableOpacity
-            style={[styles.imageContainer, { borderWidth: 1, borderStyle: "solid" }]}
+            style={[
+              styles.imageContainer,
+              { borderWidth: 1, borderStyle: "solid" },
+            ]}
             onPress={pickImage}
           >
             <Image source={{ uri: image }} style={styles.previewImage} />
@@ -140,6 +187,7 @@ const AddRecordScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[globalStyles.button, globalStyles.primaryButton]}
+            onPress={handleSave}
           >
             <Text style={globalStyles.primaryButtonText}>Save</Text>
           </TouchableOpacity>
