@@ -11,12 +11,24 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: colors.white,
     padding: 10,
   },
+  // Input styles
+  inputsContainer: {
+ 
+  },
+  inputContainer: {
+    backgroundColor: colors.white,
+    marginBottom: 25,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: "400",
+    marginBottom: 5,
+  },
   input: {
     borderWidth: 1,
-    borderColor: colors.mediumGray,
-    borderRadius: 5,
     padding: 15,
-    marginBottom: 30,
+    borderRadius: 8,
+    borderColor: colors.mediumGray,
   },
   // Button styles
   twoButtonsContainer: {
