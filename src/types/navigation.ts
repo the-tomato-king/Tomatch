@@ -7,6 +7,11 @@ export type MainTabParamList = {
 };
 
 export type HomeStackParamList = {
-  Home: undefined;
+  HomeScreen: undefined;
   ProductDetail: { productId: string };
+};
+
+export type RootStackParamList = {
+  Main: undefined;
+  AddRecordModal: undefined;
 };

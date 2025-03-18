@@ -8,7 +8,7 @@ import { HomeStackParamList } from '../types/navigation';
 
 type ProductNavigationProp = NativeStackNavigationProp<
   HomeStackParamList,
-  "Home"
+  "HomeScreen"
 >;
 
 interface ProductCardProps {

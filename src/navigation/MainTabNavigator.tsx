@@ -1,7 +1,9 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { MainTabParamList } from "../types/navigation";
+import { MainTabParamList, RootStackParamList } from "../types/navigation";
 import { View, StyleSheet, Platform } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import HomeStack from "./HomeStack";
 import ShoppingListScreen from "../screens/ShoppingListScreen";
@@ -11,8 +13,11 @@ import { ButtomAddButton } from "../components/ButtomAddButton";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+type RootNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const MainTabNavigator = () => {
+  const navigation = useNavigation<RootNavigationProp>();
+
   const blankScreen = () => {
     return <View />;
   };
@@ -57,7 +62,7 @@ const MainTabNavigator = () => {
           tabBarButton: (props) => (
             <ButtomAddButton
               onPress={() => {
-                console.log("Add button pressed");
+                navigation.navigate("AddRecordModal");
               }}
             />
           ),
