@@ -5,3 +5,8 @@ export type MainTabParamList = {
   Stores: undefined;
   Setting: undefined;
 };
+
+export type HomeStackParamList = {
+  Home: undefined;
+  ProductDetail: { productId: string };
+};
