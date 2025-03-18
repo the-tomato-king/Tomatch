@@ -1,7 +1,7 @@
 import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { Product } from '../types';
-import { styles } from '../theme/styles';
+import { globalStyles } from '../theme/styles';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '../types/navigation';
@@ -23,7 +23,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <TouchableOpacity onPress={handlePress}>
-    <View style={styles.card}>
+    <View style={globalStyles.card}>
       <Text>{product.name}</Text>
     </View>
   </TouchableOpacity>

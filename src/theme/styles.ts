@@ -1,28 +1,21 @@
 import { StyleSheet } from "react-native";
 import { colors } from "./colors";
 
-export const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 20,
-    // backgroundColor: "pink",
-  },
+export const globalStyles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "bold",
     marginVertical: 20,
   },
-  list: {
-
-  },
   card: {
     backgroundColor: colors.white,
     padding: 10,
-  
   },
-  separator: {
-    height: 1,
-    backgroundColor: "#E0E0E0",
-    width: "100%",
-    alignSelf: "center",
+  input: {
+    borderWidth: 1,
+    borderColor: colors.darkGray,
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
   },
 });
