@@ -5,23 +5,34 @@ import {
   ScrollView,
   SafeAreaView,
   TextInput,
-  TouchableOpacity,
   Button,
+  TouchableOpacity,
 } from "react-native";
 import React, { useState } from "react";
 import { globalStyles } from "../theme/styles";
 import { colors } from "../theme/colors";
+import { UNITS, ALL_UNITS } from "../constants/units";
+import DropDownPicker from "react-native-dropdown-picker";
+
 const AddRecordScreen = () => {
   const [productName, setProductName] = useState("");
   const [storeName, setStoreName] = useState("");
   const [price, setPrice] = useState("");
-  const [unitType, setUnitType] = useState("/lb");
+  const [unitType, setUnitType] = useState(UNITS.WEIGHT.LB);
   const [photoUrl, setPhotoUrl] = useState("");
-  const [recordedAt, setRecordedAt] = useState(new Date());
+
+  // state for DropDownPicker
+  const [open, setOpen] = useState(false);
+  const [items] = useState(
+    ALL_UNITS.map((unit) => ({
+      label: unit,
+      value: unit,
+    }))
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.cardContainer}>
         <Text style={styles.title}>Log New Price</Text>
         <View style={styles.imageContainer}></View>
         <TextInput
@@ -39,26 +50,32 @@ const AddRecordScreen = () => {
         <View style={styles.priceContainer}>
           <TextInput
             style={[styles.priceInput, globalStyles.input]}
-            placeholder="0.00"
+            placeholder="Price"
             value={price}
             onChangeText={setPrice}
             keyboardType="decimal-pad"
           />
-          <TouchableOpacity style={[styles.unitButton, globalStyles.input]}>
-            <Text>{unitType}</Text>
-            <Text style={styles.dropdownIcon}>▼</Text>
+          <DropDownPicker
+            open={open}
+            value={unitType}
+            items={items}
+            setOpen={setOpen}
+            setValue={setUnitType}
+            style={[styles.unitPicker, globalStyles.input]}
+            containerStyle={styles.dropdownContainer}
+            textStyle={styles.dropdownText}
+            maxHeight={200}
+          />
+        </View>
+        <View style={globalStyles.twoButtonsContainer}>
+          <TouchableOpacity style={[globalStyles.button, globalStyles.primaryButton]}>
+            <Text style={globalStyles.primaryButtonText}>Add More</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[globalStyles.button, globalStyles.primaryButton]}>
+            <Text style={globalStyles.primaryButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
-        <TextInput
-          style={globalStyles.input}
-          placeholder="Photo URL"
-          value={photoUrl}
-          onChangeText={setPhotoUrl}
-        />
-        <TextInput style={globalStyles.input} placeholder="Recorded At" />
-        <Button title="Add More" />
-        <Button title="Save" />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -70,8 +87,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  scrollContainer: {
-    padding: 16,
+  cardContainer: {
+    padding: 30,
   },
   title: {
     fontSize: 24,
@@ -93,13 +110,13 @@ const styles = StyleSheet.create({
   priceInput: {
     flex: 1,
   },
-  unitButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    width: 80,
+  unitPicker: {
+    borderColor: colors.mediumGray,
   },
-  dropdownIcon: {
-    fontSize: 12,
+  dropdownContainer: {
+    width: 100,
+  },
+  dropdownText: {
+    fontSize: 16,
   },
 });
