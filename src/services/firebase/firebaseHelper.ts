@@ -40,6 +40,12 @@ export async function readOneDoc<T>(
 
 export async function readAllDocs<T>(collectionName: string): Promise<T[]> {
   try {
+    if (!collectionName) {
+      throw new Error("Collection name is required");
+    }
+
+    console.log("Fetching collection:", collectionName); 
+
     const querySnapshot = await getDocs(collection(db, collectionName));
     return querySnapshot.docs.map((doc) => doc.data() as T);
   } catch (err) {
@@ -47,6 +53,7 @@ export async function readAllDocs<T>(collectionName: string): Promise<T[]> {
     return [];
   }
 }
+
 
 export async function updateOneDocInDB<T extends object>(
     collectionName: string,
