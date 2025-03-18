@@ -11,7 +11,13 @@ export type HomeStackParamList = {
   ProductDetail: { productId: string };
 };
 
+export type ShoppingStackParamList = {
+  ShoppingList: undefined;
+  AddShoppingList: undefined;
+};
+
 export type RootStackParamList = {
   Main: undefined;
   AddRecordModal: undefined;
 };
+
