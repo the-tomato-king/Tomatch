@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { globalStyles } from "../theme/styles";
-
+import { colors } from "../theme/colors";
 const AddRecordScreen = () => {
   const [productName, setProductName] = useState("");
   const [storeName, setStoreName] = useState("");
@@ -23,9 +23,7 @@ const AddRecordScreen = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>Log New Price</Text>
-        <View style={styles.imageContainer}>
-
-        </View>
+        <View style={styles.imageContainer}></View>
         <TextInput
           style={globalStyles.input}
           placeholder="Product Name"
@@ -38,22 +36,26 @@ const AddRecordScreen = () => {
           value={storeName}
           onChangeText={setStoreName}
         />
-        <TextInput
-          style={globalStyles.input}
-          placeholder="Price"
-          value={price}
-          onChangeText={setPrice}
-        />
+        <View style={styles.priceContainer}>
+          <TextInput
+            style={[styles.priceInput, globalStyles.input]}
+            placeholder="0.00"
+            value={price}
+            onChangeText={setPrice}
+            keyboardType="decimal-pad"
+          />
+          <TouchableOpacity style={[styles.unitButton, globalStyles.input]}>
+            <Text>{unitType}</Text>
+            <Text style={styles.dropdownIcon}>▼</Text>
+          </TouchableOpacity>
+        </View>
         <TextInput
           style={globalStyles.input}
           placeholder="Photo URL"
           value={photoUrl}
           onChangeText={setPhotoUrl}
         />
-        <TextInput
-          style={globalStyles.input}
-          placeholder="Recorded At"
-        />
+        <TextInput style={globalStyles.input} placeholder="Recorded At" />
         <Button title="Add More" />
         <Button title="Save" />
       </ScrollView>
@@ -82,5 +84,22 @@ const styles = StyleSheet.create({
     height: 200,
     backgroundColor: "pink",
     marginBottom: 20,
+  },
+  priceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  priceInput: {
+    flex: 1,
+  },
+  unitButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    width: 80,
+  },
+  dropdownIcon: {
+    fontSize: 12,
   },
 });

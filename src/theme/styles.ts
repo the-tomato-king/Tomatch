@@ -13,7 +13,7 @@ export const globalStyles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.darkGray,
+    borderColor: colors.mediumGray,
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,

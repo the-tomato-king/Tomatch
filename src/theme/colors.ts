@@ -7,7 +7,7 @@ export const colors = {
 
   // neutral
   lightGray: "#F8F9FA",
-  mediumGray: "#DADCE0",
+  mediumGray: "#ccc",
   darkGray: "#4A4A4A",
 
   // text
