@@ -5,3 +5,13 @@ export type MainTabParamList = {
   Stores: undefined;
   Setting: undefined;
 };
+
+export type HomeStackParamList = {
+  HomeScreen: undefined;
+  ProductDetail: { productId: string };
+};
+
+export type RootStackParamList = {
+  Main: undefined;
+  AddRecordModal: undefined;
+};

@@ -1,9 +1,11 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { MainTabParamList } from "../types/navigation";
+import { MainTabParamList, RootStackParamList } from "../types/navigation";
 import { View, StyleSheet, Platform } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import HomeScreen from "../screens/HomeScreen";
+import HomeStack from "./HomeStack";
 import ShoppingListScreen from "../screens/ShoppingListScreen";
 import StoreScreen from "../screens/StoreScreen";
 import SettingScreen from "../screens/SettingScreen";
@@ -11,8 +13,14 @@ import { ButtomAddButton } from "../components/ButtomAddButton";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+type RootNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const MainTabNavigator = () => {
+  const navigation = useNavigation<RootNavigationProp>();
+
+  const blankScreen = () => {
+    return <View />;
+  };
   return (
     <Tab.Navigator
       screenOptions={{
@@ -25,8 +33,10 @@ const MainTabNavigator = () => {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStack}
         options={{
+          title: "All Products",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="home" color={color} size={size} />
           ),
@@ -47,12 +57,12 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Add"
-        component={HomeScreen}
+        component={blankScreen}
         options={{
           tabBarButton: (props) => (
             <ButtomAddButton
               onPress={() => {
-                console.log("Add button pressed");
+                navigation.navigate("AddRecordModal");
               }}
             />
           ),

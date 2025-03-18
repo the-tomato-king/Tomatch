@@ -103,6 +103,18 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 	- created_at
 	- updated_at
 
+4. product_stats (collection)
+   - product_id
+   - currency
+   - average_price
+   - lowest_price
+   - highest_price
+   - lowest_price_store
+     - store_id
+     - store_name
+   - total_price_records
+   - last_updated
+
 ## CRUD Operations on Collections
 
 1. users (collection): Stores user profiles and preferences.
