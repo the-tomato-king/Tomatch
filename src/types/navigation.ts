@@ -18,6 +18,7 @@ export type ShoppingStackParamList = {
 
 export type RootStackParamList = {
   Main: undefined;
-  AddRecordModal: undefined;
+  AddRecordModal: {
+    handleSave?: () => void;
+  };
 };
-

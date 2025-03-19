@@ -139,7 +139,9 @@ const AddRecordScreen = () => {
         )}
         <View style={globalStyles.inputsContainer}>
           <View style={globalStyles.inputContainer}>
-            <Text style={globalStyles.inputLabel}>Product Name</Text>
+            <View style={globalStyles.labelContainer}>
+              <Text style={globalStyles.inputLabel}>Name</Text>
+            </View>
             <TextInput
               style={globalStyles.input}
               placeholder="Product Name"
@@ -148,7 +150,9 @@ const AddRecordScreen = () => {
             />
           </View>
           <View style={globalStyles.inputContainer}>
-            <Text style={globalStyles.inputLabel}>Store Name</Text>
+            <View style={globalStyles.labelContainer}>
+              <Text style={globalStyles.inputLabel}>Store</Text>
+            </View>
             <TextInput
               style={globalStyles.input}
               placeholder="Store Name"
@@ -157,10 +161,12 @@ const AddRecordScreen = () => {
             />
           </View>
           <View style={globalStyles.inputContainer}>
-            <Text style={globalStyles.inputLabel}>Price</Text>
+            <View style={globalStyles.labelContainer}>
+              <Text style={globalStyles.inputLabel}>Price</Text>
+            </View>
             <View style={styles.priceContainer}>
               <TextInput
-                style={[styles.priceInput, globalStyles.input]}
+                style={[globalStyles.input]}
                 placeholder="Price"
                 value={price}
                 onChangeText={setPrice}
@@ -172,25 +178,31 @@ const AddRecordScreen = () => {
                 items={items}
                 setOpen={setOpen}
                 setValue={setUnitType}
-                style={[styles.unitPicker, globalStyles.input]}
+                style={[
+                  {
+                    backgroundColor: colors.lightGray2,
+                    borderWidth: 0,
+                    minHeight: 48,
+                    paddingHorizontal: 12,
+                  },
+                ]}
                 containerStyle={styles.dropdownContainer}
-                textStyle={styles.dropdownText}
+                textStyle={{ fontSize: 16 }}
+                dropDownContainerStyle={{
+                  backgroundColor: colors.white,
+                  borderWidth: 1,
+                  borderColor: colors.lightGray2,
+                }}
                 maxHeight={200}
               />
             </View>
           </View>
         </View>
-        <View style={[globalStyles.twoButtonsContainer, { marginTop: 10 }]}>
+        <View style={[globalStyles.buttonsContainer, { marginTop: 20 }]}>
           <TouchableOpacity
             style={[globalStyles.button, globalStyles.primaryButton]}
           >
             <Text style={globalStyles.primaryButtonText}>Add More</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[globalStyles.button, globalStyles.primaryButton]}
-            onPress={handleSave}
-          >
-            <Text style={globalStyles.primaryButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -216,12 +228,12 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: "100%",
-    height: 200,
+    height: 180,
     borderWidth: 2,
     borderStyle: "dashed",
     borderColor: colors.mediumGray,
     borderRadius: 8,
-    marginVertical: 40,
+    marginVertical: 20,
   },
   imageContent: {
     flex: 1,
@@ -229,24 +241,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   priceContainer: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
-  priceInput: {
-    flex: 1,
-  },
-  unitPicker: {
-    borderColor: colors.mediumGray,
-  },
   dropdownContainer: {
     width: 100,
   },
-  dropdownText: {
-    fontSize: 16,
-  },
   cameraIconContainer: {
-    transform: [{ scaleX: 1.1 }],
     marginBottom: 15,
   },
   uploadText: {
