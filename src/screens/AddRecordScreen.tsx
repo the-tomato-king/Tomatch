@@ -79,10 +79,11 @@ const AddRecordScreen = () => {
 
       const priceRecord: PriceRecord = {
         record_id: "", // Firebase will generate this
-        product_id: "", // TODO: Link to real product
+        user_product_id: "", // TODO: Link to real product
         store_id: "", // TODO: Link to real store
         price: numericPrice,
         unit_type: unitType,
+        unit_price: numericPrice, //TODO: Calculate unit price
         photo_url: image || "",
         recorded_at: new Date(),
       };

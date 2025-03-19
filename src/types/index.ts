@@ -8,9 +8,9 @@ export interface User {
   location: Location;
   preferred_unit: PreferredUnit;
   preferred_currency: string;
+  favorites_stores: string[]; // store_ids array
   created_at: Date;
   updated_at: Date;
-  favorites_stores: string[]; // store_ids array
 }
 
 interface Location {
@@ -30,6 +30,13 @@ interface Coordinates {
 interface PreferredUnit {
   weight: string;
   volume: string;
+}
+
+// User Products
+export interface UserProduct {
+  product_id: string; // reference to products collection
+  created_at: Date;
+  updated_at: Date;
 }
 
 // User Customized Product
@@ -57,10 +64,11 @@ export interface ShoppingList {
 // User Price Record
 export interface PriceRecord {
   record_id: string;
-  product_id: string;
-  store_id: string;
+  user_product_id: string; // references user_products
+  store_id: string; // references stores
   price: number;
   unit_type: string;
+  unit_price: number;
   photo_url: string;
   recorded_at: Date;
 }
@@ -72,8 +80,8 @@ export interface Product {
   product_id?: string;
   name: string;
   category: string;
-  imageType: ImageType;
-  imageSource: string; // emoji string or image url
+  image_type: ImageType;
+  image_source: string; // emoji string or image url
   plu_code: string;
   barcode: string;
 }
@@ -88,4 +96,19 @@ export interface Store {
   inactive: boolean;
   created_at: Date;
   updated_at: Date;
+}
+
+// Product Stats
+export interface ProductStats {
+  product_id: string; // reference to products collection
+  currency: string;
+  average_price: number;
+  lowest_price: number;
+  highest_price: number;
+  lowest_price_store: {
+    store_id: string;
+    store_name: string;
+  };
+  total_price_records: number;
+  last_updated: Date;
 }
