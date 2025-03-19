@@ -24,6 +24,7 @@ const ShoppingListScreen = () => {
       try {
         const lists: ShoppingList[] = await readAllDocs<ShoppingList>('shoppingLists');
         setShoppingLists(lists);
+        console.log("Fetched shopping lists: ", lists);
       } catch (error) {
         console.error('Error fetching shopping lists: ', error);
       }
@@ -36,7 +37,7 @@ const ShoppingListScreen = () => {
     <View style={styles.container}>
       <FlatList
         data={shoppingLists}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.listItem}>
             <Text style={styles.listName}>{item.name}</Text>
@@ -46,6 +47,7 @@ const ShoppingListScreen = () => {
       />
     </View>
   );
+  
 };
 
 export default ShoppingListScreen;

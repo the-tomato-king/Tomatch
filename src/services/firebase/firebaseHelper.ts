@@ -37,22 +37,25 @@ export async function readOneDoc<T>(
     return null;
   }
 }
-
 export async function readAllDocs<T>(collectionName: string): Promise<T[]> {
   try {
     if (!collectionName) {
       throw new Error("Collection name is required");
     }
 
-    console.log("Fetching collection:", collectionName); 
+    console.log("Fetching collection:", collectionName);
 
     const querySnapshot = await getDocs(collection(db, collectionName));
-    return querySnapshot.docs.map((doc) => doc.data() as T);
+    return querySnapshot.docs.map((doc) => ({
+      id: doc.id, 
+      ...doc.data(), 
+    }) as T);
   } catch (err) {
     console.error("Error reading all documents:", (err as FirestoreError).message);
     return [];
   }
 }
+
 
 
 export async function updateOneDocInDB<T extends object>(
