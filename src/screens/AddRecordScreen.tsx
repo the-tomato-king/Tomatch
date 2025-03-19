@@ -19,9 +19,11 @@ import {
   launchImageLibraryAsync,
 } from "expo-image-picker";
 
+import { PRODUCTS } from "../data/Product";
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
 import { PriceRecord } from "../types";
+import ProductSearchInput from "../components/ProductSearchInput";
 
 const AddRecordScreen = () => {
   const navigation = useNavigation();
@@ -138,17 +140,14 @@ const AddRecordScreen = () => {
           </>
         )}
         <View style={globalStyles.inputsContainer}>
-          <View style={globalStyles.inputContainer}>
-            <View style={globalStyles.labelContainer}>
-              <Text style={globalStyles.inputLabel}>Name</Text>
-            </View>
-            <TextInput
-              style={globalStyles.input}
-              placeholder="Product Name"
-              value={productName}
-              onChangeText={setProductName}
-            />
-          </View>
+          <ProductSearchInput
+            inputValue={productName}
+            onChangeInputValue={setProductName}
+            products={PRODUCTS}
+            onSelectProduct={(product) => {
+              setProductName(product.name);
+            }}
+          />
           <View style={globalStyles.inputContainer}>
             <View style={globalStyles.labelContainer}>
               <Text style={globalStyles.inputLabel}>Store</Text>
@@ -248,6 +247,7 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     width: 100,
+    zIndex: 0,
   },
   cameraIconContainer: {
     marginBottom: 15,
