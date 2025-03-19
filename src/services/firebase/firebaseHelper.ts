@@ -8,9 +8,10 @@ import {
   getDoc,
   updateDoc,
   FirestoreError,
-} from "firebase/firestore"; 
+  writeBatch,
+} from "firebase/firestore";
 
-
+// create a document in the database
 export async function createDoc<T extends object>(
   collectionName: string,
   data: T
@@ -24,6 +25,7 @@ export async function createDoc<T extends object>(
   }
 }
 
+// read a document from the database
 export async function readOneDoc<T>(
   collectionName: string,
   id: string
@@ -37,6 +39,8 @@ export async function readOneDoc<T>(
     return null;
   }
 }
+
+// read all documents from the database
 export async function readAllDocs<T>(collectionName: string): Promise<T[]> {
   try {
     if (!collectionName) {
@@ -46,32 +50,38 @@ export async function readAllDocs<T>(collectionName: string): Promise<T[]> {
     console.log("Fetching collection:", collectionName);
 
     const querySnapshot = await getDocs(collection(db, collectionName));
-    return querySnapshot.docs.map((doc) => ({
-      id: doc.id, 
-      ...doc.data(), 
-    }) as T);
+    return querySnapshot.docs.map(
+      (doc) =>
+        ({
+          id: doc.id,
+          ...doc.data(),
+        } as T)
+    );
   } catch (err) {
-    console.error("Error reading all documents:", (err as FirestoreError).message);
+    console.error(
+      "Error reading all documents:",
+      (err as FirestoreError).message
+    );
     return [];
   }
 }
 
-
-
+// update a document in the database
 export async function updateOneDocInDB<T extends object>(
-    collectionName: string,
-    id: string,
-    data: T
-  ): Promise<boolean> {
-    try {
-      await updateDoc(doc(db, collectionName, id), data);
-      return true;
-    } catch (err) {
-      console.error("Error updating document:", err);
-      return false;
-    }
+  collectionName: string,
+  id: string,
+  data: T
+): Promise<boolean> {
+  try {
+    await updateDoc(doc(db, collectionName, id), data);
+    return true;
+  } catch (err) {
+    console.error("Error updating document:", err);
+    return false;
   }
+}
 
+// delete a document from the database
 export async function deleteOneDocFromDB(
   collectionName: string,
   id: string
@@ -85,16 +95,41 @@ export async function deleteOneDocFromDB(
   }
 }
 
+// delete all documents from the database
 export async function deleteAllDocs(collectionName: string): Promise<void> {
-    try {
-      const querySnapshot = await getDocs(collection(db, collectionName));
-      const deletePromises = querySnapshot.docs.map((docSnapshot) =>
-        deleteDoc(doc(db, collectionName, docSnapshot.id))
-      );
-      await Promise.all(deletePromises);
-    } catch (err) {
-      console.error("Error deleting all documents:", (err as FirestoreError).message);
-    }
+  try {
+    const querySnapshot = await getDocs(collection(db, collectionName));
+    const deletePromises = querySnapshot.docs.map((docSnapshot) =>
+      deleteDoc(doc(db, collectionName, docSnapshot.id))
+    );
+    await Promise.all(deletePromises);
+  } catch (err) {
+    console.error(
+      "Error deleting all documents:",
+      (err as FirestoreError).message
+    );
   }
+}
 
-  
+export async function batchCreateDocs<T extends object>(
+  collectionName: string,
+  dataArray: T[]
+): Promise<boolean> {
+  try {
+    const batch = writeBatch(db);
+
+    dataArray.forEach((item) => {
+      const docRef = doc(collection(db, collectionName));
+      batch.set(docRef, item);
+    });
+
+    await batch.commit();
+    return true;
+  } catch (err) {
+    console.error(
+      "Error in batch creating documents:",
+      (err as FirestoreError).message
+    );
+    return false;
+  }
+}

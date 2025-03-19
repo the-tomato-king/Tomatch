@@ -2,22 +2,26 @@ import { FlatList, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { globalStyles } from "../theme/styles";
 import ProductCard from "../components/ProductCard";
-import { mockProducts } from "../data/mockData";
+import { PRODUCTS } from "../data/Product";
 
 const HomeScreen = () => {
   // useEffect(() => {
   //   testFirestoreConnection();
-  // }, []); 
-  
+  // }, []);
+
   return (
     <View>
       <View style={styles.container}>
+        {/* todo: add search bar */}
+        {/* todo: use user's product instead of predefined product library */}
         <FlatList
-          data={mockProducts}
-          keyExtractor={(item) => item.product_id}
+          data={PRODUCTS}
+          keyExtractor={(item) => item.name}
           renderItem={({ item }) => <ProductCard product={item} />}
           ListEmptyComponent={<Text>No products found</Text>}
-          ListHeaderComponent={<Text style={globalStyles.title}>All Products</Text>}
+          ListHeaderComponent={
+            <Text style={globalStyles.title}>All Products</Text>
+          }
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       </View>

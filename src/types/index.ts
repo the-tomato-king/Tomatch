@@ -69,7 +69,7 @@ export type ImageType = "emoji" | "image";
 
 // Product
 export interface Product {
-  product_id: string;
+  product_id?: string;
   name: string;
   category: string;
   imageType: ImageType;
