@@ -6,11 +6,11 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import HomeStack from "./HomeStack";
-import ShoppingListScreen from "../screens/ShoppingListScreen";
 import StoreScreen from "../screens/StoreScreen";
 import SettingScreen from "../screens/SettingScreen";
 import { ButtomAddButton } from "../components/ButtomAddButton";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import ShoppingListStack from "./ShoppingListStack";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 type RootNavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -71,8 +71,9 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="ShoppingList"
-        component={ShoppingListScreen}
+        component={ShoppingListStack}
         options={{
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="cart" color={color} size={size} />
           ),
