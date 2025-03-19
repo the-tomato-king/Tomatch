@@ -6,10 +6,13 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
+  Pressable,
+  Keyboard,
 } from "react-native";
 import { Product } from "../types";
 import { globalStyles } from "../theme/styles";
 import { colors } from "../theme/colors";
+import GeneralPressable from "./GeneralPressable";
 
 interface ProductSearchInputProps {
   inputValue: string;
@@ -38,42 +41,47 @@ const ProductSearchInput = ({
       setSuggestions([]);
       setShowSuggestions(false);
     }
-  }, [inputValue, products]);
+  }, [inputValue]);
 
-  const handleBlur = () => {
-    setTimeout(() => {
-      setShowSuggestions(false);
-    }, 200);
-  };
+  // Make sure suggestions are cleared when user already tapped on a suggestion
+  useEffect(() => {
+    if (!showSuggestions) {
+      setSuggestions([]);
+    }
+  }, [showSuggestions]);
 
   return (
-    <View style={[globalStyles.inputContainer, styles.container]}>
-      <View style={globalStyles.labelContainer}>
-        <Text style={globalStyles.inputLabel}>Name</Text>
+    <View style={styles.wrapper}>
+      <View style={[globalStyles.inputContainer]}>
+        <View style={globalStyles.labelContainer}>
+          <Text style={globalStyles.inputLabel}>Name</Text>
+        </View>
+        <TextInput
+          style={[globalStyles.input]}
+          value={inputValue}
+          onChangeText={onChangeInputValue}
+          placeholder="Search product..."
+          onFocus={() => setShowSuggestions(true)}
+        />
       </View>
-      <TextInput
-        style={[globalStyles.input]}
-        value={inputValue}
-        onChangeText={onChangeInputValue}
-        placeholder="Search product..."
-        onFocus={() => setShowSuggestions(true)}
-        onBlur={handleBlur}
-      />
+
       {showSuggestions && suggestions.length > 0 && (
         <View style={styles.suggestionsContainer}>
           <FlatList
-            style={{ flex: 1 }}
             data={suggestions}
             keyExtractor={(item) => item.product_id || item.name}
+            keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
-              <TouchableOpacity
+              <GeneralPressable
+                containerStyle={styles.suggestionItem}
                 onPress={() => {
                   onSelectProduct(item);
                   setShowSuggestions(false);
+                  setSuggestions([]);
                 }}
               >
-                <Text style={styles.suggestionItem}>{item.name}</Text>
-              </TouchableOpacity>
+                <Text style={styles.suggestionText}>{item.name}</Text>
+              </GeneralPressable>
             )}
           />
         </View>
@@ -83,14 +91,13 @@ const ProductSearchInput = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     position: "relative",
-    zIndex: 1,
-    // flex: 1,
+    zIndex: 1000,
   },
   suggestionsContainer: {
     position: "absolute",
-    top: 50,
+    top: "100%",
     left: 0,
     right: 0,
     backgroundColor: colors.white,
@@ -98,18 +105,16 @@ const styles = StyleSheet.create({
     maxHeight: 200,
     borderWidth: 1,
     borderColor: colors.mediumGray,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    zIndex: 1001,
   },
   suggestionItem: {
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: colors.lightGray2,
+  },
+  suggestionText: {
+    fontSize: 16,
+    color: colors.darkText,
   },
 });
 
