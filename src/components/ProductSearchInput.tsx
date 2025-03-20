@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, TextInput, StyleSheet, Text, FlatList } from "react-native";
-import { Product } from "../types";
+import { Product, UserProduct } from "../types";
 import { globalStyles } from "../theme/styles";
 import { colors } from "../theme/colors";
 import GeneralPressable from "./GeneralPressable";
@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
+import { useProducts } from "../hooks/useProducts";
 
 type ProductSearchNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -15,16 +16,15 @@ type ProductSearchNavigationProp =
 interface ProductSearchInputProps {
   inputValue: string;
   onChangeInputValue: (text: string) => void;
-  products: Product[];
   onSelectProduct: (product: Product) => void;
 }
 
 const ProductSearchInput = ({
   inputValue,
   onChangeInputValue,
-  products,
   onSelectProduct,
 }: ProductSearchInputProps) => {
+  const { products, loading } = useProducts();
   const [suggestions, setSuggestions] = useState<Product[]>(products);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isNewProduct, setIsNewProduct] = useState(false);
@@ -92,7 +92,7 @@ const ProductSearchInput = ({
         <View style={styles.suggestionsContainer}>
           <FlatList
             data={suggestions}
-            keyExtractor={(item) => item.product_id || item.name}
+            keyExtractor={(item) => item.name}
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
               <GeneralPressable

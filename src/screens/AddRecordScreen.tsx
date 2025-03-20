@@ -19,7 +19,6 @@ import {
   launchImageLibraryAsync,
 } from "expo-image-picker";
 
-import { PRODUCTS } from "../data/Product";
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
 import { PriceRecord, UserProduct } from "../types";
@@ -27,12 +26,13 @@ import ProductSearchInput from "../components/ProductSearchInput";
 
 const AddRecordScreen = () => {
   const navigation = useNavigation();
+  const [selectedProduct, setSelectedProduct] = useState<UserProduct>();
+
   const [image, setImage] = useState<string | null>(null);
   const [productName, setProductName] = useState("");
   const [storeName, setStoreName] = useState("");
   const [price, setPrice] = useState("");
   const [unitType, setUnitType] = useState(UNITS.WEIGHT.LB);
-  const [photoUrl, setPhotoUrl] = useState("");
 
   // state for DropDownPicker
   const [open, setOpen] = useState(false);
@@ -80,13 +80,18 @@ const AddRecordScreen = () => {
         return;
       }
 
+      if (!selectedProduct) {
+        alert("Please select a product from the list");
+        return;
+      }
+
       // TODO: Link to real user, now hardcoded to user123
       const userId = "user123";
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
 
       // create user product if it doesn't exist
       const userProduct: UserProduct = {
-        product_id: productName, // TODO: Link to real product, now use the product name user typed in
+        product_id: selectedProduct.product_id,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -168,9 +173,14 @@ const AddRecordScreen = () => {
           <ProductSearchInput
             inputValue={productName}
             onChangeInputValue={setProductName}
-            products={PRODUCTS}
             onSelectProduct={(product) => {
+              console.log("Selected product:", product);
               setProductName(product.name);
+              setSelectedProduct({
+                product_id: product.product_id,
+                created_at: new Date(),
+                updated_at: new Date(),
+              });
             }}
           />
           <View style={globalStyles.inputContainer}>

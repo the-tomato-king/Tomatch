@@ -13,6 +13,18 @@ import {
   where,
 } from "firebase/firestore";
 
+// Map of collection names to the field that contains the ID
+const ID_FIELD_MAP: Record<string, string> = {
+  products: "product_id",
+  users: "user_id",
+  stores: "store_id",
+  shoppingLists: "list_id",
+  priceRecords: "record_id",
+  productStats: "product_id",
+  userProducts: "product_id",
+  customizedProducts: "product_id",
+};
+
 // create a document in the database
 export async function createDoc<T extends object>(
   collectionName: string,
@@ -67,7 +79,9 @@ export async function readOneDoc<T>(
 }
 
 // read all documents from the database
-export async function readAllDocs<T>(collectionName: string): Promise<T[]> {
+export async function readAllDocs<T extends object>(
+  collectionName: string
+): Promise<(T & { id: string })[]> {
   try {
     if (!collectionName) {
       throw new Error("Collection name is required");
@@ -76,17 +90,17 @@ export async function readAllDocs<T>(collectionName: string): Promise<T[]> {
     console.log("Fetching collection:", collectionName);
 
     const querySnapshot = await getDocs(collection(db, collectionName));
-    return querySnapshot.docs.map(
-      (doc) =>
-        ({
-          id: doc.id,
-          ...doc.data(),
-        } as T)
-    );
+
+    const idField = ID_FIELD_MAP[collectionName] || "id"; // Default to id if not in map
+
+    return querySnapshot.docs.map((doc) => ({
+      ...doc.data(),
+      [idField]: doc.id,
+    })) as (T & { id: string })[];
   } catch (err) {
     console.error(
       "Error reading all documents:",
-      (err as FirestoreError).message
+      err instanceof Error ? err.message : "Unknown error"
     );
     return [];
   }
