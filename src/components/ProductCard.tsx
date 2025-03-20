@@ -1,10 +1,10 @@
-import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
-import { Product } from '../types';
-import { globalStyles } from '../theme/styles';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { HomeStackParamList } from '../types/navigation';
+import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import React from "react";
+import { UserProduct } from "../types";
+import { globalStyles } from "../theme/styles";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { HomeStackParamList } from "../types/navigation";
 
 type ProductNavigationProp = NativeStackNavigationProp<
   HomeStackParamList,
@@ -12,22 +12,24 @@ type ProductNavigationProp = NativeStackNavigationProp<
 >;
 
 interface ProductCardProps {
-  product: Product;
+  product: UserProduct;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const navigation = useNavigation<ProductNavigationProp>();
   const handlePress = () => {
-    navigation.navigate('ProductDetail', { productId: product.product_id || '' });
+    navigation.navigate("ProductDetail", {
+      productId: product.product_id || "",
+    });
   };
 
   return (
     <TouchableOpacity onPress={handlePress}>
-    <View style={globalStyles.card}>
-      <Text>{product.name}</Text>
-    </View>
-  </TouchableOpacity>
-);
-}
+      <View style={globalStyles.card}>
+        <Text>{product.product_id}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
-export default ProductCard
+export default ProductCard;
