@@ -19,15 +19,17 @@ import {
   launchImageLibraryAsync,
 } from "expo-image-picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { HomeStackParamList } from "../types/navigation";
+import { RootStackParamList } from "../types/navigation";
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
 import { PriceRecord, UserProduct } from "../types";
 import ProductSearchInput from "../components/ProductSearchInput";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../services/firebase/firebaseConfig";
 
 type AddRecordScreenNavigationProp =
-  NativeStackNavigationProp<HomeStackParamList>;
+  NativeStackNavigationProp<RootStackParamList>;
 
 const AddRecordScreen = () => {
   const navigation = useNavigation<AddRecordScreenNavigationProp>();
@@ -94,19 +96,38 @@ const AddRecordScreen = () => {
       const userId = "user123";
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
 
-      // create user product if it doesn't exist
-      const userProduct: UserProduct = {
-        product_id: selectedProduct.product_id,
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
+      // Check if user already has this product
+      const userProductsRef = collection(
+        db,
+        COLLECTIONS.USERS,
+        userId,
+        COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
+      );
 
-      const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-      const userProductId = await createDoc(userProductPath, userProduct);
+      const querySnapshot = await getDocs(userProductsRef);
+      const existingUserProduct = querySnapshot.docs.find(
+        (doc) => doc.data().product_id === selectedProduct.product_id
+      );
 
-      if (!userProductId) {
-        alert("Failed to save user product");
-        return;
+      let userProductId;
+      if (existingUserProduct) {
+        // If product exists, use its ID directly
+        userProductId = existingUserProduct.id;
+      } else {
+        // create user product if it doesn't exist
+        const userProduct: UserProduct = {
+          product_id: selectedProduct.product_id,
+          created_at: new Date(),
+          updated_at: new Date(),
+        };
+
+        const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+        userProductId = await createDoc(userProductPath, userProduct);
+
+        if (!userProductId) {
+          alert("Failed to save user product");
+          return;
+        }
       }
 
       const priceRecord: PriceRecord = {
@@ -125,7 +146,7 @@ const AddRecordScreen = () => {
 
       if (recordId) {
         alert("Record saved successfully!");
-        navigation.navigate("HomeScreen", { needsRefresh: true });
+        navigation.goBack();
       } else {
         alert("Failed to save record");
       }

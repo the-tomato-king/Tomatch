@@ -7,7 +7,7 @@ export type MainTabParamList = {
 };
 
 export type HomeStackParamList = {
-  HomeScreen: { needsRefresh?: boolean } | undefined;
+  HomeScreen: undefined;
   ProductDetail: { productId: string };
 };
 
@@ -17,7 +17,13 @@ export type ShoppingStackParamList = {
 };
 
 export type RootStackParamList = {
-  Main: undefined;
+  Main: {
+    screen?: string;
+    params?: {
+      screen: string;
+      params: { needsRefresh?: boolean };
+    };
+  };
   AddRecordModal: {
     handleSave?: () => void;
   };

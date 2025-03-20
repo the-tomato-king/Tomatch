@@ -45,11 +45,8 @@ const HomeScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      const params = route.params as { needsRefresh?: boolean } | undefined;
-      if (params?.needsRefresh) {
-        fetchUserProducts();
-      }
-    }, [route.params, fetchUserProducts])
+      fetchUserProducts();
+    }, [fetchUserProducts])
   );
 
   useEffect(() => {
