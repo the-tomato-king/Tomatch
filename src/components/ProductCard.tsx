@@ -18,7 +18,7 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const navigation = useNavigation<ProductNavigationProp>();
   const handlePress = () => {
-    navigation.navigate('ProductDetail', { productId: product.product_id });
+    navigation.navigate('ProductDetail', { productId: product.product_id || '' });
   };
 
   return (
