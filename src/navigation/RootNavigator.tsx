@@ -3,6 +3,9 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
 import MainTabNavigator from "./MainTabNavigator";
 import AddRecordScreen from "../screens/AddRecordScreen";
+import ProductLibraryScreen from "../screens/ProductLibraryScreen";
+import { Text } from "react-native";
+import { globalStyles } from "../theme/styles";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -17,10 +20,34 @@ const RootNavigator = () => {
       <Stack.Screen
         name="AddRecordModal"
         component={AddRecordScreen}
-        options={{
+        options={({ navigation, route }) => ({
           presentation: "modal",
           title: "Add Record",
-        }}
+          headerLeft: () => (
+            <Text
+              style={globalStyles.headerButton}
+              onPress={() => navigation.goBack()}
+            >
+              Cancel
+            </Text>
+          ),
+        })}
+      />
+      <Stack.Screen
+        name="ProductLibrary"
+        component={ProductLibraryScreen}
+        options={({ navigation }) => ({
+          presentation: "modal",
+          title: "Product Library",
+          headerLeft: () => (
+            <Text
+              style={globalStyles.headerButton}
+              onPress={() => navigation.goBack()}
+            >
+              Cancel
+            </Text>
+          ),
+        })}
       />
     </Stack.Navigator>
   );

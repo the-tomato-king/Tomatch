@@ -1,22 +1,22 @@
 export const UNITS = {
   WEIGHT: {
-    G: "/g",
-    HUNDRED_G: "/100g",
-    KG: "/kg",
-    MG: "/mg",
-    LB: "/lb",
-    OZ: "/oz",
+    G: "g",
+    HUNDRED_G: "100g",
+    KG: "kg",
+    MG: "mg",
+    LB: "lb",
+    OZ: "oz",
   },
   VOLUME: {
-    ML: "/ml",
-    L: "/l",
-    FL_OZ: "/fl oz",
-    PT: "/pt",
-    GAL: "/gal",
+    ML: "ml",
+    L: "l",
+    FL_OZ: "fl oz",
+    PT: "pt",
+    GAL: "gal",
   },
   COUNT: {
-    EACH: "/each",
-    PACK: "/pack",
+    EACH: "each",
+    PACK: "pack",
   },
 } as const;
 

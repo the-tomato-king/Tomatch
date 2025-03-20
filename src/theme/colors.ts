@@ -6,7 +6,8 @@ export const colors = {
   negative: "#EA4335",
 
   // neutral
-  lightGray: "#F8F9FA",
+  lightGray: "#FAFAFA",
+  lightGray2: "#F0F0F0",
   mediumGray: "#ccc",
   darkGray: "#4A4A4A",
 

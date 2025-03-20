@@ -8,7 +8,7 @@ import {
   Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import { globalStyles } from "../theme/styles";
 import { colors } from "../theme/colors";
 import { UNITS, ALL_UNITS } from "../constants/units";
@@ -18,19 +18,35 @@ import {
   requestMediaLibraryPermissionsAsync,
   launchImageLibraryAsync,
 } from "expo-image-picker";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types/navigation";
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
-import { PriceRecord } from "../types";
+import { PriceRecord, UserProduct, ProductStats } from "../types";
+import ProductSearchInput from "../components/ProductSearchInput";
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { db } from "../services/firebase/firebaseConfig";
+
+type AddRecordScreenNavigationProp =
+  NativeStackNavigationProp<RootStackParamList>;
 
 const AddRecordScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AddRecordScreenNavigationProp>();
+  const [selectedProduct, setSelectedProduct] = useState<UserProduct>();
+
   const [image, setImage] = useState<string | null>(null);
   const [productName, setProductName] = useState("");
   const [storeName, setStoreName] = useState("");
   const [price, setPrice] = useState("");
   const [unitType, setUnitType] = useState(UNITS.WEIGHT.LB);
-  const [photoUrl, setPhotoUrl] = useState("");
 
   // state for DropDownPicker
   const [open, setOpen] = useState(false);
@@ -66,6 +82,7 @@ const AddRecordScreen = () => {
 
   const handleSave = async () => {
     try {
+      // verify
       if (!productName || !storeName || !price || !unitType) {
         alert("Please fill in all required fields");
         return;
@@ -77,25 +94,125 @@ const AddRecordScreen = () => {
         return;
       }
 
+      if (!selectedProduct) {
+        alert("Please select a product from the list");
+        return;
+      }
+
+      // TODO: Link to real user, now hardcoded to user123
+      const userId = "user123";
+      const userPath = `${COLLECTIONS.USERS}/${userId}`;
+
+      // Check if user already has this product
+      const userProductsRef = collection(
+        db,
+        COLLECTIONS.USERS,
+        userId,
+        COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
+      );
+
+      const querySnapshot = await getDocs(userProductsRef);
+      const existingUserProduct = querySnapshot.docs.find(
+        (doc) => doc.data().product_id === selectedProduct.product_id
+      );
+
+      let userProductId;
+      if (existingUserProduct) {
+        // If product exists, use its ID directly
+        userProductId = existingUserProduct.id;
+      } else {
+        // create user product if it doesn't exist
+        const userProduct: UserProduct = {
+          product_id: selectedProduct.product_id,
+          created_at: new Date(),
+          updated_at: new Date(),
+        };
+
+        const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+        userProductId = await createDoc(userProductPath, userProduct);
+
+        if (!userProductId) {
+          alert("Failed to save user product");
+          return;
+        }
+      }
+
       const priceRecord: PriceRecord = {
         record_id: "", // Firebase will generate this
-        product_id: "", // TODO: Link to real product
-        store_id: "", // TODO: Link to real store
+        user_product_id: userProductId,
+        store_id: storeName, // TODO: Link to real store, now use the store name user typed in
         price: numericPrice,
         unit_type: unitType,
+        unit_price: numericPrice, //TODO: Calculate unit price, now same as price
         photo_url: image || "",
         recorded_at: new Date(),
       };
 
-      const recordId = await createDoc(
-        // TODO: Link to real user
-        COLLECTIONS.USERS +
-          "/user123/" +
-          COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS,
-        priceRecord
-      );
+      const priceRecordPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+      const recordId = await createDoc(priceRecordPath, priceRecord);
 
       if (recordId) {
+        const productStatsRef = doc(
+          db,
+          COLLECTIONS.PRODUCT_STATS,
+          selectedProduct.product_id
+        );
+        const productStatsDoc = await getDoc(productStatsRef);
+
+        let productStats: ProductStats;
+
+        if (productStatsDoc.exists()) {
+          productStats = productStatsDoc.data() as ProductStats;
+
+          const newTotalRecords = productStats.total_price_records + 1;
+          const newTotalPrice = productStats.total_price + numericPrice;
+          const newAveragePrice = newTotalPrice / newTotalRecords;
+
+          if (numericPrice < productStats.lowest_price) {
+            productStats.lowest_price = numericPrice;
+            productStats.lowest_price_store = {
+              store_id: storeName,
+              store_name: storeName,
+            };
+          }
+
+          if (numericPrice > productStats.highest_price) {
+            productStats.highest_price = numericPrice;
+          }
+
+          productStats.total_price = newTotalPrice;
+          productStats.average_price = newAveragePrice;
+          productStats.total_price_records = newTotalRecords;
+          productStats.last_updated = new Date();
+
+          await updateDoc(productStatsRef, {
+            total_price: productStats.total_price,
+            average_price: productStats.average_price,
+            lowest_price: productStats.lowest_price,
+            highest_price: productStats.highest_price,
+            lowest_price_store: productStats.lowest_price_store,
+            total_price_records: productStats.total_price_records,
+            last_updated: productStats.last_updated,
+          });
+        } else {
+          productStats = {
+            product_id: selectedProduct.product_id,
+            currency: "$", // TODO: Get from user settings
+            total_price: numericPrice,
+            average_price: numericPrice,
+            lowest_price: numericPrice,
+            highest_price: numericPrice,
+            lowest_price_store: {
+              store_id: storeName,
+              store_name: storeName,
+            },
+            total_price_records: 1,
+            last_updated: new Date(),
+          };
+
+          await setDoc(productStatsRef, productStats);
+        }
+
         alert("Record saved successfully!");
         navigation.goBack();
       } else {
@@ -106,6 +223,16 @@ const AddRecordScreen = () => {
       alert("Failed to save record");
     }
   };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Text style={globalStyles.headerButton} onPress={handleSave}>
+          Save
+        </Text>
+      ),
+    });
+  }, [navigation, handleSave]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -137,59 +264,72 @@ const AddRecordScreen = () => {
           </>
         )}
         <View style={globalStyles.inputsContainer}>
+          <ProductSearchInput
+            inputValue={productName}
+            onChangeInputValue={setProductName}
+            onSelectProduct={(product) => {
+              setProductName(product.name);
+              setSelectedProduct({
+                product_id: product.product_id,
+                created_at: new Date(),
+                updated_at: new Date(),
+              });
+            }}
+          />
           <View style={globalStyles.inputContainer}>
-            <Text style={globalStyles.inputLabel}>Product Name</Text>
+            <View style={globalStyles.labelContainer}>
+              <Text style={globalStyles.inputLabel}>Store</Text>
+            </View>
             <TextInput
               style={globalStyles.input}
-              placeholder="Product Name"
-              value={productName}
-              onChangeText={setProductName}
-            />
-          </View>
-          <View style={globalStyles.inputContainer}>
-            <Text style={globalStyles.inputLabel}>Store Name</Text>
-            <TextInput
-              style={globalStyles.input}
-              placeholder="Store Name"
+              placeholder="Select store..."
               value={storeName}
               onChangeText={setStoreName}
             />
           </View>
-          <View style={globalStyles.inputContainer}>
-            <Text style={globalStyles.inputLabel}>Price</Text>
-            <View style={styles.priceContainer}>
-              <TextInput
-                style={[styles.priceInput, globalStyles.input]}
-                placeholder="Price"
-                value={price}
-                onChangeText={setPrice}
-                keyboardType="decimal-pad"
-              />
-              <DropDownPicker
-                open={open}
-                value={unitType}
-                items={items}
-                setOpen={setOpen}
-                setValue={setUnitType}
-                style={[styles.unitPicker, globalStyles.input]}
-                containerStyle={styles.dropdownContainer}
-                textStyle={styles.dropdownText}
-                maxHeight={200}
-              />
+          <View style={[globalStyles.inputContainer]}>
+            <View style={globalStyles.labelContainer}>
+              <Text style={globalStyles.inputLabel}>Price</Text>
+            </View>
+            <View
+              style={[styles.priceContainer, { backgroundColor: colors.white }]}
+            >
+              <View style={styles.priceInputContainer}>
+                <Text style={styles.currencySymbol}>$</Text>
+                <TextInput
+                  style={[globalStyles.input, styles.priceInput]}
+                  placeholder="0.00"
+                  value={price}
+                  onChangeText={setPrice}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+              <View style={styles.unitContainer}>
+                <DropDownPicker
+                  open={open}
+                  value={unitType}
+                  items={items}
+                  setOpen={setOpen}
+                  setValue={setUnitType}
+                  style={styles.unitPicker}
+                  containerStyle={styles.dropdownContainer}
+                  textStyle={{ fontSize: 16 }}
+                  dropDownContainerStyle={{
+                    backgroundColor: colors.white,
+                    borderWidth: 1,
+                    borderColor: colors.lightGray2,
+                  }}
+                  maxHeight={200}
+                />
+              </View>
             </View>
           </View>
         </View>
-        <View style={[globalStyles.twoButtonsContainer, { marginTop: 10 }]}>
+        <View style={[globalStyles.buttonsContainer, { marginTop: 20 }]}>
           <TouchableOpacity
             style={[globalStyles.button, globalStyles.primaryButton]}
           >
             <Text style={globalStyles.primaryButtonText}>Add More</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[globalStyles.button, globalStyles.primaryButton]}
-            onPress={handleSave}
-          >
-            <Text style={globalStyles.primaryButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -215,12 +355,12 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: "100%",
-    height: 200,
+    height: 180,
     borderWidth: 2,
     borderStyle: "dashed",
     borderColor: colors.mediumGray,
     borderRadius: 8,
-    marginVertical: 40,
+    marginVertical: 20,
   },
   imageContent: {
     flex: 1,
@@ -228,24 +368,54 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   priceContainer: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
+  priceInputContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.lightGray2,
+    borderEndEndRadius: 8,
+    borderStartEndRadius: 8,
+    paddingHorizontal: 12,
+  },
+  currencySymbol: {
+    fontSize: 16,
+    color: colors.darkText,
+    marginRight: 4,
+  },
   priceInput: {
     flex: 1,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    minHeight: 48,
+    paddingHorizontal: 0,
+  },
+  unitContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  perText: {
+    fontSize: 16,
+    color: colors.darkText,
   },
   unitPicker: {
-    borderColor: colors.mediumGray,
+    backgroundColor: colors.lightGray2,
+    borderWidth: 0,
+    minHeight: 48,
+    paddingHorizontal: 12,
+    width: 80,
+    zIndex: 1,
   },
   dropdownContainer: {
-    width: 100,
-  },
-  dropdownText: {
-    fontSize: 16,
+    width: 80,
+    zIndex: 1,
   },
   cameraIconContainer: {
-    transform: [{ scaleX: 1.1 }],
     marginBottom: 15,
   },
   uploadText: {

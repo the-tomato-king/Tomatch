@@ -11,27 +11,39 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: colors.white,
     padding: 10,
   },
+  // Navigation styles
+  headerButton: {
+    fontSize: 17,
+    marginLeft: 16,
+  },
   // Input styles
   inputsContainer: {
- 
+    borderRadius: 8,
+    gap: 12,
   },
   inputContainer: {
-    backgroundColor: colors.white,
-    marginBottom: 25,
+    flexDirection: "row",
+    backgroundColor: colors.lightGray2,
+    borderRadius: 8,
+    height: 48,
+    alignItems: "center",
+  },
+  labelContainer: {
+    width: 60,
+    paddingLeft: 16,
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: "400",
-    marginBottom: 5,
+    color: colors.darkText,
   },
   input: {
-    borderWidth: 1,
-    padding: 15,
-    borderRadius: 8,
-    borderColor: colors.mediumGray,
+    flex: 1,
+    height: "100%",
+    paddingHorizontal: 12,
+    fontSize: 16,
   },
   // Button styles
-  twoButtonsContainer: {
+  buttonsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
@@ -46,18 +58,8 @@ export const globalStyles = StyleSheet.create({
   primaryButton: {
     backgroundColor: colors.primary,
   },
-  secondaryButton: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
   primaryButtonText: {
     color: colors.white,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  secondaryButtonText: {
-    color: colors.primary,
     fontSize: 16,
     fontWeight: "600",
   },
