@@ -2,6 +2,7 @@ export const COLLECTIONS = {
   USERS: "users",
   PRODUCTS: "products",
   STORES: "stores",
+  PRODUCT_STATS: "product_stats",
   SUB_COLLECTIONS: {
     CUSTOMIZED_PRODUCTS: "customized_products",
     SHOPPING_LISTS: "shopping_lists",

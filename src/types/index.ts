@@ -102,6 +102,7 @@ export interface Store {
 export interface ProductStats {
   product_id: string; // reference to products collection
   currency: string;
+  total_price: number;
   average_price: number;
   lowest_price: number;
   highest_price: number;

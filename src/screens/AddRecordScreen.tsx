@@ -23,9 +23,16 @@ import { RootStackParamList } from "../types/navigation";
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
-import { PriceRecord, UserProduct } from "../types";
+import { PriceRecord, UserProduct, ProductStats } from "../types";
 import ProductSearchInput from "../components/ProductSearchInput";
-import { collection, getDocs } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
 
 type AddRecordScreenNavigationProp =
@@ -145,6 +152,67 @@ const AddRecordScreen = () => {
       const recordId = await createDoc(priceRecordPath, priceRecord);
 
       if (recordId) {
+        const productStatsRef = doc(
+          db,
+          COLLECTIONS.PRODUCT_STATS,
+          selectedProduct.product_id
+        );
+        const productStatsDoc = await getDoc(productStatsRef);
+
+        let productStats: ProductStats;
+
+        if (productStatsDoc.exists()) {
+          productStats = productStatsDoc.data() as ProductStats;
+
+          const newTotalRecords = productStats.total_price_records + 1;
+          const newTotalPrice = productStats.total_price + numericPrice;
+          const newAveragePrice = newTotalPrice / newTotalRecords;
+
+          if (numericPrice < productStats.lowest_price) {
+            productStats.lowest_price = numericPrice;
+            productStats.lowest_price_store = {
+              store_id: storeName,
+              store_name: storeName,
+            };
+          }
+
+          if (numericPrice > productStats.highest_price) {
+            productStats.highest_price = numericPrice;
+          }
+
+          productStats.total_price = newTotalPrice;
+          productStats.average_price = newAveragePrice;
+          productStats.total_price_records = newTotalRecords;
+          productStats.last_updated = new Date();
+
+          await updateDoc(productStatsRef, {
+            total_price: productStats.total_price,
+            average_price: productStats.average_price,
+            lowest_price: productStats.lowest_price,
+            highest_price: productStats.highest_price,
+            lowest_price_store: productStats.lowest_price_store,
+            total_price_records: productStats.total_price_records,
+            last_updated: productStats.last_updated,
+          });
+        } else {
+          productStats = {
+            product_id: selectedProduct.product_id,
+            currency: "$", // TODO: Get from user settings
+            total_price: numericPrice,
+            average_price: numericPrice,
+            lowest_price: numericPrice,
+            highest_price: numericPrice,
+            lowest_price_store: {
+              store_id: storeName,
+              store_name: storeName,
+            },
+            total_price_records: 1,
+            last_updated: new Date(),
+          };
+
+          await setDoc(productStatsRef, productStats);
+        }
+
         alert("Record saved successfully!");
         navigation.goBack();
       } else {
