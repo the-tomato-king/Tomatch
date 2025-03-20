@@ -18,14 +18,19 @@ import {
   requestMediaLibraryPermissionsAsync,
   launchImageLibraryAsync,
 } from "expo-image-picker";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { HomeStackParamList } from "../types/navigation";
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
 import { PriceRecord, UserProduct } from "../types";
 import ProductSearchInput from "../components/ProductSearchInput";
 
+type AddRecordScreenNavigationProp =
+  NativeStackNavigationProp<HomeStackParamList>;
+
 const AddRecordScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AddRecordScreenNavigationProp>();
   const [selectedProduct, setSelectedProduct] = useState<UserProduct>();
 
   const [image, setImage] = useState<string | null>(null);
@@ -120,7 +125,7 @@ const AddRecordScreen = () => {
 
       if (recordId) {
         alert("Record saved successfully!");
-        navigation.goBack();
+        navigation.navigate("HomeScreen", { needsRefresh: true });
       } else {
         alert("Failed to save record");
       }
@@ -174,7 +179,6 @@ const AddRecordScreen = () => {
             inputValue={productName}
             onChangeInputValue={setProductName}
             onSelectProduct={(product) => {
-              console.log("Selected product:", product);
               setProductName(product.name);
               setSelectedProduct({
                 product_id: product.product_id,
@@ -195,11 +199,12 @@ const AddRecordScreen = () => {
             />
           </View>
           <View style={[globalStyles.inputContainer]}>
-            
-            <View style={globalStyles.labelContainer }>
+            <View style={globalStyles.labelContainer}>
               <Text style={globalStyles.inputLabel}>Price</Text>
             </View>
-            <View style={[styles.priceContainer, { backgroundColor: colors.white }]}>
+            <View
+              style={[styles.priceContainer, { backgroundColor: colors.white }]}
+            >
               <View style={styles.priceInputContainer}>
                 <Text style={styles.currencySymbol}>$</Text>
                 <TextInput
@@ -315,9 +320,11 @@ const styles = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 12,
     width: 80,
+    zIndex: 1,
   },
   dropdownContainer: {
     width: 80,
+    zIndex: 1,
   },
   cameraIconContainer: {
     marginBottom: 15,

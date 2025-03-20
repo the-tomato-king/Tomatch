@@ -7,7 +7,7 @@ export type MainTabParamList = {
 };
 
 export type HomeStackParamList = {
-  HomeScreen: undefined;
+  HomeScreen: { needsRefresh?: boolean } | undefined;
   ProductDetail: { productId: string };
 };
 

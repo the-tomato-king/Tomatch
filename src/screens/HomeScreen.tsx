@@ -6,11 +6,12 @@ import { UserProduct } from "../types";
 import { collection, getDocs } from "firebase/firestore";
 import { COLLECTIONS } from "../constants/firebase";
 import { db } from "../services/firebase/firebaseConfig";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 
 const HomeScreen = () => {
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const route = useRoute();
 
   const fetchUserProducts = useCallback(async () => {
     try {
@@ -44,9 +45,16 @@ const HomeScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchUserProducts();
-    }, [fetchUserProducts])
+      const params = route.params as { needsRefresh?: boolean } | undefined;
+      if (params?.needsRefresh) {
+        fetchUserProducts();
+      }
+    }, [route.params, fetchUserProducts])
   );
+
+  useEffect(() => {
+    fetchUserProducts();
+  }, []);
 
   if (loading) {
     return (
