@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Pressable,
-  Keyboard,
-} from "react-native";
+import { View, TextInput, StyleSheet, Text, FlatList } from "react-native";
 import { Product } from "../types";
 import { globalStyles } from "../theme/styles";
 import { colors } from "../theme/colors";
 import GeneralPressable from "./GeneralPressable";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types/navigation";
+
+type ProductSearchNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 interface ProductSearchInputProps {
   inputValue: string;
@@ -29,19 +26,28 @@ const ProductSearchInput = ({
 }: ProductSearchInputProps) => {
   const [suggestions, setSuggestions] = useState<Product[]>(products);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isNewProduct, setIsNewProduct] = useState(false);
+  const navigation = useNavigation<ProductSearchNavigationProp>();
 
   useEffect(() => {
     if (inputValue.length > 0) {
+      // TODO: We are using local products now, use firebase to get products
       const filteredProducts = products.filter((product) =>
         product.name.toLowerCase().includes(inputValue.toLowerCase())
       );
       setSuggestions(filteredProducts);
       setShowSuggestions(true);
+      setIsNewProduct(
+        !products.some(
+          (product) => product.name.toLowerCase() === inputValue.toLowerCase()
+        )
+      );
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
+      setIsNewProduct(false);
     }
-  }, [inputValue]);
+  }, [inputValue, products]);
 
   // Make sure suggestions are cleared when user already tapped on a suggestion
   useEffect(() => {
@@ -56,13 +62,29 @@ const ProductSearchInput = ({
         <View style={globalStyles.labelContainer}>
           <Text style={globalStyles.inputLabel}>Name</Text>
         </View>
-        <TextInput
-          style={[globalStyles.input]}
-          value={inputValue}
-          onChangeText={onChangeInputValue}
-          placeholder="Search product..."
-          onFocus={() => setShowSuggestions(true)}
-        />
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={[globalStyles.input]}
+            value={inputValue}
+            onChangeText={onChangeInputValue}
+            placeholder="Search product..."
+            onFocus={() => setShowSuggestions(true)}
+          />
+          {isNewProduct && inputValue.length > 0 && (
+            <GeneralPressable
+              containerStyle={styles.questionIcon}
+              onPress={() => {
+                navigation.navigate("ProductLibrary");
+              }}
+            >
+              <MaterialCommunityIcons
+                name="help-circle-outline"
+                size={24}
+                color={colors.negative}
+              />
+            </GeneralPressable>
+          )}
+        </View>
       </View>
 
       {showSuggestions && suggestions.length > 0 && (
@@ -115,6 +137,14 @@ const styles = StyleSheet.create({
   suggestionText: {
     fontSize: 16,
     color: colors.darkText,
+  },
+  inputWrapper: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  questionIcon: {
+    marginRight: 15,
   },
 });
 

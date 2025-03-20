@@ -21,4 +21,5 @@ export type RootStackParamList = {
   AddRecordModal: {
     handleSave?: () => void;
   };
+  ProductLibrary: undefined;
 };
