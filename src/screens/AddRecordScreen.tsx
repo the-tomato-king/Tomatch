@@ -189,46 +189,45 @@ const AddRecordScreen = () => {
             </View>
             <TextInput
               style={globalStyles.input}
-              placeholder="Store Name"
+              placeholder="Select store..."
               value={storeName}
               onChangeText={setStoreName}
             />
           </View>
-          <View style={globalStyles.inputContainer}>
-            <View style={globalStyles.labelContainer}>
+          <View style={[globalStyles.inputContainer]}>
+            
+            <View style={globalStyles.labelContainer }>
               <Text style={globalStyles.inputLabel}>Price</Text>
             </View>
-            <View style={styles.priceContainer}>
-              <TextInput
-                style={[globalStyles.input]}
-                placeholder="Price"
-                value={price}
-                onChangeText={setPrice}
-                keyboardType="decimal-pad"
-              />
-              <DropDownPicker
-                open={open}
-                value={unitType}
-                items={items}
-                setOpen={setOpen}
-                setValue={setUnitType}
-                style={[
-                  {
-                    backgroundColor: colors.lightGray2,
-                    borderWidth: 0,
-                    minHeight: 48,
-                    paddingHorizontal: 12,
-                  },
-                ]}
-                containerStyle={styles.dropdownContainer}
-                textStyle={{ fontSize: 16 }}
-                dropDownContainerStyle={{
-                  backgroundColor: colors.white,
-                  borderWidth: 1,
-                  borderColor: colors.lightGray2,
-                }}
-                maxHeight={200}
-              />
+            <View style={[styles.priceContainer, { backgroundColor: colors.white }]}>
+              <View style={styles.priceInputContainer}>
+                <Text style={styles.currencySymbol}>$</Text>
+                <TextInput
+                  style={[globalStyles.input, styles.priceInput]}
+                  placeholder="0.00"
+                  value={price}
+                  onChangeText={setPrice}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+              <View style={styles.unitContainer}>
+                <DropDownPicker
+                  open={open}
+                  value={unitType}
+                  items={items}
+                  setOpen={setOpen}
+                  setValue={setUnitType}
+                  style={styles.unitPicker}
+                  containerStyle={styles.dropdownContainer}
+                  textStyle={{ fontSize: 16 }}
+                  dropDownContainerStyle={{
+                    backgroundColor: colors.white,
+                    borderWidth: 1,
+                    borderColor: colors.lightGray2,
+                  }}
+                  maxHeight={200}
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -280,9 +279,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
+  priceInputContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.lightGray2,
+    borderEndEndRadius: 8,
+    borderStartEndRadius: 8,
+    paddingHorizontal: 12,
+  },
+  currencySymbol: {
+    fontSize: 16,
+    color: colors.darkText,
+    marginRight: 4,
+  },
+  priceInput: {
+    flex: 1,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    minHeight: 48,
+    paddingHorizontal: 0,
+  },
+  unitContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  perText: {
+    fontSize: 16,
+    color: colors.darkText,
+  },
+  unitPicker: {
+    backgroundColor: colors.lightGray2,
+    borderWidth: 0,
+    minHeight: 48,
+    paddingHorizontal: 12,
+    width: 80,
+  },
   dropdownContainer: {
-    width: 100,
-    zIndex: 0,
+    width: 80,
   },
   cameraIconContainer: {
     marginBottom: 15,
