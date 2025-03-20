@@ -73,7 +73,7 @@ export interface PriceRecord {
   recorded_at: Date;
 }
 
-export type ImageType = "emoji" | "image";
+type ImageType = "emoji" | "image";
 
 // Product
 export interface Product {

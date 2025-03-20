@@ -2,7 +2,7 @@ import { COLLECTIONS } from "../constants/firebase";
 import { PRODUCTS } from "../data/Product";
 import { batchCreateDocs } from "../services/firebase/firebaseHelper";
 
-export async function importProductsToFirebase() {
+async function main() {
   try {
     console.log("Starting to import products...");
 
@@ -10,13 +10,15 @@ export async function importProductsToFirebase() {
 
     if (result) {
       console.log("Successfully imported all products");
-      return true;
+      process.exit(0);
     } else {
       console.error("Failed to import products");
-      return false;
+      process.exit(1);
     }
   } catch (error) {
     console.error("Error importing products:", error);
-    return false;
+    process.exit(1);
   }
 }
+
+main();

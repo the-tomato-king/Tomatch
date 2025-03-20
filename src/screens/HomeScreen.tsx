@@ -1,57 +1,52 @@
 import { FlatList, StyleSheet, Text, View } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { globalStyles } from "../theme/styles";
 import ProductCard from "../components/ProductCard";
 import { UserProduct } from "../types";
 import { collection, getDocs } from "firebase/firestore";
 import { COLLECTIONS } from "../constants/firebase";
-import { auth, db } from "../services/firebase/firebaseConfig";
+import { db } from "../services/firebase/firebaseConfig";
+import { useFocusEffect } from "@react-navigation/native";
 
 const HomeScreen = () => {
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUserProducts = async () => {
-      try {
-        const currentUser = "user123";
-        console.log("Fetching products for user:", currentUser);
+  const fetchUserProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const currentUser = "user123";
+      console.log("Fetching products for user:", currentUser);
 
-        const userProductsRef = collection(
-          db,
-          COLLECTIONS.USERS,
-          currentUser,
-          COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
-        );
+      const userProductsRef = collection(
+        db,
+        COLLECTIONS.USERS,
+        currentUser,
+        COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
+      );
 
-        console.log(
-          "Collection path:",
-          `${COLLECTIONS.USERS}/${currentUser}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`
-        );
+      const querySnapshot = await getDocs(userProductsRef);
 
-        const querySnapshot = await getDocs(userProductsRef);
-        console.log("Query snapshot size:", querySnapshot.size);
-        console.log("Query snapshot empty:", querySnapshot.empty);
+      const products = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        product_id: doc.data().product_id,
+        created_at: doc.data().created_at,
+        updated_at: doc.data().updated_at,
+      })) as UserProduct[];
 
-        const products = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          product_id: doc.data().product_id,
-          created_at: doc.data().created_at,
-          updated_at: doc.data().updated_at,
-        })) as UserProduct[];
-
-        console.log("Mapped products:", products);
-
-        setUserProducts(products);
-      } catch (error) {
-        console.error("Error fetching user products:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserProducts();
+      setUserProducts(products);
+    } catch (error) {
+      console.error("Error fetching user products:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserProducts();
+    }, [fetchUserProducts])
+  );
 
   if (loading) {
     return (

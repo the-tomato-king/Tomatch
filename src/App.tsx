@@ -7,9 +7,6 @@ import { initializeAppData } from './services/firebase/initializeApp';
 import { useEffect } from 'react';
 
 export default function App() {
-    useEffect(() => {
-      initializeAppData();
-    }, []);
   return (
     <SafeAreaProvider>
       <Navigation />

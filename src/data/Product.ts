@@ -2,13 +2,18 @@ import { Product } from "../types";
 
 // Product database version
 export const PRODUCT_VERSION = {
-  CURRENT: "0.1", // current version
+  CURRENT: "0.2", // current version
   HISTORY: {
     // version history for tracking changes
     V0_1: {
       version: "0.1",
       date: "2025-03-19",
       changes: "Initial product database with 15 products for testing",
+    },
+    V0_2: {
+      version: "0.2",
+      date: "2025-03-20",
+      changes: "Astandardize the product data structure",
     },
     // Add new versions here when updating products
     // Example:
