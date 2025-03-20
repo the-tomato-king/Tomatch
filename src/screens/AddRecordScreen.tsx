@@ -8,7 +8,7 @@ import {
   Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import { globalStyles } from "../theme/styles";
 import { colors } from "../theme/colors";
 import { UNITS, ALL_UNITS } from "../constants/units";
@@ -22,7 +22,7 @@ import {
 import { PRODUCTS } from "../data/Product";
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
-import { PriceRecord } from "../types";
+import { PriceRecord, UserProduct } from "../types";
 import ProductSearchInput from "../components/ProductSearchInput";
 
 const AddRecordScreen = () => {
@@ -68,6 +68,7 @@ const AddRecordScreen = () => {
 
   const handleSave = async () => {
     try {
+      // verify
       if (!productName || !storeName || !price || !unitType) {
         alert("Please fill in all required fields");
         return;
@@ -79,24 +80,38 @@ const AddRecordScreen = () => {
         return;
       }
 
+      // TODO: Link to real user, now hardcoded to user123
+      const userId = "user123";
+      const userPath = `${COLLECTIONS.USERS}/${userId}`;
+
+      // create user product if it doesn't exist
+      const userProduct: UserProduct = {
+        product_id: productName, // TODO: Link to real product, now use the product name user typed in
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+      const userProductId = await createDoc(userProductPath, userProduct);
+
+      if (!userProductId) {
+        alert("Failed to save user product");
+        return;
+      }
+
       const priceRecord: PriceRecord = {
         record_id: "", // Firebase will generate this
-        user_product_id: "", // TODO: Link to real product
-        store_id: "", // TODO: Link to real store
+        user_product_id: userProductId,
+        store_id: storeName, // TODO: Link to real store, now use the store name user typed in
         price: numericPrice,
         unit_type: unitType,
-        unit_price: numericPrice, //TODO: Calculate unit price
+        unit_price: numericPrice, //TODO: Calculate unit price, now same as price
         photo_url: image || "",
         recorded_at: new Date(),
       };
 
-      const recordId = await createDoc(
-        // TODO: Link to real user
-        COLLECTIONS.USERS +
-          "/user123/" +
-          COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS,
-        priceRecord
-      );
+      const priceRecordPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+      const recordId = await createDoc(priceRecordPath, priceRecord);
 
       if (recordId) {
         alert("Record saved successfully!");
@@ -109,6 +124,16 @@ const AddRecordScreen = () => {
       alert("Failed to save record");
     }
   };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Text style={globalStyles.headerButton} onPress={handleSave}>
+          Save
+        </Text>
+      ),
+    });
+  }, [navigation, handleSave]);
 
   return (
     <SafeAreaView style={styles.container}>

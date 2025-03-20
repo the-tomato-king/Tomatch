@@ -2,13 +2,15 @@ import { db } from "./firebaseConfig";
 import {
   collection,
   addDoc,
+  writeBatch,
   deleteDoc,
   doc,
   getDocs,
   getDoc,
   updateDoc,
   FirestoreError,
-  writeBatch,
+  query,
+  where,
 } from "firebase/firestore";
 
 // create a document in the database
@@ -22,6 +24,30 @@ export async function createDoc<T extends object>(
   } catch (err) {
     console.error("Error creating document:", (err as FirestoreError).message);
     return null;
+  }
+}
+
+// create multiple documents in the database
+export async function batchCreateDocs<T extends object>(
+  collectionName: string,
+  dataArray: T[]
+): Promise<boolean> {
+  try {
+    const batch = writeBatch(db);
+
+    dataArray.forEach((item) => {
+      const docRef = doc(collection(db, collectionName));
+      batch.set(docRef, item);
+    });
+
+    await batch.commit();
+    return true;
+  } catch (err) {
+    console.error(
+      "Error in batch creating documents:",
+      (err as FirestoreError).message
+    );
+    return false;
   }
 }
 
@@ -111,25 +137,21 @@ export async function deleteAllDocs(collectionName: string): Promise<void> {
   }
 }
 
-export async function batchCreateDocs<T extends object>(
-  collectionName: string,
-  dataArray: T[]
-): Promise<boolean> {
+export async function checkDocExists(
+  collectionPath: string,
+  field: string,
+  value: string
+): Promise<string | null> {
   try {
-    const batch = writeBatch(db);
+    const q = query(collection(db, collectionPath), where(field, "==", value));
+    const querySnapshot = await getDocs(q);
 
-    dataArray.forEach((item) => {
-      const docRef = doc(collection(db, collectionName));
-      batch.set(docRef, item);
-    });
-
-    await batch.commit();
-    return true;
-  } catch (err) {
-    console.error(
-      "Error in batch creating documents:",
-      (err as FirestoreError).message
-    );
-    return false;
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].id;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error checking document existence:", error);
+    return null;
   }
 }

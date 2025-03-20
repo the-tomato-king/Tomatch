@@ -29,15 +29,7 @@ const RootNavigator = () => {
             >
               Cancel
             </Text>
-          ),
-          headerRight: () => (
-            <Text
-              style={globalStyles.headerButton}
-              onPress={() => route.params?.handleSave?.()}
-            >
-              Save
-            </Text>
-          ),
+          )
         })}
       />
     </Stack.Navigator>
