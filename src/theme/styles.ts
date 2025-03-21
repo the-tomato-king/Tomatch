@@ -29,7 +29,7 @@ export const globalStyles = StyleSheet.create({
     alignItems: "center",
   },
   labelContainer: {
-    width: 60,
+    width: 80,
     paddingLeft: 16,
   },
   inputLabel: {

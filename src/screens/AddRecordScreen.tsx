@@ -151,12 +151,11 @@ const AddRecordScreen = () => {
       const recordId = await createDoc(priceRecordPath, priceRecord);
 
       if (recordId) {
-        // 修改路径为用户的子集合
         const userProductStatsRef = doc(
           db,
           COLLECTIONS.USERS,
           userId,
-          "user_product_stats", // 新的子集合名称
+          COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS,
           selectedProduct.product_id
         );
         const userProductStatsDoc = await getDoc(userProductStatsRef);
@@ -212,7 +211,6 @@ const AddRecordScreen = () => {
             last_updated: new Date(),
           };
 
-          // 保存新的统计信息到用户子集合
           await setDoc(userProductStatsRef, userProductStats);
         }
 
@@ -342,12 +340,6 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     paddingHorizontal: 30,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
   },
   imageContainer: {
     width: "100%",
