@@ -73,14 +73,12 @@ export async function readAllDocs<T>(collectionName: string): Promise<T[]> {
       throw new Error("Collection name is required");
     }
 
-    console.log("Fetching collection:", collectionName);
-
     const querySnapshot = await getDocs(collection(db, collectionName));
     return querySnapshot.docs.map(
       (doc) =>
         ({
-          id: doc.id,
           ...doc.data(),
+          id: doc.id,
         } as T)
     );
   } catch (err) {

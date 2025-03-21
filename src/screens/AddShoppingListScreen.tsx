@@ -87,7 +87,6 @@ const handleCreateList = async () => {
   }
 };
 
-
   return (
     <View style={styles.container}>
       {/* Shopping List Name */}
@@ -122,15 +121,22 @@ const handleCreateList = async () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.listItem}>
-            <Text>{item.name} - {item.quantity} pcs</Text>
+            <Text>
+              {item.name} - {item.quantity} pcs
+            </Text>
           </View>
         )}
       />
 
       {/* Expected Shopping Time Picker */}
-      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
+      <TouchableOpacity
+        onPress={() => setShowDatePicker(true)}
+        style={styles.dateButton}
+      >
         <Text style={styles.dateText}>
-          {shoppingTime ? shoppingTime.toLocaleString() : "Select Shopping Time"}
+          {shoppingTime
+            ? shoppingTime.toLocaleString()
+            : "Select Shopping Time"}
         </Text>
       </TouchableOpacity>
 
@@ -148,15 +154,12 @@ const handleCreateList = async () => {
 
       {/* TODO: Add location selection later */}
       <Button title="Select Location (Coming Soon)" disabled />
-      
+
       {/* Cancel and Submit Buttons */}
       <View style={styles.buttonRow}>
         <Button title="Cancel" onPress={handleCancel} color="red" />
-        
-        <Button
-          title="Create"
-          onPress={handleCreateList}
-        />
+
+        <Button title="Create" onPress={handleCreateList} />
       </View>
     </View>
   );

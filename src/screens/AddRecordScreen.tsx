@@ -23,7 +23,7 @@ import { RootStackParamList } from "../types/navigation";
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
-import { PriceRecord, UserProduct, ProductStats } from "../types";
+import { PriceRecord, UserProduct, UserProductStats } from "../types";
 import ProductSearchInput from "../components/ProductSearchInput";
 import {
   collection,
@@ -155,15 +155,17 @@ const AddRecordScreen = () => {
       if (recordId) {
         const productStatsRef = doc(
           db,
-          COLLECTIONS.PRODUCT_STATS,
+          COLLECTIONS.USERS,
+          userId,
+          COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS,
           selectedProduct.product_id
         );
         const productStatsDoc = await getDoc(productStatsRef);
 
-        let productStats: ProductStats;
+        let productStats: UserProductStats;
 
         if (productStatsDoc.exists()) {
-          productStats = productStatsDoc.data() as ProductStats;
+          productStats = productStatsDoc.data() as UserProductStats;
 
           const newTotalRecords = productStats.total_price_records + 1;
           const newTotalPrice = productStats.total_price + numericPrice;
@@ -333,6 +335,13 @@ const AddRecordScreen = () => {
             style={[globalStyles.button, globalStyles.primaryButton]}
           >
             <Text style={globalStyles.primaryButtonText}>Add More</Text>
+          </TouchableOpacity>
+          {/* TODO: implement add more */}
+          <TouchableOpacity
+            style={[globalStyles.button, globalStyles.primaryButton]}
+            onPress={handleSave}
+          >
+            <Text style={globalStyles.primaryButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
       </View>

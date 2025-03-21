@@ -13,6 +13,7 @@ import { PRODUCTS, PRODUCT_CATEGORIES } from "../data/Product";
 import { globalStyles } from "../theme/styles";
 import { colors } from "../theme/colors";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import ProductImage from "../components/ProductImage";
 
 const ProductLibraryScreen = () => {
   return (
@@ -59,16 +60,10 @@ const ProductLibraryScreen = () => {
             keyExtractor={(item) => item.name}
             renderItem={({ item }) => (
               <View style={styles.productItem}>
-                <View style={styles.productImagePlaceholder}>
-                  {item.image_type === "emoji" ? (
-                    <Text style={styles.emojiText}>{item.image_source}</Text>
-                  ) : item.image_source ? (
-                    <Image
-                      source={{ uri: item.image_source }}
-                      style={styles.productImage}
-                    />
-                  ) : null}
-                </View>
+                <ProductImage
+                  imageType={item.image_type}
+                  imageSource={item.image_source}
+                />
                 <View style={styles.productInfo}>
                   <Text style={styles.productName}>{item.name}</Text>
                   <Text style={styles.productCategory}>{item.category}</Text>
