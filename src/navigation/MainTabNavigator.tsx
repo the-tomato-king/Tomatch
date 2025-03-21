@@ -24,10 +24,17 @@ const MainTabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
+        tabBarShowLabel: false,
         tabBarActiveTintColor: "#1A73E8",
         tabBarInactiveTintColor: "#5F6368",
         tabBarStyle: {
-          height: Platform.OS === "ios" ? 75 : 60, // iOS device need more height to avoid button hidden
+          height: Platform.OS === "ios" ? 80 : 60,
+          paddingBottom: Platform.OS === "ios" ? 20 : 10,
+          paddingTop: 10,
+        },
+        tabBarItemStyle: {
+          justifyContent: "center",
+          alignItems: "center",
         },
       }}
     >
@@ -35,7 +42,6 @@ const MainTabNavigator = () => {
         name="Home"
         component={HomeStack}
         options={{
-          title: "All Products",
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="home" color={color} size={size} />
@@ -62,7 +68,18 @@ const MainTabNavigator = () => {
           tabBarButton: (props) => (
             <ButtomAddButton
               onPress={() => {
-                navigation.navigate("AddRecordModal");
+                navigation.navigate("AddRecordModal", {
+                  handleSave: () => {
+                    navigation.navigate("Main", {
+                      params: {
+                        screen: "Home",
+                        params: {
+                          needsRefresh: true,
+                        },
+                      },
+                    });
+                  },
+                });
               }}
             />
           ),

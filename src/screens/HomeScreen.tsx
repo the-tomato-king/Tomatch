@@ -1,15 +1,12 @@
 import { FlatList, StyleSheet, Text, View, Image } from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
-import { globalStyles } from "../theme/styles";
 import ProductCard from "../components/ProductCard";
 import { UserProduct } from "../types";
-import { collection, getDocs } from "firebase/firestore";
 import { COLLECTIONS } from "../constants/firebase";
-import { db } from "../services/firebase/firebaseConfig";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
 import { readAllDocs } from "../services/firebase/firebaseHelper";
-import LoadingLogo from "../components/loadingLogo";
+import LoadingLogo from "../components/LoadingLogo";
 import { colors } from "../theme/colors";
+import { useFocusEffect } from "@react-navigation/native";
 
 const HomeScreen = () => {
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);

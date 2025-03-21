@@ -11,7 +11,7 @@ import { HomeStackParamList } from "../types/navigation";
 import { COLLECTIONS } from "../constants/firebase";
 import { readOneDoc, readAllDocs } from "../services/firebase/firebaseHelper";
 import { Product, PriceRecord, UserProductStats } from "../types";
-import LoadingLogo from "../components/loadingLogo";
+import LoadingLogo from "../components/LoadingLogo";
 import ProductImage from "../components/ProductImage";
 import { colors } from "../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
