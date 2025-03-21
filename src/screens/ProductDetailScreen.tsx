@@ -33,8 +33,6 @@ const ProductDetailScreen = () => {
     const fetchProductData = async () => {
       try {
         setLoading(true);
-        console.log("Fetching data for product:", productId);
-        console.log("User product ID:", userProductId);
 
         // get product details
         const productData = await readOneDoc<Product>(
@@ -42,7 +40,6 @@ const ProductDetailScreen = () => {
           productId
         );
         setProduct(productData);
-        console.log("Product data:", productData);
 
         // get user product stats
         const userId = "user123"; // TODO: get user id from auth
@@ -57,13 +54,10 @@ const ProductDetailScreen = () => {
         const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
         const records = await readAllDocs<PriceRecord>(recordsPath);
 
-        console.log("All records:", records);
-        console.log("User product ID:", userProductId);
         // filter records belong to current product
         const filteredRecords = records.filter(
           (record) => record.user_product_id === userProductId
         );
-        console.log("Filtered records:", filteredRecords);
 
         // sort by date, latest first
         filteredRecords.sort((a, b) => {
@@ -74,7 +68,6 @@ const ProductDetailScreen = () => {
         });
 
         setPriceRecords(filteredRecords);
-        console.log("Price records:", filteredRecords);
       } catch (error) {
         console.error("Error fetching product data:", error);
       } finally {
@@ -109,12 +102,14 @@ const ProductDetailScreen = () => {
               <Text style={styles.priceValue}>
                 ${productStats?.average_price.toFixed(2)}
               </Text>
-              <Text style={styles.priceLabel}>Average</Text>
+              <Text style={styles.priceUnit}>/lb</Text>
+              <Text style={styles.priceLabel}>
+                Average
+              </Text>
             </View>
           </View>
         </View>
         <View style={styles.priceRangeSection}>
-          <Text style={styles.sectionTitle}>Price Range</Text>
           <View style={styles.priceRangeContainer}>
             <View style={styles.priceRangeBar}>
               <LinearGradient
@@ -125,30 +120,15 @@ const ProductDetailScreen = () => {
               />
             </View>
             <View style={styles.priceRangeLabels}>
-              <Text style={styles.minPrice}>
-                ${productStats?.lowest_price.toFixed(2)}/lb
+              <Text style={[styles.minMaxPrice, { color: "#4CAF50" }]}>
+                ${productStats?.lowest_price.toFixed(2)}
               </Text>
-              <Text style={styles.maxPrice}>
-                ${productStats?.highest_price.toFixed(2)}/lb
+              <Text style={[styles.minMaxPrice, { color: "#F44336" }]}>
+                ${productStats?.highest_price.toFixed(2)}
               </Text>
             </View>
           </View>
         </View>
-      </View>
-
-      {/* Price Statistics */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Price Statistics</Text>
-        {productStats ? (
-          <>
-            <Text>Average Price: ${productStats.average_price.toFixed(2)}</Text>
-            <Text>Lowest Price: ${productStats.lowest_price.toFixed(2)}</Text>
-            <Text>Highest Price: ${productStats.highest_price.toFixed(2)}</Text>
-            <Text>Total Records: {productStats.total_price_records}</Text>
-          </>
-        ) : (
-          <Text>No statistics available</Text>
-        )}
       </View>
 
       {/* Price Records */}
@@ -218,6 +198,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   priceLabel: {
+    flex: 1,
+    textAlign: "right",
+    marginRight: 10,
     fontSize: 14,
     color: colors.secondaryText,
   },
@@ -227,17 +210,20 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginRight: 10,
   },
+  priceUnit: {
+    fontSize: 14,
+    color: colors.secondaryText,
+  },
   priceRangeSection: {
     backgroundColor: colors.white,
     padding: 16,
     borderRadius: 8,
-    marginBottom: 24,
   },
   priceRangeContainer: {
     marginTop: 12,
   },
   priceRangeBar: {
-    height: 8,
+    height: 6,
     borderRadius: 4,
     overflow: "hidden",
     backgroundColor: colors.lightGray2,
@@ -251,15 +237,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 8,
   },
-  minPrice: {
-    fontSize: 14,
-    color: "#4CAF50",
-    fontWeight: "500",
-  },
-  maxPrice: {
-    fontSize: 14,
-    color: "#F44336",
-    fontWeight: "500",
+  minMaxPrice: {
+    fontSize: 12,
+    fontWeight: "400",
   },
   recordItem: {
     padding: 8,
