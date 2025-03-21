@@ -12,6 +12,7 @@ import DateTimePicker from "@react-native-community/datetimepicker"; // Date pic
 import { createDoc } from "../services/firebase/firebaseHelper"; // Import the createDoc function
 import { router } from "expo-router";
 
+
 export interface ShoppingItem {
   id: string;
   name: string;
@@ -81,7 +82,6 @@ const handleCreateList = async () => {
   if (docId) {
     console.log("Shopping list created with ID:", docId);
     // Handle navigation or reset state after successful creation
-    router.push("/shopping-list");
   } else {
     console.error("Error creating shopping list.");
   }
