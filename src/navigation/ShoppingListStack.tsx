@@ -2,6 +2,7 @@ import { ShoppingStackParamList } from "../types/navigation";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ShoppingListScreen from "../screens/ShoppingListScreen";
 import AddShoppingListScreen from "../screens/AddShoppingListScreen";
+import ShoppingListDetailScreen from "../screens/ShoppingListDetailScreen";
 import { Button } from "react-native";
 
 const Stack = createNativeStackNavigator<ShoppingStackParamList>();
@@ -31,6 +32,13 @@ const ShoppingListStack = () => {
             title: "New List",
         }}
       />
+       <Stack.Screen 
+       name="ShoppingListDetail" 
+       component={ShoppingListDetailScreen} 
+       options={{ 
+        headerShown: true,
+        title: "detail",
+    }}/>
     </Stack.Navigator>
   );
 };
