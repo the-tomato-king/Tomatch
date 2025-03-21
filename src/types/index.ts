@@ -143,12 +143,12 @@ export interface Product extends BaseProduct {
   id: string;
 }
 
-export interface BaseBrand {
+export interface BaseStoreBrand {
   name: string;
   logo_url: string;
   updated_at: Date;
 }
 
-export interface Brand extends BaseBrand {
+export interface StoreBrand extends BaseStoreBrand {
   id: string;
 }
