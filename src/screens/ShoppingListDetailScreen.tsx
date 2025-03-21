@@ -92,7 +92,9 @@ const ShoppingListDetailScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{shoppingList.name}</Text>
+      <Text style={styles.dateText}>
+        supermarket selection will be coming soon
+      </Text>
       <Text style={styles.dateText}>
         Shopping Time: {shoppingList.shoppingTime
         ? new Date(shoppingList.shoppingTime).toLocaleDateString() +
@@ -100,6 +102,8 @@ const ShoppingListDetailScreen = () => {
         new Date(shoppingList.shoppingTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         : 'N/A'}
       </Text>
+
+
 
       <Text style={styles.sectionTitle}>Items:</Text>
 

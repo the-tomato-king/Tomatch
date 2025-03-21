@@ -40,29 +40,29 @@ const ShoppingListScreen = () => {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={shoppingLists}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+    <FlatList
+      data={shoppingLists}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          style={styles.listItem}
+          onPress={() => navigation.navigate('ShoppingListDetail', { id: item.id })}
+        >
+          <View style={styles.itemContent}>
+            <Text style={styles.listName}>{item.name}</Text>
+            <Text style={styles.shoppingTime}>
+              Shopping Time: {new Date(item.shoppingTime).toLocaleDateString()}
+            </Text>
+          </View>
           <TouchableOpacity
-            style={styles.listItem}
-            onPress={() => navigation.navigate('ShoppingListDetail', { id: item.id })}
+            style={styles.deleteButton}
+            onPress={() => handleDeleteItem(item.id)}
           >
-            <View style={styles.itemContent}>
-              <Text style={styles.listName}>{item.name}</Text>
-              <Text style={styles.shoppingTime}>
-                Shopping Time: {new Date(item.shoppingTime).toLocaleDateString()}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDeleteItem(item.id)}
-            >
-              <Text style={styles.deleteButtonText}>Delete</Text>
-            </TouchableOpacity>
+            <Text style={styles.deleteButtonText}>Delete</Text>
           </TouchableOpacity>
-        )}
-      />
+        </TouchableOpacity>
+      )}
+    />
     </View>
   );
 };
@@ -77,17 +77,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   listItem: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    padding: 10,
     backgroundColor: '#fff',
-    marginBottom: 15,
-    borderRadius: 10,
-    padding: 15,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    borderRadius: 8,
+    marginVertical: 5,
   },
   itemContent: {
-    marginBottom: 10,
+    padding:5,
   },
   listName: {
     fontSize: 18,
@@ -103,8 +102,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 8,
     paddingHorizontal: 15,
-    marginTop: 10,
-    width:"25%"
   },
   deleteButtonText: {
     color: '#fff',
