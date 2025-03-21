@@ -23,7 +23,7 @@ import { RootStackParamList } from "../types/navigation";
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
-import { PriceRecord, UserProduct, UserProductStats } from "../types";
+import { BasePriceRecord, BaseUserProduct, BaseUserProductStats, PriceRecord, UserProduct, UserProductStats } from "../types";
 import ProductSearchInput from "../components/ProductSearchInput";
 import {
   collection,
@@ -40,7 +40,7 @@ type AddRecordScreenNavigationProp =
 
 const AddRecordScreen = () => {
   const navigation = useNavigation<AddRecordScreenNavigationProp>();
-  const [selectedProduct, setSelectedProduct] = useState<UserProduct>();
+  const [selectedProduct, setSelectedProduct] = useState<BaseUserProduct>();
 
   const [image, setImage] = useState<string | null>(null);
   const [productName, setProductName] = useState("");
@@ -122,8 +122,7 @@ const AddRecordScreen = () => {
         userProductId = existingUserProduct.id;
       } else {
         // create user product if it doesn't exist
-        const userProduct: UserProduct = {
-          id: "", // Firebase will generate this
+        const userProduct: BaseUserProduct = {
           product_id: selectedProduct.product_id,
           created_at: new Date(),
           updated_at: new Date(),
@@ -138,8 +137,7 @@ const AddRecordScreen = () => {
         }
       }
 
-      const priceRecord: PriceRecord = {
-        id: "", // Firebase will generate this
+      const priceRecord: BasePriceRecord = {
         user_product_id: userProductId,
         store_id: storeName, // TODO: Link to real store, now use the store name user typed in
         price: numericPrice,
@@ -163,10 +161,10 @@ const AddRecordScreen = () => {
         );
         const userProductStatsDoc = await getDoc(userProductStatsRef);
 
-        let userProductStats: UserProductStats;
+        let userProductStats: BaseUserProductStats;
 
         if (userProductStatsDoc.exists()) {
-          userProductStats = userProductStatsDoc.data() as UserProductStats;
+          userProductStats = userProductStatsDoc.data() as BaseUserProductStats;
 
           const newTotalRecords = userProductStats.total_price_records + 1;
           const newTotalPrice = userProductStats.total_price + numericPrice;
@@ -200,7 +198,6 @@ const AddRecordScreen = () => {
           });
         } else {
           userProductStats = {
-            id: "", // Firebase will generate this
             product_id: selectedProduct.product_id,
             currency: "$", // TODO: Get from user settings
             total_price: numericPrice,
@@ -276,7 +273,6 @@ const AddRecordScreen = () => {
             onSelectProduct={(product) => {
               setProductName(product.name);
               setSelectedProduct({
-                id: "", // Firebase will generate this
                 product_id: product.id,
                 created_at: new Date(),
                 updated_at: new Date(),
