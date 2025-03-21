@@ -43,7 +43,7 @@ export type ProductCategory =
   (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES];
 
 // mock data before implementing the api
-export const PRODUCTS: Omit<Product, "product_id">[] = [
+export const PRODUCTS: Omit<Product, "id">[] = [
   // Fruits
   {
     name: "Banana",
