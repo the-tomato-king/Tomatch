@@ -8,6 +8,7 @@ import { HomeStackParamList } from "../types/navigation";
 import { colors } from "../theme/colors";
 import { readOneDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
+import ProductImage from "./ProductImage";
 
 type ProductNavigationProp = NativeStackNavigationProp<
   HomeStackParamList,
@@ -69,7 +70,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     console.log("User Product ID:", product.id);
     navigation.navigate("ProductDetail", {
       productId: product.product_id,
-      userProductId: product.id
+      userProductId: product.id,
     });
   };
 
@@ -86,16 +87,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <TouchableOpacity onPress={handlePress}>
       <View style={styles.productItem}>
-        <View style={styles.productImagePlaceholder}>
-          {productDetails?.image_type === "emoji" ? (
-            <Text style={styles.emojiText}>{productDetails.image_source}</Text>
-          ) : productDetails?.image_source ? (
-            <Image
-              source={{ uri: productDetails.image_source }}
-              style={styles.productImage}
-            />
-          ) : null}
-        </View>
+        <ProductImage
+          imageType={productDetails?.image_type}
+          imageSource={productDetails?.image_source}
+        />
         <View style={styles.productInfo}>
           <Text style={styles.productName}>{productDetails?.name}</Text>
           <Text style={styles.productCategory}>{productDetails?.category}</Text>
@@ -156,7 +151,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   priceText: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "bold",
     color: colors.primary,
   },

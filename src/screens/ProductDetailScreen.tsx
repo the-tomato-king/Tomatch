@@ -12,6 +12,9 @@ import { COLLECTIONS } from "../constants/firebase";
 import { readOneDoc, readAllDocs } from "../services/firebase/firebaseHelper";
 import { Product, PriceRecord, UserProductStats } from "../types";
 import LoadingLogo from "../components/loadingLogo";
+import ProductImage from "../components/ProductImage";
+import { colors } from "../theme/colors";
+import { LinearGradient } from "expo-linear-gradient";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
 
@@ -88,16 +91,52 @@ const ProductDetailScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Product Details</Text>
-
-      {/* 显示产品基本信息 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Product Information</Text>
-        <Text>Name: {product?.name}</Text>
-        <Text>Category: {product?.category}</Text>
+      {/* Product Information */}
+      <View style={[styles.section]}>
+        <View style={styles.basicInfoContainer}>
+          <ProductImage
+            imageType={product?.image_type}
+            imageSource={product?.image_source}
+          />
+          <View style={styles.contentContainer}>
+            <View style={styles.titleContainer}>
+              <Text style={styles.sectionTitle}>{product?.name}</Text>
+              <View style={styles.categoryContainer}>
+                <Text style={styles.category}>{product?.category}</Text>
+              </View>
+            </View>
+            <View style={styles.priceContainer}>
+              <Text style={styles.priceValue}>
+                ${productStats?.average_price.toFixed(2)}
+              </Text>
+              <Text style={styles.priceLabel}>Average</Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.priceRangeSection}>
+          <Text style={styles.sectionTitle}>Price Range</Text>
+          <View style={styles.priceRangeContainer}>
+            <View style={styles.priceRangeBar}>
+              <LinearGradient
+                colors={["#4CAF50", "#FFC107", "#F44336"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.gradient}
+              />
+            </View>
+            <View style={styles.priceRangeLabels}>
+              <Text style={styles.minPrice}>
+                ${productStats?.lowest_price.toFixed(2)}/lb
+              </Text>
+              <Text style={styles.maxPrice}>
+                ${productStats?.highest_price.toFixed(2)}/lb
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
 
-      {/* 显示产品统计信息 */}
+      {/* Price Statistics */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Price Statistics</Text>
         {productStats ? (
@@ -112,7 +151,7 @@ const ProductDetailScreen = () => {
         )}
       </View>
 
-      {/* 显示价格记录 */}
+      {/* Price Records */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
           Price Records ({priceRecords.length})
@@ -139,20 +178,88 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 16,
+    backgroundColor: colors.lightGray2,
   },
   section: {
     marginBottom: 24,
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 8,
+  },
+  basicInfoContainer: {
+    flexDirection: "row",
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginRight: 15,
+  },
+  categoryContainer: {
+    backgroundColor: colors.primary,
+    padding: 5,
+    borderRadius: 10,
+  },
+  category: {
+    fontSize: 14,
+    color: colors.white,
+  },
+  priceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  priceLabel: {
+    fontSize: 14,
+    color: colors.secondaryText,
+  },
+  priceValue: {
+    fontSize: 25,
+    fontWeight: "bold",
+    color: colors.primary,
+    marginRight: 10,
+  },
+  priceRangeSection: {
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 24,
+  },
+  priceRangeContainer: {
+    marginTop: 12,
+  },
+  priceRangeBar: {
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+    backgroundColor: colors.lightGray2,
+  },
+  gradient: {
+    flex: 1,
+    height: "100%",
+  },
+  priceRangeLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  minPrice: {
+    fontSize: 14,
+    color: "#4CAF50",
+    fontWeight: "500",
+  },
+  maxPrice: {
+    fontSize: 14,
+    color: "#F44336",
+    fontWeight: "500",
   },
   recordItem: {
     padding: 8,
