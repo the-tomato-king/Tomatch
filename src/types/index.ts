@@ -1,7 +1,7 @@
 // User
 
 export interface User {
-  user_id: string;
+  id: string;
   name: string;
   email: string;
   phone_number: string;
@@ -34,6 +34,7 @@ interface PreferredUnit {
 
 // User Products
 export interface UserProduct {
+  id: string;
   product_id: string; // reference to products collection
   created_at: Date;
   updated_at: Date;
@@ -41,7 +42,7 @@ export interface UserProduct {
 
 // User Customized Product
 export interface CustomizedProduct {
-  product_id: string;
+  id: string;
   name: string;
   category: string;
   image_url: string;
@@ -53,7 +54,7 @@ export interface CustomizedProduct {
 
 // User Shopping List
 export interface ShoppingList {
-  list_id: string;
+  id: string;
   product_id: string;
   product_name: string;
   status: string;
@@ -63,7 +64,7 @@ export interface ShoppingList {
 
 // User Price Record
 export interface PriceRecord {
-  record_id: string;
+  id: string;
   user_product_id: string; // references user_products
   store_id: string; // references stores
   price: number;
@@ -77,7 +78,7 @@ type ImageType = "emoji" | "image";
 
 // Product
 export interface Product {
-  product_id: string;
+  id: string;
   name: string;
   category: string;
   image_type: ImageType;
@@ -88,7 +89,7 @@ export interface Product {
 
 // Store
 export interface Store {
-  store_id: string;
+  id: string;
   name: string;
   logo_url: string;
   address: string;
@@ -100,6 +101,7 @@ export interface Store {
 
 // Product Stats
 export interface ProductStats {
+  id: string;
   product_id: string; // reference to products collection
   currency: string;
   total_price: number;

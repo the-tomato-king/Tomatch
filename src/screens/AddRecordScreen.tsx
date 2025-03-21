@@ -123,6 +123,7 @@ const AddRecordScreen = () => {
       } else {
         // create user product if it doesn't exist
         const userProduct: UserProduct = {
+          id: "", // Firebase will generate this
           product_id: selectedProduct.product_id,
           created_at: new Date(),
           updated_at: new Date(),
@@ -138,7 +139,7 @@ const AddRecordScreen = () => {
       }
 
       const priceRecord: PriceRecord = {
-        record_id: "", // Firebase will generate this
+        id: "", // Firebase will generate this
         user_product_id: userProductId,
         store_id: storeName, // TODO: Link to real store, now use the store name user typed in
         price: numericPrice,
@@ -196,6 +197,7 @@ const AddRecordScreen = () => {
           });
         } else {
           productStats = {
+            id: "", // Firebase will generate this
             product_id: selectedProduct.product_id,
             currency: "$", // TODO: Get from user settings
             total_price: numericPrice,
@@ -270,7 +272,8 @@ const AddRecordScreen = () => {
             onSelectProduct={(product) => {
               setProductName(product.name);
               setSelectedProduct({
-                product_id: product.product_id,
+                id: "", // Firebase will generate this
+                product_id: product.id,
                 created_at: new Date(),
                 updated_at: new Date(),
               });

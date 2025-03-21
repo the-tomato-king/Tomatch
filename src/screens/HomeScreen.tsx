@@ -7,6 +7,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { COLLECTIONS } from "../constants/firebase";
 import { db } from "../services/firebase/firebaseConfig";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
+import { readAllDocs } from "../services/firebase/firebaseHelper";
 
 const HomeScreen = () => {
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
@@ -19,21 +20,8 @@ const HomeScreen = () => {
       const currentUser = "user123";
       console.log("Fetching products for user:", currentUser);
 
-      const userProductsRef = collection(
-        db,
-        COLLECTIONS.USERS,
-        currentUser,
-        COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
-      );
-
-      const querySnapshot = await getDocs(userProductsRef);
-
-      const products = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        product_id: doc.data().product_id,
-        created_at: doc.data().created_at,
-        updated_at: doc.data().updated_at,
-      })) as UserProduct[];
+      const collectionPath = `${COLLECTIONS.USERS}/${currentUser}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+      const products = await readAllDocs<UserProduct>(collectionPath);
 
       setUserProducts(products);
     } catch (error) {
@@ -67,7 +55,7 @@ const HomeScreen = () => {
         {/* todo: add search bar */}
         <FlatList
           data={userProducts}
-          keyExtractor={(item) => item.product_id}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => <ProductCard product={item} />}
           ListEmptyComponent={<Text>No products found</Text>}
           ListHeaderComponent={
