@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { deleteOneDocFromDB, readAllDocs } from '../services/firebase/firebaseHelper'; // 导入自定义的读取文档函数
+import { db } from '../services/firebase/firebaseConfig';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 type RootStackParamList = {
   ShoppingList: undefined;
@@ -19,16 +21,17 @@ const ShoppingListScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([]);
 
+
   useEffect(() => {
-    const fetchShoppingLists = async () => {
-      try {
-        const lists: ShoppingList[] = await readAllDocs<ShoppingList>('shoppingLists');
-        setShoppingLists(lists);
-      } catch (error) {
-        console.error('Error fetching shopping lists: ', error);
-      }
-    };
-    fetchShoppingLists();
+    const unsubscribe = onSnapshot(collection(db, "shoppingLists"), (snapshot) => {
+      const lists = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as ShoppingList[];
+      setShoppingLists(lists);
+    });
+  
+    return () => unsubscribe(); 
   }, []);
 
   const handleDeleteItem = async (id: string) => {
