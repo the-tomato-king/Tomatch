@@ -8,21 +8,19 @@ import { COLLECTIONS } from "../constants/firebase";
 import { db } from "../services/firebase/firebaseConfig";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 import { readAllDocs } from "../services/firebase/firebaseHelper";
+import LoadingLogo from "../components/loadingLogo";
 
 const HomeScreen = () => {
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const route = useRoute();
 
   const fetchUserProducts = useCallback(async () => {
     try {
       setLoading(true);
       const currentUser = "user123";
-      console.log("Fetching products for user:", currentUser);
-
       const collectionPath = `${COLLECTIONS.USERS}/${currentUser}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
       const products = await readAllDocs<UserProduct>(collectionPath);
-
+      console.log("User products:", products);
       setUserProducts(products);
     } catch (error) {
       console.error("Error fetching user products:", error);
@@ -42,11 +40,7 @@ const HomeScreen = () => {
   }, []);
 
   if (loading) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text>Loading...</Text>
-      </View>
-    );
+    return <LoadingLogo />;
   }
 
   return (
@@ -55,7 +49,7 @@ const HomeScreen = () => {
         {/* todo: add search bar */}
         <FlatList
           data={userProducts}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.product_id}
           renderItem={({ item }) => <ProductCard product={item} />}
           ListEmptyComponent={<Text>No products found</Text>}
           ListHeaderComponent={

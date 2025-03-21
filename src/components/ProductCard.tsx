@@ -64,17 +64,21 @@ const ProductCard = ({ product }: ProductCardProps) => {
   }, [product.product_id]);
 
   const handlePress = () => {
+    console.log("Product:", product);
+    console.log("Product ID:", product.product_id);
+    console.log("User Product ID:", product.id);
     navigation.navigate("ProductDetail", {
       productId: product.product_id,
+      userProductId: product.id
     });
   };
 
-  // 格式化价格显示
+  // Format price
   const formatPrice = (price: number) => {
     return `$${price.toFixed(2)}`;
   };
 
-  // 格式化单位显示
+  // Format unit
   const formatUnit = (unit: string) => {
     return `/${unit}`;
   };

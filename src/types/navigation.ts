@@ -8,7 +8,10 @@ export type MainTabParamList = {
 
 export type HomeStackParamList = {
   HomeScreen: undefined;
-  ProductDetail: { productId: string };
+  ProductDetail: {
+    productId: string;
+    userProductId: string;
+  };
 };
 
 export type ShoppingStackParamList = {
