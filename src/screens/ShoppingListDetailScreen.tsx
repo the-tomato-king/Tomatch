@@ -1,6 +1,6 @@
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { readOneDoc } from '../services/firebase/firebaseHelper';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, FlatList } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import { ShoppingStackParamList } from '../types/navigation';
@@ -32,7 +32,7 @@ const ShoppingListDetailScreen = () => {
         setShoppingList(list);
         if (list) {
           const initialCheckedState = list.items.reduce((acc, item) => {
-            acc[item.id] = item.checked || false; // ✅ 从数据库读取 checked 状态
+            acc[item.id] = item.checked || false; 
             return acc;
           }, {} as { [key: string]: boolean });
           setCheckedItems(initialCheckedState);
@@ -47,21 +47,18 @@ const ShoppingListDetailScreen = () => {
     fetchShoppingList();
   }, [id]);
 
-  const handleCheck = async (itemId: string) => {
+  const handleCheck = useCallback(async (itemId: string) => {
     if (!shoppingList) return;
-
+  
     try {
-      // 计算新的 checked 状态
       const newCheckedState = !checkedItems[itemId];
-
-      // 更新 Firestore
+  
       const updatedItems = shoppingList.items.map((item) =>
         item.id === itemId ? { ...item, checked: newCheckedState } : item
       );
-
+  
       await updateDoc(doc(db, 'shoppingLists', id), { items: updatedItems });
-
-      // **同步 UI 状态**
+  
       setCheckedItems((prev) => ({
         ...prev,
         [itemId]: newCheckedState,
@@ -72,7 +69,8 @@ const ShoppingListDetailScreen = () => {
     } catch (error) {
       console.error('Error updating checkbox:', error);
     }
-  };
+  }, [shoppingList, checkedItems, id]);
+  
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -86,8 +84,9 @@ const ShoppingListDetailScreen = () => {
     <View style={styles.container}>
       <Text style={styles.title}>{shoppingList.name}</Text>
       <Text style={styles.dateText}>
-        Shopping Time: {new Date(shoppingList.shoppingTime).toLocaleString()}
+        Shopping Time: {shoppingList.shoppingTime ? new Date(shoppingList.shoppingTime).toLocaleString() : 'N/A'}
       </Text>
+
 
       <Text style={styles.sectionTitle}>Items:</Text>
 
@@ -97,11 +96,11 @@ const ShoppingListDetailScreen = () => {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.itemContainer}>
-              <CheckBox
-                title={item.name} 
-                checked={checkedItems[item.id] || false}  // ✅ 绑定 checkedItems[item.id]
-                onPress={() => handleCheck(item.id)} 
-              />
+            <CheckBox
+            title={item.name || 'Unnamed Item'} 
+            checked={checkedItems[item.id] || false}
+            onPress={() => handleCheck(item.id)}
+            />
               <Text style={styles.itemQuantity}>Quantity: {item.quantity}</Text>
             </View>
           )}
