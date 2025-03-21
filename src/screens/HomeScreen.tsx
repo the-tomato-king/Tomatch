@@ -7,35 +7,39 @@ import { readAllDocs } from "../services/firebase/firebaseHelper";
 import LoadingLogo from "../components/LoadingLogo";
 import { colors } from "../theme/colors";
 import { useFocusEffect } from "@react-navigation/native";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../services/firebase/firebaseConfig";
 
 const HomeScreen = () => {
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const currentUser = "user123";
-      const collectionPath = `${COLLECTIONS.USERS}/${currentUser}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-      const products = await readAllDocs<UserProduct>(collectionPath);
-      console.log("User products:", products);
-      setUserProducts(products);
-    } catch (error) {
-      console.error("Error fetching user products:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
-      fetchUserProducts();
-    }, [fetchUserProducts])
-  );
+      const currentUser = "user123";
+      const collectionPath = `${COLLECTIONS.USERS}/${currentUser}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
-  useEffect(() => {
-    fetchUserProducts();
-  }, []);
+      // Create subscription to real-time updates
+      const unsubscribe = onSnapshot(
+        collection(db, collectionPath),
+        (snapshot) => {
+          const products = snapshot.docs.map((doc) => ({
+            ...doc.data(),
+            id: doc.id,
+          })) as UserProduct[];
+          setUserProducts(products);
+          setLoading(false);
+        },
+        (error) => {
+          console.error("Error listening to user products:", error);
+          setLoading(false);
+        }
+      );
+
+      // Cleanup subscription on unmount
+      return () => unsubscribe();
+    }, [])
+  );
 
   if (loading) {
     return <LoadingLogo />;
@@ -44,19 +48,19 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>All Products</Text>
-        <FlatList
-          style={styles.list}
-          data={userProducts}
-          keyExtractor={(item) => item.product_id}
-          renderItem={({ item }) => <ProductCard product={item} />}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No products found</Text>
-            </View>
-          }
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
+      <FlatList
+        style={styles.list}
+        data={userProducts}
+        keyExtractor={(item) => item.product_id}
+        renderItem={({ item }) => <ProductCard product={item} />}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No products found</Text>
+          </View>
+        }
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
