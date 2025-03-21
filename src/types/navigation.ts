@@ -14,6 +14,7 @@ export type HomeStackParamList = {
 export type ShoppingStackParamList = {
   ShoppingList: undefined;
   AddShoppingList: undefined;
+  ShoppingListDetail: { id: string }; 
 };
 
 export type RootStackParamList = {
