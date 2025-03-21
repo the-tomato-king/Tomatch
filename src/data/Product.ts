@@ -33,10 +33,6 @@ export const PRODUCT_CATEGORIES = {
   MEAT: "Meat",
   BAKERY: "Bakery",
   BEVERAGES: "Beverages",
-  SNACKS: "Snacks",
-  PANTRY: "Pantry",
-  FROZEN: "Frozen",
-  HOUSEHOLD: "Household",
 } as const;
 
 export type ProductCategory =

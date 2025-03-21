@@ -5,17 +5,27 @@ import {
   FlatList,
   TextInput,
   Image,
-  ScrollView,
   TouchableOpacity,
 } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import { PRODUCTS, PRODUCT_CATEGORIES } from "../data/Product";
-import { globalStyles } from "../theme/styles";
 import { colors } from "../theme/colors";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import ProductImage from "../components/ProductImage";
+import CategoryFilter from "../components/CategoryFilter";
 
 const ProductLibraryScreen = () => {
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  const filteredProducts =
+    selectedCategory === "all"
+      ? PRODUCTS
+      : PRODUCTS.filter((product) => product.category === selectedCategory);
+
   return (
     <View style={styles.container}>
       <View style={styles.searchHeader}>
@@ -42,21 +52,14 @@ const ProductLibraryScreen = () => {
         </View>
       </View>
       <View style={styles.productLibraryContainer}>
-        <View style={styles.categoryFilterContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <TouchableOpacity style={styles.categoryButton}>
-              <Text style={styles.categoryButtonText}>All</Text>
-            </TouchableOpacity>
-            {Object.values(PRODUCT_CATEGORIES).map((category) => (
-              <TouchableOpacity key={category} style={styles.categoryButton}>
-                <Text style={styles.categoryButtonText}>{category}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+        <CategoryFilter
+          categories={Object.values(PRODUCT_CATEGORIES)}
+          selectedCategory={selectedCategory}
+          onSelectCategory={handleCategorySelect}
+        />
         <View style={styles.productListContainer}>
           <FlatList
-            data={PRODUCTS}
+            data={filteredProducts}
             keyExtractor={(item) => item.name}
             renderItem={({ item }) => (
               <View style={styles.productItem}>
@@ -124,7 +127,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 40,
-    paddingVertical: 0, // 移除默认内边距
+    paddingVertical: 0,
   },
   // product library
   productLibraryContainer: {
@@ -133,24 +136,6 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: colors.white,
     borderRadius: 10,
-  },
-  // category filter
-  categoryFilterContainer: {
-    width: "100%",
-    height: 40,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.lightGray2,
-  },
-  categoryButton: {
-    paddingHorizontal: 20,
-    height: "100%",
-    justifyContent: "center",
-  },
-  categoryButtonText: {
-    fontSize: 14,
-    fontWeight: 500,
-    color: colors.secondaryText,
-    textAlign: "center",
   },
   // product list
   productListContainer: {
@@ -161,23 +146,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
-  },
-  productImagePlaceholder: {
-    width: 70,
-    height: 70,
-    backgroundColor: "#E0E0E0",
-    borderRadius: 40,
-    marginRight: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  productImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 40,
-  },
-  emojiText: {
-    fontSize: 45,
   },
   productInfo: {
     flexDirection: "column",
