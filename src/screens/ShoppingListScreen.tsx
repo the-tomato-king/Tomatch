@@ -2,21 +2,20 @@ import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity } from 'reac
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { deleteOneDocFromDB, readAllDocs } from '../services/firebase/firebaseHelper';
+import { deleteOneDocFromDB } from '../services/firebase/firebaseHelper';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { ShoppingStackParamList } from '../types/navigation';
 import { db } from '../services/firebase/firebaseConfig';
 
 interface ShoppingList {
   id: string;
-  name: string; 
+  name: string;
   shoppingTime: string;
 }
 
 const ShoppingListScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ShoppingStackParamList>>();
   const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([]);
-
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "shoppingLists"), (snapshot) => {
@@ -26,12 +25,11 @@ const ShoppingListScreen = () => {
       })) as ShoppingList[];
       setShoppingLists(lists);
     });
-  
-    return () => unsubscribe(); 
+
+    return () => unsubscribe();
   }, []);
 
   const handleDeleteItem = async (id: string) => {
-    console.log("Deleting item with id: ", id);
     try {
       await deleteOneDocFromDB('shoppingLists', id);
       setShoppingLists((prevState) => prevState.filter((item) => item.id !== id));
@@ -39,7 +37,6 @@ const ShoppingListScreen = () => {
       console.error('Error deleting item: ', error);
     }
   };
-  
 
   return (
     <View style={styles.container}>
@@ -48,13 +45,21 @@ const ShoppingListScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => navigation.navigate('ShoppingListDetail', {id:item.id})}
+            style={styles.listItem}
+            onPress={() => navigation.navigate('ShoppingListDetail', { id: item.id })}
           >
-            <View style={styles.listItem}>
+            <View style={styles.itemContent}>
               <Text style={styles.listName}>{item.name}</Text>
-              <Text>Shopping Time: {new Date(item.shoppingTime).toLocaleDateString()}</Text>
-              <Button title="delete" onPress={() => handleDeleteItem(item.id)} />
+              <Text style={styles.shoppingTime}>
+                Shopping Time: {new Date(item.shoppingTime).toLocaleDateString()}
+              </Text>
             </View>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDeleteItem(item.id)}
+            >
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
           </TouchableOpacity>
         )}
       />
@@ -67,24 +72,42 @@ export default ShoppingListScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
     paddingTop: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    paddingHorizontal: 15,
   },
   listItem: {
-    width:"100%",
-    marginBottom: 20,
-    padding: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
+    backgroundColor: '#fff',
+    marginBottom: 15,
+    borderRadius: 10,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  itemContent: {
+    marginBottom: 10,
   },
   listName: {
     fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  shoppingTime: {
+    fontSize: 14,
+    color: '#777',
+  },
+  deleteButton: {
+    backgroundColor: '#ff6347',
+    borderRadius: 5,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    marginTop: 10,
+    width:"25%"
+  },
+  deleteButtonText: {
+    color: '#fff',
     fontWeight: 'bold',
   },
 });
