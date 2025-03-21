@@ -23,7 +23,7 @@ import { RootStackParamList } from "../types/navigation";
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
-import { PriceRecord, UserProduct, ProductStats } from "../types";
+import { PriceRecord, UserProduct, UserProductStats } from "../types";
 import ProductSearchInput from "../components/ProductSearchInput";
 import {
   collection,
@@ -153,50 +153,53 @@ const AddRecordScreen = () => {
       const recordId = await createDoc(priceRecordPath, priceRecord);
 
       if (recordId) {
-        const productStatsRef = doc(
+        // 修改路径为用户的子集合
+        const userProductStatsRef = doc(
           db,
-          COLLECTIONS.PRODUCT_STATS,
+          COLLECTIONS.USERS,
+          userId,
+          "user_product_stats", // 新的子集合名称
           selectedProduct.product_id
         );
-        const productStatsDoc = await getDoc(productStatsRef);
+        const userProductStatsDoc = await getDoc(userProductStatsRef);
 
-        let productStats: ProductStats;
+        let userProductStats: UserProductStats;
 
-        if (productStatsDoc.exists()) {
-          productStats = productStatsDoc.data() as ProductStats;
+        if (userProductStatsDoc.exists()) {
+          userProductStats = userProductStatsDoc.data() as UserProductStats;
 
-          const newTotalRecords = productStats.total_price_records + 1;
-          const newTotalPrice = productStats.total_price + numericPrice;
+          const newTotalRecords = userProductStats.total_price_records + 1;
+          const newTotalPrice = userProductStats.total_price + numericPrice;
           const newAveragePrice = newTotalPrice / newTotalRecords;
 
-          if (numericPrice < productStats.lowest_price) {
-            productStats.lowest_price = numericPrice;
-            productStats.lowest_price_store = {
+          if (numericPrice < userProductStats.lowest_price) {
+            userProductStats.lowest_price = numericPrice;
+            userProductStats.lowest_price_store = {
               store_id: storeName,
               store_name: storeName,
             };
           }
 
-          if (numericPrice > productStats.highest_price) {
-            productStats.highest_price = numericPrice;
+          if (numericPrice > userProductStats.highest_price) {
+            userProductStats.highest_price = numericPrice;
           }
 
-          productStats.total_price = newTotalPrice;
-          productStats.average_price = newAveragePrice;
-          productStats.total_price_records = newTotalRecords;
-          productStats.last_updated = new Date();
+          userProductStats.total_price = newTotalPrice;
+          userProductStats.average_price = newAveragePrice;
+          userProductStats.total_price_records = newTotalRecords;
+          userProductStats.last_updated = new Date();
 
-          await updateDoc(productStatsRef, {
-            total_price: productStats.total_price,
-            average_price: productStats.average_price,
-            lowest_price: productStats.lowest_price,
-            highest_price: productStats.highest_price,
-            lowest_price_store: productStats.lowest_price_store,
-            total_price_records: productStats.total_price_records,
-            last_updated: productStats.last_updated,
+          await updateDoc(userProductStatsRef, {
+            total_price: userProductStats.total_price,
+            average_price: userProductStats.average_price,
+            lowest_price: userProductStats.lowest_price,
+            highest_price: userProductStats.highest_price,
+            lowest_price_store: userProductStats.lowest_price_store,
+            total_price_records: userProductStats.total_price_records,
+            last_updated: userProductStats.last_updated,
           });
         } else {
-          productStats = {
+          userProductStats = {
             id: "", // Firebase will generate this
             product_id: selectedProduct.product_id,
             currency: "$", // TODO: Get from user settings
@@ -212,7 +215,8 @@ const AddRecordScreen = () => {
             last_updated: new Date(),
           };
 
-          await setDoc(productStatsRef, productStats);
+          // 保存新的统计信息到用户子集合
+          await setDoc(userProductStatsRef, userProductStats);
         }
 
         alert("Record saved successfully!");

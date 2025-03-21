@@ -74,6 +74,23 @@ export interface PriceRecord {
   recorded_at: Date;
 }
 
+// Product Stats
+export interface UserProductStats {
+  id: string;
+  product_id: string; // reference to products collection
+  currency: string;
+  total_price: number;
+  average_price: number;
+  lowest_price: number;
+  highest_price: number;
+  lowest_price_store: {
+    store_id: string;
+    store_name: string;
+  };
+  total_price_records: number;
+  last_updated: Date;
+}
+
 type ImageType = "emoji" | "image";
 
 // Product
@@ -99,19 +116,3 @@ export interface Store {
   updated_at: Date;
 }
 
-// Product Stats
-export interface ProductStats {
-  id: string;
-  product_id: string; // reference to products collection
-  currency: string;
-  total_price: number;
-  average_price: number;
-  lowest_price: number;
-  highest_price: number;
-  lowest_price_store: {
-    store_id: string;
-    store_name: string;
-  };
-  total_price_records: number;
-  last_updated: Date;
-}

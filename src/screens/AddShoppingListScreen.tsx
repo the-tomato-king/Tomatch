@@ -64,7 +64,7 @@ const AddShoppingListScreen = () => {
     if (docId) {
       console.log("Shopping list created with ID:", docId);
       // Handle navigation or reset state after successful creation
-      console.log("router:", router);  
+      console.log("router:", router);
     } else {
       console.error("Error creating shopping list.");
     }
@@ -104,15 +104,22 @@ const AddShoppingListScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.listItem}>
-            <Text>{item.name} - {item.quantity} pcs</Text>
+            <Text>
+              {item.name} - {item.quantity} pcs
+            </Text>
           </View>
         )}
       />
 
       {/* Expected Shopping Time Picker */}
-      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
+      <TouchableOpacity
+        onPress={() => setShowDatePicker(true)}
+        style={styles.dateButton}
+      >
         <Text style={styles.dateText}>
-          {shoppingTime ? shoppingTime.toLocaleString() : "Select Shopping Time"}
+          {shoppingTime
+            ? shoppingTime.toLocaleString()
+            : "Select Shopping Time"}
         </Text>
       </TouchableOpacity>
 
@@ -130,15 +137,12 @@ const AddShoppingListScreen = () => {
 
       {/* TODO: Add location selection later */}
       <Button title="Select Location (Coming Soon)" disabled />
-      
+
       {/* Cancel and Submit Buttons */}
       <View style={styles.buttonRow}>
         <Button title="Cancel" onPress={handleCancel} color="red" />
-        
-        <Button
-          title="Create"
-          onPress={handleCreateList}
-        />
+
+        <Button title="Create" onPress={handleCreateList} />
       </View>
     </View>
   );

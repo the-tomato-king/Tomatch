@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Product, UserProduct } from "../types";
+import { Product, UserProduct, UserProductStats } from "../types";
 import { globalStyles } from "../theme/styles";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -21,6 +21,9 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const navigation = useNavigation<ProductNavigationProp>();
   const [productDetails, setProductDetails] = useState<Product | null>(null);
+  const [productStats, setProductStats] = useState<UserProductStats | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchProductDetails = async () => {
@@ -37,13 +40,43 @@ const ProductCard = ({ product }: ProductCardProps) => {
       }
     };
 
+    const fetchProductStats = async () => {
+      try {
+        // TODO:
+        const userId = "user123";
+        const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
+
+        const stats = await readOneDoc<UserProductStats>(
+          statsPath,
+          product.product_id
+        );
+
+        if (stats) {
+          setProductStats(stats);
+        }
+      } catch (error) {
+        console.error("Error fetching product stats:", error);
+      }
+    };
+
     fetchProductDetails();
+    fetchProductStats();
   }, [product.product_id]);
 
   const handlePress = () => {
     navigation.navigate("ProductDetail", {
       productId: product.product_id,
     });
+  };
+
+  // 格式化价格显示
+  const formatPrice = (price: number) => {
+    return `$${price.toFixed(2)}`;
+  };
+
+  // 格式化单位显示
+  const formatUnit = (unit: string) => {
+    return `/${unit}`;
   };
 
   return (
@@ -63,6 +96,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <Text style={styles.productName}>{productDetails?.name}</Text>
           <Text style={styles.productCategory}>{productDetails?.category}</Text>
         </View>
+        {productStats && (
+          <View style={styles.priceContainer}>
+            <Text style={styles.priceText}>
+              {formatPrice(productStats.average_price)}
+              <Text style={styles.unitText}>/lb</Text>
+            </Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -71,10 +112,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
 export default ProductCard;
 
 const styles = StyleSheet.create({
-  productListContainer: {
-    width: "100%",
-    height: "100%",
-  },
   productItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -99,15 +136,28 @@ const styles = StyleSheet.create({
   },
   productInfo: {
     flexDirection: "column",
+    flex: 1,
   },
   productName: {
-    flex: 1,
     fontSize: 16,
     fontWeight: "bold",
   },
   productCategory: {
-    flex: 5,
     fontSize: 14,
+    color: colors.secondaryText,
+  },
+  priceContainer: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  priceText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: colors.primary,
+  },
+  unitText: {
+    fontSize: 12,
     color: colors.secondaryText,
   },
 });
