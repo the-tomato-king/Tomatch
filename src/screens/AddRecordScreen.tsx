@@ -23,7 +23,7 @@ import { RootStackParamList } from "../types/navigation";
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
-import { BasePriceRecord, BaseUserProduct, BaseUserProductStats, PriceRecord, UserProduct, UserProductStats } from "../types";
+import { PriceRecord, UserProduct, UserProductStats } from "../types";
 import ProductSearchInput from "../components/ProductSearchInput";
 import {
   collection,
@@ -40,7 +40,7 @@ type AddRecordScreenNavigationProp =
 
 const AddRecordScreen = () => {
   const navigation = useNavigation<AddRecordScreenNavigationProp>();
-  const [selectedProduct, setSelectedProduct] = useState<BaseUserProduct>();
+  const [selectedProduct, setSelectedProduct] = useState<UserProduct>();
 
   const [image, setImage] = useState<string | null>(null);
   const [productName, setProductName] = useState("");
@@ -122,7 +122,8 @@ const AddRecordScreen = () => {
         userProductId = existingUserProduct.id;
       } else {
         // create user product if it doesn't exist
-        const userProduct: BaseUserProduct = {
+        const userProduct: UserProduct = {
+          id: "", // Firebase will generate this
           product_id: selectedProduct.product_id,
           created_at: new Date(),
           updated_at: new Date(),
@@ -137,7 +138,8 @@ const AddRecordScreen = () => {
         }
       }
 
-      const priceRecord: BasePriceRecord = {
+      const priceRecord: PriceRecord = {
+        id: "", // Firebase will generate this
         user_product_id: userProductId,
         store_id: storeName, // TODO: Link to real store, now use the store name user typed in
         price: numericPrice,
@@ -151,53 +153,53 @@ const AddRecordScreen = () => {
       const recordId = await createDoc(priceRecordPath, priceRecord);
 
       if (recordId) {
-        // 修改路径为用户的子集合
-        const userProductStatsRef = doc(
+        const productStatsRef = doc(
           db,
           COLLECTIONS.USERS,
           userId,
-          "user_product_stats", // 新的子集合名称
+          COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS,
           selectedProduct.product_id
         );
-        const userProductStatsDoc = await getDoc(userProductStatsRef);
+        const productStatsDoc = await getDoc(productStatsRef);
 
-        let userProductStats: BaseUserProductStats;
+        let productStats: UserProductStats;
 
-        if (userProductStatsDoc.exists()) {
-          userProductStats = userProductStatsDoc.data() as BaseUserProductStats;
+        if (productStatsDoc.exists()) {
+          productStats = productStatsDoc.data() as UserProductStats;
 
-          const newTotalRecords = userProductStats.total_price_records + 1;
-          const newTotalPrice = userProductStats.total_price + numericPrice;
+          const newTotalRecords = productStats.total_price_records + 1;
+          const newTotalPrice = productStats.total_price + numericPrice;
           const newAveragePrice = newTotalPrice / newTotalRecords;
 
-          if (numericPrice < userProductStats.lowest_price) {
-            userProductStats.lowest_price = numericPrice;
-            userProductStats.lowest_price_store = {
+          if (numericPrice < productStats.lowest_price) {
+            productStats.lowest_price = numericPrice;
+            productStats.lowest_price_store = {
               store_id: storeName,
               store_name: storeName,
             };
           }
 
-          if (numericPrice > userProductStats.highest_price) {
-            userProductStats.highest_price = numericPrice;
+          if (numericPrice > productStats.highest_price) {
+            productStats.highest_price = numericPrice;
           }
 
-          userProductStats.total_price = newTotalPrice;
-          userProductStats.average_price = newAveragePrice;
-          userProductStats.total_price_records = newTotalRecords;
-          userProductStats.last_updated = new Date();
+          productStats.total_price = newTotalPrice;
+          productStats.average_price = newAveragePrice;
+          productStats.total_price_records = newTotalRecords;
+          productStats.last_updated = new Date();
 
-          await updateDoc(userProductStatsRef, {
-            total_price: userProductStats.total_price,
-            average_price: userProductStats.average_price,
-            lowest_price: userProductStats.lowest_price,
-            highest_price: userProductStats.highest_price,
-            lowest_price_store: userProductStats.lowest_price_store,
-            total_price_records: userProductStats.total_price_records,
-            last_updated: userProductStats.last_updated,
+          await updateDoc(productStatsRef, {
+            total_price: productStats.total_price,
+            average_price: productStats.average_price,
+            lowest_price: productStats.lowest_price,
+            highest_price: productStats.highest_price,
+            lowest_price_store: productStats.lowest_price_store,
+            total_price_records: productStats.total_price_records,
+            last_updated: productStats.last_updated,
           });
         } else {
-          userProductStats = {
+          productStats = {
+            id: "", // Firebase will generate this
             product_id: selectedProduct.product_id,
             currency: "$", // TODO: Get from user settings
             total_price: numericPrice,
@@ -212,8 +214,7 @@ const AddRecordScreen = () => {
             last_updated: new Date(),
           };
 
-          // 保存新的统计信息到用户子集合
-          await setDoc(userProductStatsRef, userProductStats);
+          await setDoc(productStatsRef, productStats);
         }
 
         alert("Record saved successfully!");
@@ -273,6 +274,7 @@ const AddRecordScreen = () => {
             onSelectProduct={(product) => {
               setProductName(product.name);
               setSelectedProduct({
+                id: "", // Firebase will generate this
                 product_id: product.id,
                 created_at: new Date(),
                 updated_at: new Date(),
@@ -333,6 +335,13 @@ const AddRecordScreen = () => {
             style={[globalStyles.button, globalStyles.primaryButton]}
           >
             <Text style={globalStyles.primaryButtonText}>Add More</Text>
+          </TouchableOpacity>
+          {/* TODO: implement add more */}
+          <TouchableOpacity
+            style={[globalStyles.button, globalStyles.primaryButton]}
+            onPress={handleSave}
+          >
+            <Text style={globalStyles.primaryButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
       </View>
