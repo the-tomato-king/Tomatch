@@ -78,6 +78,40 @@ const ProductDetailScreen = () => {
     fetchProductData();
   }, [productId, userProductId]);
 
+  // Helper function to format date
+  const formatDateTime = (dateValue: any) => {
+    let date;
+
+    // Check if the date is a Firestore Timestamp
+    if (dateValue && typeof dateValue.toDate === "function") {
+      date = dateValue.toDate(); // Convert Firestore Timestamp to JavaScript Date
+    } else if (dateValue instanceof Date) {
+      date = dateValue; // Already a JavaScript Date
+    } else if (typeof dateValue === "string") {
+      date = new Date(dateValue); // Convert string to Date
+    } else {
+      // Fallback for unexpected formats
+      console.warn("Unexpected date format:", dateValue);
+      return "Invalid date";
+    }
+
+    // Format date: May 10, 2025
+    const formattedDate = date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    // Format time: 10:00
+    const formattedTime = date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    return `${formattedDate} at ${formattedTime}`;
+  };
+
   if (loading) {
     return <LoadingLogo />;
   }
@@ -103,9 +137,7 @@ const ProductDetailScreen = () => {
                 ${productStats?.average_price.toFixed(2)}
               </Text>
               <Text style={styles.priceUnit}>/lb</Text>
-              <Text style={styles.priceLabel}>
-                Average
-              </Text>
+              <Text style={styles.priceLabel}>Average</Text>
             </View>
           </View>
         </View>
@@ -137,15 +169,24 @@ const ProductDetailScreen = () => {
           Price Records ({priceRecords.length})
         </Text>
         {priceRecords.length > 0 ? (
-          priceRecords.map((record, index) => (
-            <View key={index} style={styles.recordItem}>
-              <Text>Price: ${record.price.toFixed(2)}</Text>
-              <Text>Store: {record.store_id}</Text>
-              <Text>
-                Date: {new Date(record.recorded_at).toLocaleDateString()}
-              </Text>
-            </View>
-          ))
+          <ScrollView style={styles.recordsContainer}>
+            {priceRecords.map((record, index) => (
+              <View key={index} style={styles.recordItem}>
+                <View style={styles.recordLeftSection}>
+                  <View style={styles.storeCircle} />
+                  <View style={styles.recordInfo}>
+                    <Text style={styles.storeName}>{record.store_id}</Text>
+                    <Text style={styles.recordDate}>
+                      {formatDateTime(record.recorded_at)}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.recordPrice}>
+                  ${record.price.toFixed(2)}/lb
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
         ) : (
           <Text>No price records available</Text>
         )}
@@ -241,11 +282,45 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "400",
   },
+  recordsContainer: {
+    maxHeight: 300,
+  },
   recordItem: {
-    padding: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    marginBottom: 8,
+    borderBottomColor: colors.lightGray2,
+  },
+  recordLeftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  storeCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.lightGray2,
+    marginRight: 12,
+  },
+  recordInfo: {
+    justifyContent: "center",
+  },
+  storeName: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: colors.darkText,
+    marginBottom: 4,
+  },
+  recordDate: {
+    fontSize: 14,
+    color: colors.secondaryText,
+  },
+  recordPrice: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.primary,
   },
 });
 
