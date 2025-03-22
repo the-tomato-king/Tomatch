@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import {
   Platform,
   StyleSheet,
@@ -15,7 +15,10 @@ import { createDoc } from "../services/firebase/firebaseHelper"; // Import the c
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ShoppingStackParamList } from "../types/navigation";
-
+import ProductSearchInput from "../components/ProductSearchInput";
+import { Product } from "../types";
+import { globalStyles } from "../theme/styles";
+import { colors } from "../theme/colors";
 export interface ShoppingItem {
   id: string;
   name: string;
@@ -33,6 +36,7 @@ const AddShoppingListScreen = () => {
   const [shoppingTime, setShoppingTime] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false); // Track time picker visibility
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Function to handle opening date picker
   const handleOpenDatePicker = (type: "date" | "time") => {
@@ -75,7 +79,10 @@ const AddShoppingListScreen = () => {
 
   // Function to add product to list
   const handleAddItem = () => {
-    if (itemName.trim().length === 0 || parseInt(quantity) <= 0) return;
+    if (itemName.trim().length === 0 || parseInt(quantity) <= 0) {
+      alert("Please enter a valid product and quantity.");
+      return;
+    }
 
     const newItem: ShoppingItem = {
       id: Date.now().toString(),
@@ -132,31 +139,52 @@ const AddShoppingListScreen = () => {
     }
   };
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Text style={[globalStyles.headerButton, { color: colors.primary }]} onPress={handleCreateList} >
+          Save
+        </Text>
+      ),
+    });
+  }, [navigation, handleCreateList]);
+
   return (
     <View style={styles.container}>
       {/* Shopping List Name */}
-      <TextInput
-        style={styles.input}
-        placeholder="Enter shopping list name..."
-        value={listName}
-        onChangeText={setListName}
-      />
+      <View style={[globalStyles.inputContainer, { marginBottom: 10 }]}>
+        <View style={globalStyles.labelContainer}>
+          <Text style={globalStyles.inputLabel}>Name</Text>
+        </View>
+        <TextInput
+          style={[globalStyles.input]}
+          placeholder="Enter shopping list name..."
+          value={listName}
+          onChangeText={setListName}
+        />
+      </View>
 
       {/* Product Input */}
       <View style={styles.row}>
-        <TextInput
-          style={[styles.input, { flex: 1 }]}
-          placeholder="Enter product name..."
-          value={itemName}
-          onChangeText={setItemName}
-        />
-        <TextInput
-          style={[styles.input, { width: 80 }]}
-          placeholder="Qty"
-          keyboardType="numeric"
-          value={quantity}
-          onChangeText={setQuantity}
-        />
+        <View style={styles.productInput}>
+          <ProductSearchInput
+            inputValue={itemName}
+            onChangeInputValue={setItemName}
+            onSelectProduct={(product) => {
+              setItemName(product.name);
+              setSelectedProduct(product);
+            }}
+          />
+        </View>
+        <View style={[globalStyles.inputContainer, { width: 50, marginLeft: 10 }]}>
+          <TextInput
+            style={[globalStyles.input, { width: 80, textAlign: "center" }]}
+            placeholder="Qty"
+            keyboardType="numeric"
+            value={quantity}
+            onChangeText={setQuantity}
+          />
+        </View>
         <Button title="Add" onPress={handleAddItem} />
       </View>
 
@@ -233,12 +261,6 @@ const AddShoppingListScreen = () => {
 
       {/* TODO: Add location selection later */}
       <Button title="Select Location (Coming Soon)" disabled />
-
-      {/* Cancel and Submit Buttons */}
-      <View style={styles.buttonRow}>
-        <Button title="Cancel" onPress={handleCancel} color="red" />
-        <Button title="Create" onPress={handleCreateList} />
-      </View>
     </View>
   );
 };
@@ -256,11 +278,14 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
-    marginBottom: 10,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 10,
+  },
+  productInput: {
+    flex: 1,
   },
   listItem: {
     fontSize: 16,

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, Alert } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -30,12 +30,17 @@ const ShoppingListScreen = () => {
   }, []);
 
   const handleDeleteItem = async (id: string) => {
-    try {
-      await deleteOneDocFromDB('shoppingLists', id);
-      setShoppingLists((prevState) => prevState.filter((item) => item.id !== id));
-    } catch (error) {
-      console.error('Error deleting item: ', error);
-    }
+    Alert.alert("Delete", "Are you sure you want to delete this item?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: async () => {
+        try {
+          await deleteOneDocFromDB('shoppingLists', id);
+          setShoppingLists((prevState) => prevState.filter((item) => item.id !== id));
+        } catch (error) {
+          console.error('Error deleting item: ', error);
+        }
+      }},
+    ]);
   };
 
   return (

@@ -61,7 +61,7 @@ const ProductSearchInput = ({
     <View style={styles.wrapper}>
       <View style={[globalStyles.inputContainer]}>
         <View style={globalStyles.labelContainer}>
-          <Text style={globalStyles.inputLabel}>Name</Text>
+          <Text style={globalStyles.inputLabel}>Product</Text>
         </View>
         <View style={styles.inputWrapper}>
           <TextInput
