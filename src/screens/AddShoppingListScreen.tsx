@@ -7,28 +7,27 @@ import {
   Button,
   FlatList,
   TouchableOpacity,
+  Platform,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker"; // Date picker for expected shopping time
-import { createDoc } from "../services/firebase/firebaseHelper"; // Import the createDoc function
-import { router } from "expo-router";
-
+import DateTimePicker from "@react-native-community/datetimepicker"; 
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"; 
+import { createDoc } from "../services/firebase/firebaseHelper";
 
 export interface ShoppingItem {
   id: string;
   name: string;
   quantity: number;
-  checked?: boolean; 
+  checked?: boolean;
 }
 
 const AddShoppingListScreen = () => {
-  const [listName, setListName] = useState<string>(""); // Name of shopping list
-  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]); // Products in shopping list
-  const [itemName, setItemName] = useState<string>(""); // Current product input
-  const [quantity, setQuantity] = useState<string>("1"); // Quantity of the current product
-  const [shoppingTime, setShoppingTime] = useState<Date | null>(null); // Expected shopping time
-  const [showDatePicker, setShowDatePicker] = useState<boolean>(false); // Show/hide date picker
+  const [listName, setListName] = useState<string>(""); 
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+  const [itemName, setItemName] = useState<string>("");
+  const [quantity, setQuantity] = useState<string>("1"); 
+  const [shoppingTime, setShoppingTime] = useState<Date | null>(null); 
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false); 
 
-  // Function to add product to list
   const handleAddItem = () => {
     if (itemName.trim().length === 0 || parseInt(quantity) <= 0) return;
 
@@ -40,10 +39,9 @@ const AddShoppingListScreen = () => {
 
     setShoppingItems((prevItems) => [...prevItems, newItem]);
     setItemName("");
-    setQuantity("1"); // Reset quantity input
+    setQuantity("1");
   };
 
-  // Function to cancel the creation of the shopping list
   const handleCancel = () => {
     setListName("");
     setShoppingItems([]);
@@ -52,44 +50,59 @@ const AddShoppingListScreen = () => {
     setQuantity("1");
   };
 
-  // Function to create shopping list in the database
-const handleCreateList = async () => {
+  const handleCreateList = async () => {
+    if (listName.trim().length === 0) {
+      alert("Please enter a name for the shopping list.");
+      return;
+    }
 
-  if (listName.trim().length === 0) {
-    alert("Please enter a name for the shopping list.");
-    return;
-  }
+    if (shoppingItems.length === 0) {
+      alert("Please add at least one item to the shopping list.");
+      return;
+    }
 
-  if (shoppingItems.length === 0) {
-    alert("Please add at least one item to the shopping list.");
-    return;
-  }
+    if (!shoppingTime) {
+      alert("Please select a shopping time.");
+      return;
+    }
 
-  if (!shoppingTime) {
-    alert("Please select a shopping time.");
-    return;
-  }
+    const shoppingListData = {
+      name: listName,
+      items: shoppingItems,
+      shoppingTime: shoppingTime ? shoppingTime.toISOString() : null, 
+      userId: null,
+    };
 
-  const shoppingListData = {
-    name: listName,
-    items: shoppingItems,
-    shoppingTime: shoppingTime ? shoppingTime.toISOString() : null, // Store time as a string
-    userId: null, // Set the userId to null or a placeholder value for now
+    const docId = await createDoc("shoppingLists", shoppingListData);
+
+    if (docId) {
+      console.log("Shopping list created with ID:", docId);
+    } else {
+      console.error("Error creating shopping list.");
+    }
   };
 
-  const docId = await createDoc("shoppingLists", shoppingListData);
-
-  if (docId) {
-    console.log("Shopping list created with ID:", docId);
-    // Handle navigation or reset state after successful creation
-  } else {
-    console.error("Error creating shopping list.");
-  }
-};
+  const handleOpenDatePicker = () => {
+    if (Platform.OS === "android") {
+      DateTimePickerAndroid.open({
+        mode: "date",
+        is24Hour: true,
+        value: shoppingTime || new Date(),
+        onChange: (event, selectedDate) => {
+          if (event.type === "set" && selectedDate) {
+            setShoppingTime(selectedDate);
+          } else {
+            console.log("User canceled the date picker.");
+          }
+        },
+      });
+    } else {
+      setShowDatePicker(true); 
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* Shopping List Name */}
       <TextInput
         style={styles.input}
         placeholder="Enter shopping list name..."
@@ -97,7 +110,6 @@ const handleCreateList = async () => {
         onChangeText={setListName}
       />
 
-      {/* Product Input */}
       <View style={styles.row}>
         <TextInput
           style={[styles.input, { flex: 1 }]}
@@ -115,7 +127,6 @@ const handleCreateList = async () => {
         <Button title="Add" onPress={handleAddItem} />
       </View>
 
-      {/* Product List */}
       <FlatList
         data={shoppingItems}
         keyExtractor={(item) => item.id}
@@ -127,10 +138,8 @@ const handleCreateList = async () => {
           </View>
         )}
       />
-
-      {/* Expected Shopping Time Picker */}
       <TouchableOpacity
-        onPress={() => setShowDatePicker(true)}
+        onPress={handleOpenDatePicker}
         style={styles.dateButton}
       >
         <Text style={styles.dateText}>
@@ -140,25 +149,27 @@ const handleCreateList = async () => {
         </Text>
       </TouchableOpacity>
 
-      {showDatePicker && (
+      {showDatePicker && Platform.OS === "ios" && (
         <DateTimePicker
           value={shoppingTime || new Date()}
           mode="datetime"
           display="default"
           onChange={(event, selectedDate) => {
             setShowDatePicker(false);
-            if (selectedDate) setShoppingTime(selectedDate);
+            if (event.type === "set" && selectedDate) {
+              setShoppingTime(selectedDate);
+            } else {
+              console.log("User canceled the date picker.");
+            }
           }}
         />
       )}
 
-      {/* TODO: Add location selection later */}
+      {/* TODO: location */}
       <Button title="Select Location (Coming Soon)" disabled />
 
-      {/* Cancel and Submit Buttons */}
       <View style={styles.buttonRow}>
         <Button title="Cancel" onPress={handleCancel} color="red" />
-
         <Button title="Create" onPress={handleCreateList} />
       </View>
     </View>
