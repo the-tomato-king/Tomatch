@@ -13,18 +13,18 @@ const HomeStack = () => {
     <Stack.Navigator>
       <Stack.Screen
         name="HomeScreen"
-        component={HomeScreen} 
+        component={HomeScreen}
         options={{
           headerShown: false,
         }}
       />
-      <Stack.Screen 
-      name="ProductDetail" 
-      component={ProductDetailScreen} 
-      options={{ 
-        headerShown: true,
-        headerLeft: () => <BackButton />,
-      }}
+      <Stack.Screen
+        name="ProductDetail"
+        component={ProductDetailScreen}
+        options={{
+          headerShown: true,
+          headerLeft: () => <BackButton />,
+        }}
       />
       <Stack.Screen
         name="PriceRecordInformation"

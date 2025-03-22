@@ -25,16 +25,21 @@ import {
 import { StoreStackParamList } from "../types/navigation";
 import { readOneDoc } from "../services/firebase/firebaseHelper";
 import { UserStore } from "../hooks/useUserStores";
+import { UserProduct, Product } from "../types";
 
 type StoreDetailRouteProp = RouteProp<StoreStackParamList, "StoreDetail">;
 
-// 简单的价格记录类型
 interface PriceRecord {
   id: string;
-  product_name: string;
+  user_product_id: string;
+  store_id: string;
   price: number;
-  unit: string;
-  date: Date;
+  unit_type: string;
+  recorded_at: Date;
+  product?: {
+    name: string;
+    category: string;
+  };
 }
 
 const StoreDetailScreen = () => {
@@ -47,11 +52,10 @@ const StoreDetailScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 获取商店详情
   useEffect(() => {
     const fetchStoreDetails = async () => {
       try {
-        // 暂时使用固定的用户ID
+        // TODO: get user id from auth
         const userId = "user123";
         const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
 
@@ -70,36 +74,57 @@ const StoreDetailScreen = () => {
     fetchStoreDetails();
   }, [storeId]);
 
-  // 获取该商店的价格记录
   useEffect(() => {
     const fetchPriceRecords = async () => {
       if (!store) return;
 
       try {
-        // 暂时使用固定的用户ID
+        // TODO: get user id from auth
         const userId = "user123";
         const priceRecordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
 
-        // 查询与该商店相关的价格记录
         const q = query(
           collection(db, priceRecordsPath),
           where("store_id", "==", storeId)
         );
 
         const querySnapshot = await getDocs(q);
-        const records: PriceRecord[] = [];
-
-        querySnapshot.forEach((doc) => {
+        const recordPromises = querySnapshot.docs.map(async (doc) => {
           const data = doc.data();
-          records.push({
+          const record: PriceRecord = {
             id: doc.id,
-            product_name: data.product_name || "Unknown Product",
+            user_product_id: data.user_product_id,
+            store_id: data.store_id,
             price: data.price || 0,
-            unit: data.unit || "each",
-            date: data.created_at?.toDate() || new Date(),
-          });
+            unit_type: data.unit_type || "each",
+            recorded_at: data.recorded_at?.toDate() || new Date(),
+          };
+
+          if (record.user_product_id) {
+            const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+            const userProduct = await readOneDoc<UserProduct>(
+              userProductPath,
+              record.user_product_id
+            );
+
+            if (userProduct && userProduct.product_id) {
+              const productData = await readOneDoc<Product>(
+                COLLECTIONS.PRODUCTS,
+                userProduct.product_id
+              );
+              if (productData) {
+                record.product = {
+                  name: productData.name,
+                  category: productData.category,
+                };
+              }
+            }
+          }
+
+          return record;
         });
 
+        const records = await Promise.all(recordPromises);
         setPriceRecords(records);
       } catch (err) {
         console.error("Error fetching price records:", err);
@@ -180,9 +205,7 @@ const StoreDetailScreen = () => {
 
       <View style={styles.storeInfoCard}>
         <View style={styles.storeLogoContainer}>
-          <View style={styles.storeLogo}>
-            {/* 如果有商店logo，可以在这里显示 */}
-          </View>
+          <View style={styles.storeLogo}></View>
         </View>
         <View style={styles.storeDetails}>
           <Text style={styles.storeName}>{store.name}</Text>
@@ -212,9 +235,11 @@ const StoreDetailScreen = () => {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.recordItem}>
-                <Text style={styles.productName}>{item.product_name}</Text>
+                <Text style={styles.productName}>
+                  {item.product?.name || "Unknown Product"}
+                </Text>
                 <Text style={styles.priceText}>
-                  ${item.price.toFixed(2)}/{item.unit}
+                  ${item.price.toFixed(2)}/{item.unit_type}
                 </Text>
               </View>
             )}

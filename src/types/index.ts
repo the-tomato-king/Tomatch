@@ -104,6 +104,7 @@ export interface BasePriceRecord {
 
 export interface PriceRecord extends BasePriceRecord {
   id: string;
+  store?: UserStore;
 }
 
 // User Product Stats(sub-collection of User)

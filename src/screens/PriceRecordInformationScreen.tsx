@@ -64,13 +64,15 @@ const PriceRecordInformationScreen = () => {
 
           if (recordData.store_id) {
             const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
-            const storeData = await readOneDoc(storePath, recordData.store_id);
+            const storeData = await readOneDoc<UserStore>(
+              storePath,
+              recordData.store_id
+            );
 
             if (storeData) {
-              setStore({
-                id: recordData.store_id,
-                name: recordData.store_id,
-              } as UserStore);
+              setStore(storeData);
+            } else {
+              alert("Store not found");
             }
           }
         }

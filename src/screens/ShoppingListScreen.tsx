@@ -46,7 +46,6 @@ const ShoppingListScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MainPageHeader title="Shopping Lists" />
       <FlatList
         data={shoppingLists}
         keyExtractor={(item) => item.id}

@@ -12,7 +12,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../types/navigation";
 import { COLLECTIONS } from "../constants/firebase";
 import { readOneDoc, readAllDocs } from "../services/firebase/firebaseHelper";
-import { Product, PriceRecord, UserProductStats } from "../types";
+import { Product, PriceRecord, UserProductStats, UserStore } from "../types";
 import LoadingLogo from "../components/LoadingLogo";
 import ProductImage from "../components/ProductImage";
 import { colors } from "../theme/colors";
@@ -72,7 +72,25 @@ const ProductDetailScreen = () => {
           );
         });
 
-        setPriceRecords(filteredRecords);
+        // get store info for each record
+        const storesPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
+        const recordsWithStoreInfo = await Promise.all(
+          filteredRecords.map(async (record) => {
+            if (record.store_id) {
+              const storeData = await readOneDoc<UserStore>(storesPath, record.store_id);
+              return {
+                ...record,
+                store: storeData || { id: record.store_id, name: record.store_id } as UserStore
+              };
+            }
+            return {
+              ...record,
+              store: { id: "unknown", name: "Unknown Store" } as UserStore
+            };
+          })
+        );
+
+        setPriceRecords(recordsWithStoreInfo);
       } catch (error) {
         console.error("Error fetching product data:", error);
       } finally {
@@ -87,13 +105,12 @@ const ProductDetailScreen = () => {
   const formatDateTime = (dateValue: any) => {
     let date;
 
-    // Check if the date is a Firestore Timestamp
     if (dateValue && typeof dateValue.toDate === "function") {
-      date = dateValue.toDate(); // Convert Firestore Timestamp to JavaScript Date
+      date = dateValue.toDate();
     } else if (dateValue instanceof Date) {
-      date = dateValue; // Already a JavaScript Date
+      date = dateValue;
     } else if (typeof dateValue === "string") {
-      date = new Date(dateValue); // Convert string to Date
+      date = new Date(dateValue);
     } else {
       // Fallback for unexpected formats
       console.warn("Unexpected date format:", dateValue);
@@ -188,7 +205,9 @@ const ProductDetailScreen = () => {
                 <View style={styles.recordLeftSection}>
                   <View style={styles.storeCircle} />
                   <View style={styles.recordInfo}>
-                    <Text style={styles.storeName}>{record.store_id}</Text>
+                    <Text style={styles.storeName}>
+                      {record.store?.name || "Unknown Store"}
+                    </Text>
                     <Text style={styles.recordDate}>
                       {formatDateTime(record.recorded_at)}
                     </Text>
