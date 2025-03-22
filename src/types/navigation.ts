@@ -14,6 +14,11 @@ export type HomeStackParamList = {
   };
 };
 
+export type StoreStackParamList = {
+  StoreScreen: undefined;
+  AddStore: undefined;
+};
+
 export type ShoppingStackParamList = {
   ShoppingList: undefined;
   AddShoppingList: undefined;

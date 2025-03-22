@@ -38,7 +38,6 @@ interface PreferredUnit {
 export interface BaseUserStore {
   brand_id: string; // references brands collection
   name: string; // e.g., "Walmart Downtown", "Walmart West Side"
-  logo_url: string;
   address: string;
   location: Coordinates;
   is_favorite: boolean;
@@ -145,7 +144,7 @@ export interface Product extends BaseProduct {
 
 export interface BaseStoreBrand {
   name: string;
-  logo_url: string;
+  logo: string;
   updated_at: Date;
 }
 

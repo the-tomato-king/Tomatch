@@ -10,17 +10,19 @@ import {
 import React, { useState } from "react";
 import { colors } from "../theme/colors";
 import StoreCard from "../components/StoreCard";
-
+import SearchBar from "../components/SearchBar";
 const StoreScreen = () => {
   const [activeTab, setActiveTab] = useState("favorites");
-
+  const [address, setAddress] = useState("");
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.scrollView}>
-        {/* Search Section */}
         <View style={styles.searchSection}>
-          {/* TODO:Search bar will go here */}
-          <Text>Search</Text>
+          <SearchBar
+            value={address}
+            onChangeText={setAddress}
+            placeholder="Search for an address"
+          />
         </View>
 
         {/* Map Section */}
@@ -199,6 +201,9 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  searchSection: {
+    padding: 16,
+  },
   headerSection: {
     padding: 16,
     borderBottomWidth: 1,
@@ -207,9 +212,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: "bold",
-  },
-  searchSection: {
-    padding: 16,
   },
   locationSection: {
     paddingHorizontal: 16,

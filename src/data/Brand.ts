@@ -16,52 +16,52 @@ export const BRAND_VERSION = {
 export const BRANDS: Omit<BaseStoreBrand, "id">[] = [
   {
     name: "Canadian Superstore",
-    logo_url: "",
+    logo: "",
     updated_at: new Date(),
   },
   {
     name: "Walmart",
-    logo_url: "",
+    logo: "",
     updated_at: new Date(),
   },
   {
     name: "Costco",
-    logo_url: "",
+    logo: "",
     updated_at: new Date(),
   },
   {
     name: "Save-On-Foods",
-    logo_url: "",
+    logo: "",
     updated_at: new Date(),
   },
   {
     name: "T&T Supermarket",
-    logo_url: "",
+    logo: "",
     updated_at: new Date(),
   },
   {
     name: "Whole Foods Market",
-    logo_url: "",
+    logo: "",
     updated_at: new Date(),
   },
   {
     name: "No Frills",
-    logo_url: "",
+    logo: "",
     updated_at: new Date(),
   },
   {
     name: "FreshCo",
-    logo_url: "",
+    logo: "",
     updated_at: new Date(),
   },
   {
     name: "Shoppers Drug Mart",
-    logo_url: "",
+    logo: "",
     updated_at: new Date(),
   },
   {
     name: "London Drugs",
-    logo_url: "",
+    logo: "",
     updated_at: new Date(),
   },
 ];

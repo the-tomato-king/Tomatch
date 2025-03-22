@@ -1,30 +1,26 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  TextInput,
-  Image,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, Text, View, FlatList } from "react-native";
 import React, { useState } from "react";
 import { PRODUCTS, PRODUCT_CATEGORIES } from "../data/Product";
 import { colors } from "../theme/colors";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import ProductImage from "../components/ProductImage";
 import CategoryFilter from "../components/CategoryFilter";
+import SearchBar from "../components/SearchBar";
 
 const ProductLibraryScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
   };
 
-  const filteredProducts =
-    selectedCategory === "all"
-      ? PRODUCTS
-      : PRODUCTS.filter((product) => product.category === selectedCategory);
+  const filteredProducts = PRODUCTS.filter(
+    (product) =>
+      selectedCategory === "all" || product.category === selectedCategory
+  ).filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <View style={styles.container}>
@@ -36,19 +32,12 @@ const ProductLibraryScreen = () => {
             color={colors.darkGray}
           />
         </View>
-        <View style={styles.searchBarContainer}>
-          <View style={styles.searchBar}>
-            <MaterialCommunityIcons
-              name="magnify"
-              size={24}
-              color={colors.darkGray}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search"
-              placeholderTextColor={colors.darkGray}
-            />
-          </View>
+        <View style={{ flex: 1 }}>
+          <SearchBar
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search products"
+          />
         </View>
       </View>
       <View style={styles.productLibraryContainer}>
@@ -109,25 +98,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#E0E0E0",
-  },
-  // search bar
-  searchBarContainer: {
-    flex: 1,
-    height: 40,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 10,
-  },
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    paddingVertical: 0,
   },
   // product library
   productLibraryContainer: {
