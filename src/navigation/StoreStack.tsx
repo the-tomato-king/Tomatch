@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import StoreScreen from "../screens/StoreScreen";
 import AddStoreScreen from "../screens/AddStoreScreen";
+import StoreDetailScreen from "../screens/StoreDetailScreen";
 import { Button } from "react-native";
 import { StoreStackParamList } from "../types/navigation";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -32,6 +33,13 @@ const StoreStack = () => {
         options={{
           headerShown: true,
           title: "Add New Store",
+        }}
+      />
+      <Stack.Screen
+        name="StoreDetail"
+        component={StoreDetailScreen}
+        options={{
+          headerShown: false, // 我们在组件内部自定义了头部
         }}
       />
     </Stack.Navigator>

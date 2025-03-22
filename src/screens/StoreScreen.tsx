@@ -16,11 +16,18 @@ import { UserStore, useUserStores } from "../hooks/useUserStores";
 import { updateDoc, doc } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../constants/firebase";
+import { useNavigation } from "@react-navigation/native";
+import { StoreStackParamList } from "../types/navigation";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
 
 const StoreScreen = () => {
   const [activeTab, setActiveTab] = useState("favorites");
   const [address, setAddress] = useState("");
   const { favoriteStores, allStores, loading, error } = useUserStores();
+
+  const navigation = useNavigation<StoreScreenNavigationProp>();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -102,6 +109,9 @@ const StoreScreen = () => {
 
 // modify to receive store data as a parameter
 const FavoritesStoresList = ({ stores }: { stores: UserStore[] }) => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
+
   const handleToggleFavorite = async (id: string) => {
     try {
       // TODO: get current user id
@@ -113,7 +123,6 @@ const FavoritesStoresList = ({ stores }: { stores: UserStore[] }) => {
         is_favorite: false,
         updated_at: new Date(),
       });
-
     } catch (error) {
       console.error("Error toggling favorite:", error);
     }
@@ -130,10 +139,12 @@ const FavoritesStoresList = ({ stores }: { stores: UserStore[] }) => {
           name={item.name}
           distance={item.distance || "Unknown"}
           address={item.address}
-          city={item.address.split(",").slice(1).join(",").trim()} // simple address format
+          city={item.address.split(",").slice(1).join(",").trim()}
           isFavorite={item.is_favorite}
           onToggleFavorite={() => handleToggleFavorite(item.id)}
-          onPress={() => console.log(`Pressed store ${item.id}`)}
+          onPress={() =>
+            navigation.navigate("StoreDetail", { storeId: item.id })
+          }
         />
       )}
     />
@@ -141,6 +152,9 @@ const FavoritesStoresList = ({ stores }: { stores: UserStore[] }) => {
 };
 
 const NearbyStoresList = ({ stores }: { stores: UserStore[] }) => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
+
   const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
     try {
       // TODO: get current user id
@@ -168,12 +182,14 @@ const NearbyStoresList = ({ stores }: { stores: UserStore[] }) => {
           name={item.name}
           distance={item.distance || "Unknown"}
           address={item.address}
-          city={item.address.split(",").slice(1).join(",").trim()} // simple address format
+          city={item.address.split(",").slice(1).join(",").trim()}
           isFavorite={item.is_favorite}
           onToggleFavorite={() =>
             handleToggleFavorite(item.id, item.is_favorite)
           }
-          onPress={() => console.log(`Pressed store ${item.id}`)}
+          onPress={() =>
+            navigation.navigate("StoreDetail", { storeId: item.id })
+          }
         />
       )}
     />
