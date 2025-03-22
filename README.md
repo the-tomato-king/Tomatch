@@ -62,56 +62,56 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
       - product_id (reference to products collection)
       - created_at
       - updated_at
-          - customized_products (sub-collection)
-		- id
-		- name
-		- category
-		- image_url
-		- plu_code
-		- barcode
-		- created_at
-		- updated_at
-	2. shopping_lists (sub-collection)
-		- list_id
-		- product_id
-		- product_name
-		- status
-		- created_at
-		- updated_at
-	3. price_records (sub-collection)
-		- id
-		- user_product_id (references user_products)
-		- store_id (references stores)
-		- price
-		- unit_type
-		- unit_price
-		- photo_url
-		- recorded_at
-	4. user_product_stats (sub-collection)
-		- id
-		- product_id (reference to products collection)
-		- currency
-		- total_price
-		- average_price
-		- lowest_price
-		- highest_price
-		- lowest_price_store
-			- store_id
-			- store_name
-		- total_price_records
-		- last_updated
-	5. user_stores (sub-collection)
-		- id
-		- brand_id (references store_brands collection)
-		- name
-		- address
-		- location
-			- latitude
-			- longitude
-		- is_favorite
-		- last_visited
-		- created_at
-		- updated_at
+      	 	- customized_products (sub-collection)
+		  	- id
+			- name
+			- category
+			- image_url
+			- plu_code
+			- barcode
+			- created_at
+			- updated_at
+		- shopping_lists (sub-collection)
+			- list_id
+			- product_id
+			- product_name
+			- status
+			- created_at
+			- updated_at
+      		- price_records (sub-collection)
+			- id
+			- user_product_id (references user_products)
+			- store_id (references stores)
+			- price
+			- unit_type
+			- unit_price
+			- photo_url
+			- recorded_at
+      		- user_product_stats (sub-collection)
+			- id
+			- product_id (reference to products collection)
+			- currency
+			- total_price
+			- average_price
+			- lowest_price
+			- highest_price
+			- lowest_price_store
+      	 			- store_id
+				- store_name
+			- total_price_records
+			- last_updated
+      		- user_stores (sub-collection)
+			- id
+			- brand_id (references store_brands collection)
+			- name
+			- address
+			- location
+				- latitude
+				- longitude
+			- is_favorite
+			- last_visited
+			- created_at
+			- updated_at
 
 2. products (collection)
 	- id
@@ -128,7 +128,19 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 	- logo
 	- updated_at
 
-4.shoppinglist
+4.shopping_list (collection)
+ 	- id
+  	- name
+  	- items
+  	- shoppingTime
+   	- location
+   	- userid
+    		- shopping_list_item (subcollection)
+      			- id
+	 		- name
+    			- quantity
+       			- checked?
+	  
 
 ## CRUD Operations on Collections
 
