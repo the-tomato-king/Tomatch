@@ -5,8 +5,10 @@ import {
   View,
   ActivityIndicator,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
-import { RouteProp, useRoute } from "@react-navigation/native";
+import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../types/navigation";
 import { COLLECTIONS } from "../constants/firebase";
 import { readOneDoc, readAllDocs } from "../services/firebase/firebaseHelper";
@@ -17,10 +19,13 @@ import { colors } from "../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
+type ProductDetailScreenNavigationProp =
+  NativeStackNavigationProp<HomeStackParamList>;
 
 const ProductDetailScreen = () => {
   const route = useRoute<ProductDetailRouteProp>();
   const { productId, userProductId } = route.params;
+  const navigation = useNavigation<ProductDetailScreenNavigationProp>();
 
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<Product | null>(null);
@@ -171,7 +176,15 @@ const ProductDetailScreen = () => {
         {priceRecords.length > 0 ? (
           <ScrollView style={styles.recordsContainer}>
             {priceRecords.map((record, index) => (
-              <View key={index} style={styles.recordItem}>
+              <TouchableOpacity
+                key={index}
+                style={styles.recordItem}
+                onPress={() =>
+                  navigation.navigate("PriceRecordInformation", {
+                    recordId: record.id,
+                  })
+                }
+              >
                 <View style={styles.recordLeftSection}>
                   <View style={styles.storeCircle} />
                   <View style={styles.recordInfo}>
@@ -184,7 +197,7 @@ const ProductDetailScreen = () => {
                 <Text style={styles.recordPrice}>
                   ${record.price.toFixed(2)}/lb
                 </Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         ) : (
