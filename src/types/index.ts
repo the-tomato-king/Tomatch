@@ -7,7 +7,6 @@ export interface BaseUser {
   location: Location;
   preferred_unit: PreferredUnit;
   preferred_currency: string;
-  favorites_stores: string[]; // store_ids array
   created_at: Date;
   updated_at: Date;
 }
@@ -35,7 +34,23 @@ interface PreferredUnit {
   volume: string;
 }
 
-// User Products
+// User Store (sub-collection of User)
+export interface BaseUserStore {
+  brand_id: string; // references brands collection
+  name: string; // e.g., "Walmart Downtown", "Walmart West Side"
+  address: string;
+  location: Coordinates;
+  is_favorite: boolean;
+  last_visited: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface UserStore extends BaseUserStore {
+  id: string;
+}
+
+// User Products (sub-collection of User)
 export interface BaseUserProduct {
   product_id: string; // reference to products collection
   created_at: Date;
@@ -46,7 +61,8 @@ export interface UserProduct extends BaseUserProduct {
   id: string;
 }
 
-// User Customized Product
+// TODO: implement it in development
+// User Customized Product (sub-collection of User)
 export interface BaseCustomizedProduct {
   name: string;
   category: string;
@@ -61,7 +77,8 @@ export interface CustomizedProduct extends BaseCustomizedProduct {
   id: string;
 }
 
-// User Shopping List
+// TODO: implement it in development
+// User Shopping List (sub-collection of User)
 export interface BaseShoppingList {
   product_id: string;
   product_name: string;
@@ -74,7 +91,7 @@ export interface ShoppingList extends BaseShoppingList {
   id: string;
 }
 
-// User Price Record
+// User Price Record (sub-collection of User)
 export interface BasePriceRecord {
   user_product_id: string; // references user_products
   store_id: string; // references stores
@@ -89,7 +106,7 @@ export interface PriceRecord extends BasePriceRecord {
   id: string;
 }
 
-// Product Stats
+// User Product Stats(sub-collection of User)
 export interface BaseUserProductStats {
   product_id: string; // reference to products collection
   currency: string;
@@ -125,17 +142,12 @@ export interface Product extends BaseProduct {
   id: string;
 }
 
-// Store
-export interface BaseStore {
+export interface BaseStoreBrand {
   name: string;
-  logo_url: string;
-  address: string;
-  location: Coordinates;
-  inactive: boolean;
-  created_at: Date;
+  logo: string;
   updated_at: Date;
 }
 
-export interface Store extends BaseStore {
+export interface StoreBrand extends BaseStoreBrand {
   id: string;
 }

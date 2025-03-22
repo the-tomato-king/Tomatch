@@ -6,7 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import HomeStack from "./HomeStack";
-import StoreScreen from "../screens/StoreScreen";
+import StoreStack from "./StoreStack";
 import SettingScreen from "../screens/SettingScreen";
 import { ButtomAddButton } from "../components/ButtomAddButton";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -18,7 +18,7 @@ type RootNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const MainTabNavigator = () => {
   const navigation = useNavigation<RootNavigationProp>();
 
-  const blankScreen = () => {
+  const BlankScreen = () => {
     return <View />;
   };
   return (
@@ -50,8 +50,9 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Stores"
-        component={StoreScreen}
+        component={StoreStack}
         options={{
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="storefront"
@@ -63,7 +64,7 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Add"
-        component={blankScreen}
+        component={BlankScreen}
         options={{
           tabBarButton: (props) => (
             <ButtomAddButton

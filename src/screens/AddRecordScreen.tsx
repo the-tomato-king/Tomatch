@@ -23,7 +23,7 @@ import { RootStackParamList } from "../types/navigation";
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
-import { PriceRecord, UserProduct, UserProductStats } from "../types";
+import { BasePriceRecord, BaseUserProduct, BaseUserProductStats, PriceRecord, UserProduct, UserProductStats } from "../types";
 import ProductSearchInput from "../components/ProductSearchInput";
 import {
   collection,
@@ -40,7 +40,7 @@ type AddRecordScreenNavigationProp =
 
 const AddRecordScreen = () => {
   const navigation = useNavigation<AddRecordScreenNavigationProp>();
-  const [selectedProduct, setSelectedProduct] = useState<UserProduct>();
+  const [selectedProduct, setSelectedProduct] = useState<BaseUserProduct>();
 
   const [image, setImage] = useState<string | null>(null);
   const [productName, setProductName] = useState("");
@@ -122,8 +122,7 @@ const AddRecordScreen = () => {
         userProductId = existingUserProduct.id;
       } else {
         // create user product if it doesn't exist
-        const userProduct: UserProduct = {
-          id: "", // Firebase will generate this
+        const userProduct: BaseUserProduct = {
           product_id: selectedProduct.product_id,
           created_at: new Date(),
           updated_at: new Date(),
@@ -138,8 +137,7 @@ const AddRecordScreen = () => {
         }
       }
 
-      const priceRecord: PriceRecord = {
-        id: "", // Firebase will generate this
+      const priceRecord: BasePriceRecord = {
         user_product_id: userProductId,
         store_id: storeName, // TODO: Link to real store, now use the store name user typed in
         price: numericPrice,
@@ -153,53 +151,52 @@ const AddRecordScreen = () => {
       const recordId = await createDoc(priceRecordPath, priceRecord);
 
       if (recordId) {
-        const productStatsRef = doc(
+        const userProductStatsRef = doc(
           db,
           COLLECTIONS.USERS,
           userId,
           COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS,
           selectedProduct.product_id
         );
-        const productStatsDoc = await getDoc(productStatsRef);
+        const userProductStatsDoc = await getDoc(userProductStatsRef);
 
-        let productStats: UserProductStats;
+        let userProductStats: BaseUserProductStats;
 
-        if (productStatsDoc.exists()) {
-          productStats = productStatsDoc.data() as UserProductStats;
+        if (userProductStatsDoc.exists()) {
+          userProductStats = userProductStatsDoc.data() as BaseUserProductStats;
 
-          const newTotalRecords = productStats.total_price_records + 1;
-          const newTotalPrice = productStats.total_price + numericPrice;
+          const newTotalRecords = userProductStats.total_price_records + 1;
+          const newTotalPrice = userProductStats.total_price + numericPrice;
           const newAveragePrice = newTotalPrice / newTotalRecords;
 
-          if (numericPrice < productStats.lowest_price) {
-            productStats.lowest_price = numericPrice;
-            productStats.lowest_price_store = {
+          if (numericPrice < userProductStats.lowest_price) {
+            userProductStats.lowest_price = numericPrice;
+            userProductStats.lowest_price_store = {
               store_id: storeName,
               store_name: storeName,
             };
           }
 
-          if (numericPrice > productStats.highest_price) {
-            productStats.highest_price = numericPrice;
+          if (numericPrice > userProductStats.highest_price) {
+            userProductStats.highest_price = numericPrice;
           }
 
-          productStats.total_price = newTotalPrice;
-          productStats.average_price = newAveragePrice;
-          productStats.total_price_records = newTotalRecords;
-          productStats.last_updated = new Date();
+          userProductStats.total_price = newTotalPrice;
+          userProductStats.average_price = newAveragePrice;
+          userProductStats.total_price_records = newTotalRecords;
+          userProductStats.last_updated = new Date();
 
-          await updateDoc(productStatsRef, {
-            total_price: productStats.total_price,
-            average_price: productStats.average_price,
-            lowest_price: productStats.lowest_price,
-            highest_price: productStats.highest_price,
-            lowest_price_store: productStats.lowest_price_store,
-            total_price_records: productStats.total_price_records,
-            last_updated: productStats.last_updated,
+          await updateDoc(userProductStatsRef, {
+            total_price: userProductStats.total_price,
+            average_price: userProductStats.average_price,
+            lowest_price: userProductStats.lowest_price,
+            highest_price: userProductStats.highest_price,
+            lowest_price_store: userProductStats.lowest_price_store,
+            total_price_records: userProductStats.total_price_records,
+            last_updated: userProductStats.last_updated,
           });
         } else {
-          productStats = {
-            id: "", // Firebase will generate this
+          userProductStats = {
             product_id: selectedProduct.product_id,
             currency: "$", // TODO: Get from user settings
             total_price: numericPrice,
@@ -214,7 +211,7 @@ const AddRecordScreen = () => {
             last_updated: new Date(),
           };
 
-          await setDoc(productStatsRef, productStats);
+          await setDoc(userProductStatsRef, userProductStats);
         }
 
         alert("Record saved successfully!");
@@ -274,7 +271,6 @@ const AddRecordScreen = () => {
             onSelectProduct={(product) => {
               setProductName(product.name);
               setSelectedProduct({
-                id: "", // Firebase will generate this
                 product_id: product.id,
                 created_at: new Date(),
                 updated_at: new Date(),
@@ -330,20 +326,6 @@ const AddRecordScreen = () => {
             </View>
           </View>
         </View>
-        <View style={[globalStyles.buttonsContainer, { marginTop: 20 }]}>
-          <TouchableOpacity
-            style={[globalStyles.button, globalStyles.primaryButton]}
-          >
-            <Text style={globalStyles.primaryButtonText}>Add More</Text>
-          </TouchableOpacity>
-          {/* TODO: implement add more */}
-          <TouchableOpacity
-            style={[globalStyles.button, globalStyles.primaryButton]}
-            onPress={handleSave}
-          >
-            <Text style={globalStyles.primaryButtonText}>Save</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </SafeAreaView>
   );
@@ -358,12 +340,6 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     paddingHorizontal: 30,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
   },
   imageContainer: {
     width: "100%",

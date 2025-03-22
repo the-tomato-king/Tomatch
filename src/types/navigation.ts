@@ -14,10 +14,16 @@ export type HomeStackParamList = {
   };
 };
 
+export type StoreStackParamList = {
+  StoreScreen: undefined;
+  AddStore: undefined;
+  StoreDetail: { storeId: string };
+};
+
 export type ShoppingStackParamList = {
   ShoppingList: undefined;
   AddShoppingList: undefined;
-  ShoppingListDetail: { id: string }; 
+  ShoppingListDetail: { id: string };
 };
 
 export type RootStackParamList = {
