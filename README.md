@@ -38,7 +38,7 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 ## Data Model 
 
 1. users (collection)
-	- user_id
+	- id
 	- name
 	- email
 	- phone_number
@@ -55,15 +55,15 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 		- weight
 		- volume
 	- preferred_currency
-	- favorites_stores: string[]  // store_ids array
 	- created_at
 	- updated_at
   1. user_products (sub-collection)
+      - id
       - product_id (reference to products collection)
       - created_at
       - updated_at
 	1. customized_products (sub-collection)
-		- product_id
+		- id
 		- name
 		- category
 		- image_url
@@ -72,7 +72,6 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 		- created_at
 		- updated_at
 	2. shopping_lists (sub-collection)
-	NEED TO UPDATE
 		- list_id
 		- product_id
 		- product_name
@@ -80,18 +79,42 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 		- created_at
 		- updated_at
 	3. price_records (sub-collection)
-		- record_id
-		- user_product_id  // references user_products
-		- product_id      // references products
-		- store_id       // references stores
+		- id
+		- user_product_id (references user_products)
+		- store_id (references stores)
 		- price
 		- unit_type
 		- unit_price
 		- photo_url
 		- recorded_at
+	4. user_product_stats (sub-collection)
+		- id
+		- product_id (reference to products collection)
+		- currency
+		- total_price
+		- average_price
+		- lowest_price
+		- highest_price
+		- lowest_price_store
+			- store_id
+			- store_name
+		- total_price_records
+		- last_updated
+	5. user_stores (sub-collection)
+		- id
+		- brand_id (references store_brands collection)
+		- name
+		- address
+		- location
+			- latitude
+			- longitude
+		- is_favorite
+		- last_visited
+		- created_at
+		- updated_at
 
 2. products (collection)
-	- product_id
+	- id
 	- name
 	- category
 	- image_type    // "emoji" | "image"
@@ -99,29 +122,11 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 	- plu_code
 	- barcode
 
-3. stores (collection)
-	- store_id
+3. store_brands (collection)
+	- id
 	- name
-	- logo_url
-	- address
-	- location
-		- latitude
-		- longitude
-	- inactive
-	- created_at
+	- logo
 	- updated_at
-
-4. product_stats (collection)
-   - product_id (reference to products collection)
-   - currency
-   - average_price
-   - lowest_price
-   - highest_price
-   - lowest_price_store
-     - store_id
-     - store_name
-   - total_price_records
-   - last_updated
 
 
 ## CRUD Operations on Collections
@@ -134,47 +139,73 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 
 Sub-Collections under users: 
 
-1.1 customized_products (Sub-collection): Stores user-defined products not present in the main product database.
+1.1 user_products (Sub-collection): Stores references to products that users have tracked.
+- [x] Create: Automatically created when users add a price record for a product.
+- [x] Read: Used internally to link users with products they track.
+- [ ] Update: Updated when users interact with the product.
+- [ ] Delete: Users can remove products they no longer want to track.
+
+1.2 customized_products (Sub-collection): Stores user-defined products not present in the main product database.
 - [ ] Create: Users manually add new custom products.
 - [ ] Read: Users retrieve a list of their customized products.
 - [ ] Update: Users can modify product details such as name, category, and image.
 - [ ] Delete: Users can remove unwanted customized products.
 
-1.2 shoppinglists
+1.3 shopping_lists (sub-collection)
 - [x] Create: Users create new shopping lists and add products.
 - [x] Read: Users retrieve their shopping lists and associated products.
 - [x] Update: Users can mark items as purchased in each of shopping lists.
 - [x] Delete: Users can delete entire shopping lists.
 
-1.3 price_records
-- [ ] Create: Users add price records manually or via OCR from price tags.
-- [ ] Read: Users retrieve product price history and price trends.
+1.4 price_records (Sub-collection): Stores individual price entries for products.
+- [x] Create: Users add price records manually or via OCR from price tags.
+- [x] Read: Users retrieve product price history and price trends.
 - [ ] Update: Users can edit incorrect prices or store information.
 - [ ] Delete: Users can remove outdated or incorrect price records.
 
-2. products (collection)
-- [ ] Create: Only Admins can add new product entries.
-- [ ] Read: Users can browse/search for products by name, code, or category.
-- [ ] Update:  Only Admins can update product names, categories, or images.
-- [ ] Delete: Only Admins can remove outdated or incorrect products.
+1.5 user_product_stats (Sub-collection): Stores aggregated statistics for each product a user tracks.
+- [x] Create: Automatically generated when a user adds their first price record for a product.
+- [ ] Read: Users view statistics like average price, lowest price, etc.
+- [x] Update: Automatically updated when new price records are added.
+- [ ] Delete: Removed when a user deletes the associated product from their tracking.
 
-3. stores (collection)
-- [ ] Create: New stores can be added manually or via an API (e.g., Google Places).
-- [ ] Read: Users can view store details
-- [ ] Update: Store information can be updated (e.g., address, name change).
-- [ ] Delete: Stores can be removed if the user don't need them.
-	- Soft Delete (Default)
-		- The store is marked as "archived" (inactive) but remains in the database.
-		- Users can choose whether price records remain accessible.
-	- User Confirm: Full Deletion (Cascade Delete): If confirmed, the store and all linked price records will be permanently deleted.
+1.6 user_stores (Sub-collection): Stores information about stores that users have visited or added.
+- [ ] Create: Users can add new stores manually or when adding price records.
+- [x] Read: Users can view their list of stores and details about each store.
+- [x] Update: Users can update store information or mark stores as favorites.
+- [ ] Delete: Users can remove stores they no longer visit.
 
+2. products (collection): Global product database.
+- Create: Only Admins can add new product entries.
+- [x] Read: Users can browse/search for products by name, code, or category.
+- Update: Only Admins can update product names, categories, or images.
+- Delete: Only Admins can remove outdated or incorrect products.
+
+1. store_brands (collection): Stores information about retail brands.
+- Create: Only Admins can add new store brands.
+- [ ] Read: Users can view store brand information.
+- Update: Only Admins can update store brand details.
+- Delete: Only Admins can remove outdated or incorrect store brands.
  
 ## Contributors
 
-| Name                | GitHub Profile                            | Contributions |
-|---------------------|-----------------------------------------|--------------|
-| **Shiyu Xu (Gina)** | https://github.com/your-github | - add here|
-| **Yuxin Zhou (Renie)** | https://github.com/Zhouyuxin4 | - Implemented Firebase Helper (CRUD functions) <br> - Developed UI for Shopping List (`ShoppingList`, `AddShoppingList`, `ShoppingListDetails`) <br> - Implemented navigation between ShoppingList<br> - Integrated frontend with backend for Shopping List CRUD  |
+- [Shiyu Xu (Gina)](https://github.com/your-github)
+	- UI Development
+		- Designed and implemented core screens: ProductDetail, StoreDetail, AddRecord, AddStore, Setting, EditProfile, and Home screens
+		- Created reusable components including BackButton and MainPageHeader
+		- Set up navigation flows between screens
+	- Data Architecture
+		- Designed the Firebase database schema and collection structure
+		- Created TypeScript type definitions for the entire application
+	- Firebase Integration
+		- Implemented CRUD operations for price records, user products, and user stores
+		- Set up real-time data synchronization between UI and Firebase
+
+- [Yuxin Zhou (Renie)](https://github.com/Zhouyuxin4)
+	- Implemented Firebase Helper (CRUD functions) 
+	- Developed UI for Shopping List (`ShoppingList`, `AddShoppingList`, `ShoppingListDetails`) 
+	- Implemented navigation between ShoppingList
+	- Integrated frontend with backend for Shopping List CRUD
 
 
 ## Screeshots
