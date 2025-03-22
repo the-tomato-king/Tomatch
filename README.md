@@ -191,7 +191,7 @@ Sub-Collections under users:
 
 - [Shiyu Xu (Gina)](https://github.com/your-github)
 	- UI Development
-		- Designed and implemented core screens: ProductDetail, StoreDetail, AddRecord, AddStore, Setting, EditProfile, and Home screens
+		- Designed and implemented core screens: ProductDetail, StoreDetail, RecordDetail, AddRecord, AddStore, Setting, EditProfile, and Home screens
 		- Created reusable components including BackButton and MainPageHeader
 		- Set up navigation flows between screens
 	- Data Architecture
@@ -212,6 +212,23 @@ Sub-Collections under users:
 ![Shoppinglists Screen on Android Emulator](https://github.com/user-attachments/assets/97ff3563-a1cd-4ee8-9a29-5d2604880893)
 ![Shoppinglists Detail Screen on Android Emulator](https://github.com/user-attachments/assets/c12b108f-9c1e-402d-87c4-50809107de42)
 ![AddShoppinglists Screen on iOS Emulator](https://github.com/user-attachments/assets/e9cf584b-cf59-43cf-8c14-0822ecf57b8b)
+
+![Image](https://github.com/user-attachments/assets/6f570aa2-1dc7-4c7b-8c3e-a12283276cde)
+
+![Image](https://github.com/user-attachments/assets/fa2926be-f2d1-4cf3-9906-c6e9b432a89b)
+
+
+![Image](https://github.com/user-attachments/assets/d84eae06-938b-4815-880f-f894aa9fb1b0)
+
+![Image](https://github.com/user-attachments/assets/0b723089-569d-4f5c-bc7c-dbb0a82c879a)
+
+![Image](https://github.com/user-attachments/assets/2e946bac-04f0-4aa8-b897-6d960fb5de1a)
+
+![Image](https://github.com/user-attachments/assets/9506f5fd-d455-4d61-b76b-48769e9010f0)
+
+![Image](https://github.com/user-attachments/assets/2dc4b062-9425-4cf4-b2a7-0b8d9fa433b1)
+
+![Image](https://github.com/user-attachments/assets/1d261652-40b9-4f01-aac9-f4a894537e87)
 
 
 ## Development Guide
