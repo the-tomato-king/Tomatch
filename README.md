@@ -140,12 +140,11 @@ Sub-Collections under users:
 - [ ] Update: Users can modify product details such as name, category, and image.
 - [ ] Delete: Users can remove unwanted customized products.
 
-
 1.2 shoppinglists
-- [ ] Create: Users create new shopping lists and add products.
-- [ ] Read: Users retrieve their shopping lists and associated products.
-- [ ] Update: Users can rename shopping lists, modify items, and mark items as purchased.
-- [ ] Delete: Users can delete entire shopping lists or remove individual products from a list.
+- [x] Create: Users create new shopping lists and add products.
+- [x] Read: Users retrieve their shopping lists and associated products.
+- [x] Update: Users can mark items as purchased in each of shopping lists.
+- [x] Delete: Users can delete entire shopping lists.
 
 1.3 price_records
 - [ ] Create: Users add price records manually or via OCR from price tags.
@@ -168,6 +167,20 @@ Sub-Collections under users:
 		- The store is marked as "archived" (inactive) but remains in the database.
 		- Users can choose whether price records remain accessible.
 	- User Confirm: Full Deletion (Cascade Delete): If confirmed, the store and all linked price records will be permanently deleted.
+
+ 
+## Contributors
+
+| Name                | GitHub Profile                            | Contributions |
+|---------------------|-----------------------------------------|--------------|
+| **Shiyu Xu (Gina)** | https://github.com/your-github | - add here|
+| **Yuxin Zhou (Renie)** | https://github.com/Zhouyuxin4 | - Implemented Firebase Helper (CRUD functions) <br> - Developed UI for Shopping List (`ShoppingList`, `AddShoppingList`, `ShoppingListDetails`) <br> - Implemented navigation between ShoppingList<br> - Integrated frontend with backend for Shopping List CRUD  |
+
+
+## Screeshots
+
+
+
 
 ## Development Guide
 
