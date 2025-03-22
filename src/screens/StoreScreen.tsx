@@ -19,6 +19,7 @@ import { COLLECTIONS } from "../constants/firebase";
 import { useNavigation } from "@react-navigation/native";
 import { StoreStackParamList } from "../types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import MainPageHeader from "../components/MainPageHeader";
 
 type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
 
@@ -32,6 +33,7 @@ const StoreScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.scrollView}>
+        <MainPageHeader title="Stores" />
         <View style={styles.searchSection}>
           <SearchBar
             value={address}

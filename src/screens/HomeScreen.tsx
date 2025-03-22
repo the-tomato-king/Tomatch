@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, View, Image } from "react-native";
+import { FlatList, StyleSheet, Text, View, Image, SafeAreaView } from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
 import ProductCard from "../components/ProductCard";
 import { UserProduct } from "../types";
@@ -9,7 +9,7 @@ import { colors } from "../theme/colors";
 import { useFocusEffect } from "@react-navigation/native";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
-
+import MainPageHeader from "../components/MainPageHeader";
 const HomeScreen = () => {
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,8 +46,9 @@ const HomeScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>All Products</Text>
+
+    <SafeAreaView style={styles.container}>
+      <MainPageHeader title="All Products" />
       <FlatList
         style={styles.list}
         data={userProducts}
@@ -62,7 +63,7 @@ const HomeScreen = () => {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -70,17 +71,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.lightGray2,
-
-    paddingHorizontal: 16,
-  },
-  header: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: colors.darkText,
-    marginVertical: 16,
   },
   list: {
     flex: 1,
+    marginHorizontal: 16,
   },
   listContent: {
     borderRadius: 12,

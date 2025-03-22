@@ -18,7 +18,7 @@ import { SettingStackParamList } from "../types/navigation";
 import { COLLECTIONS } from "../constants/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
-
+import MainPageHeader from "../components/MainPageHeader";
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
 
@@ -101,9 +101,7 @@ const SettingPage = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar />
       <ScrollView>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Setting</Text>
-        </View>
+        <MainPageHeader title="Setting" />
 
         {/* User Profile Section */}
         <TouchableOpacity

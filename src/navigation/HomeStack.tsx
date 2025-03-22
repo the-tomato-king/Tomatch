@@ -13,7 +13,7 @@ const HomeStack = () => {
         name="HomeScreen"
         component={HomeScreen} 
         options={{
-          // title: "All Products",
+          headerShown: false,
         }}
       />
       <Stack.Screen 
