@@ -37,7 +37,7 @@ const ShoppingListStack = () => {
        component={ShoppingListDetailScreen} 
        options={{ 
         headerShown: true,
-        title: "detail",
+        title: "",
     }}/>
     </Stack.Navigator>
   );

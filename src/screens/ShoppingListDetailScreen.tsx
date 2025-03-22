@@ -1,12 +1,13 @@
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { readOneDoc } from '../services/firebase/firebaseHelper';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, FlatList } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import { ShoppingStackParamList } from '../types/navigation';
 import { ShoppingItem } from './AddShoppingListScreen'; 
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase/firebaseConfig';
+import { useNavigation } from '@react-navigation/native';
 
 type ShoppingListDetailRouteProp = RouteProp<ShoppingStackParamList, 'ShoppingListDetail'>;
 
@@ -21,6 +22,8 @@ const ShoppingListDetailScreen = () => {
   const route = useRoute<ShoppingListDetailRouteProp>();
   const { id } = route.params;
 
+  const navigation = useNavigation();
+
   const [shoppingList, setShoppingList] = useState<ShoppingListDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>({});
@@ -32,7 +35,7 @@ const ShoppingListDetailScreen = () => {
         setShoppingList(list);
         if (list) {
           const initialCheckedState = list.items.reduce((acc, item) => {
-            acc[item.id] = item.checked || false; // ✅ 从数据库读取 checked 状态
+            acc[item.id] = item.checked || false; 
             return acc;
           }, {} as { [key: string]: boolean });
           setCheckedItems(initialCheckedState);
@@ -47,21 +50,26 @@ const ShoppingListDetailScreen = () => {
     fetchShoppingList();
   }, [id]);
 
-  const handleCheck = async (itemId: string) => {
+  useEffect(() => {
+    if (shoppingList) {
+      navigation.setOptions({
+        title: shoppingList.name || 'Detail', 
+      });
+    }
+  }, [shoppingList, navigation]);
+
+  const handleCheck = useCallback(async (itemId: string) => {
     if (!shoppingList) return;
-
+  
     try {
-      // 计算新的 checked 状态
       const newCheckedState = !checkedItems[itemId];
-
-      // 更新 Firestore
+  
       const updatedItems = shoppingList.items.map((item) =>
         item.id === itemId ? { ...item, checked: newCheckedState } : item
       );
-
+  
       await updateDoc(doc(db, 'shoppingLists', id), { items: updatedItems });
-
-      // **同步 UI 状态**
+  
       setCheckedItems((prev) => ({
         ...prev,
         [itemId]: newCheckedState,
@@ -72,7 +80,7 @@ const ShoppingListDetailScreen = () => {
     } catch (error) {
       console.error('Error updating checkbox:', error);
     }
-  };
+  }, [shoppingList, checkedItems, id]);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -84,10 +92,18 @@ const ShoppingListDetailScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{shoppingList.name}</Text>
       <Text style={styles.dateText}>
-        Shopping Time: {new Date(shoppingList.shoppingTime).toLocaleString()}
+        supermarket selection will be coming soon
       </Text>
+      <Text style={styles.dateText}>
+        Shopping Time: {shoppingList.shoppingTime
+        ? new Date(shoppingList.shoppingTime).toLocaleDateString() +
+        ' ' +
+        new Date(shoppingList.shoppingTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : 'N/A'}
+      </Text>
+
+
 
       <Text style={styles.sectionTitle}>Items:</Text>
 
@@ -98,11 +114,16 @@ const ShoppingListDetailScreen = () => {
           renderItem={({ item }) => (
             <View style={styles.itemContainer}>
               <CheckBox
-                title={item.name} 
-                checked={checkedItems[item.id] || false}  // ✅ 绑定 checkedItems[item.id]
-                onPress={() => handleCheck(item.id)} 
+                checked={checkedItems[item.id] || false}
+                onPress={() => handleCheck(item.id)}
+                containerStyle={styles.checkBoxContainer}
+                checkedColor="#007bff"
+                uncheckedColor="#ccc"
               />
-              <Text style={styles.itemQuantity}>Quantity: {item.quantity}</Text>
+              <View style={styles.itemContent}>
+                <Text style={styles.itemName}>{item.name || 'Unnamed Item'}</Text>
+                <Text style={styles.itemQuantity}>Quantity: {item.quantity}</Text>
+              </View>
             </View>
           )}
         />
@@ -138,39 +159,44 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     color: '#007bff',
   },
-  itemContainer: {
-    flexDirection: 'row', 
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginVertical: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  itemName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    flex: 1,
-    marginLeft: 10,
-  },
-  checkedItem: {
-    textDecorationLine: 'line-through',
-    color: '#aaa',
-  },
-  itemQuantity: {
-    fontSize: 16,
-    color: '#666',
-  },
   noItemsText: {
     fontSize: 16,
     color: '#999',
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 10,
+  },
+  itemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginVertical: 6,
+  },
+  checkBoxContainer: {
+    flex: 0,
+    margin: 0,
+    padding: 0,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  itemContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flex: 1,
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  itemQuantity: {
+    fontSize: 16,
+    color: '#666',
+    marginRight: 12,
   },
   errorText: {
     fontSize: 18,

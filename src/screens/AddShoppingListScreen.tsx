@@ -1,16 +1,8 @@
 import { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Button,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker"; // Date picker for expected shopping time
+import { Platform, StyleSheet, Text, View, TextInput, Button, FlatList, TouchableOpacity } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { createDoc } from "../services/firebase/firebaseHelper"; // Import the createDoc function
-import { router } from "expo-router";
 
 export interface ShoppingItem {
   id: string;
@@ -20,12 +12,52 @@ export interface ShoppingItem {
 }
 
 const AddShoppingListScreen = () => {
-  const [listName, setListName] = useState<string>(""); // Name of shopping list
-  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]); // Products in shopping list
-  const [itemName, setItemName] = useState<string>(""); // Current product input
-  const [quantity, setQuantity] = useState<string>("1"); // Quantity of the current product
-  const [shoppingTime, setShoppingTime] = useState<Date | null>(null); // Expected shopping time
-  const [showDatePicker, setShowDatePicker] = useState<boolean>(false); // Show/hide date picker
+  const [listName, setListName] = useState<string>("");
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+  const [itemName, setItemName] = useState<string>("");
+  const [quantity, setQuantity] = useState<string>("1");
+  const [shoppingTime, setShoppingTime] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [showTimePicker, setShowTimePicker] = useState<boolean>(false); // Track time picker visibility
+
+  // Function to handle opening date picker
+  const handleOpenDatePicker = (type: "date" | "time") => {
+    if (Platform.OS === "android") {
+      if (type === "date") {
+        DateTimePickerAndroid.open({
+          mode: "date",
+          is24Hour: true,
+          value: shoppingTime || new Date(),
+          onChange: (event, selectedDate) => {
+            if (event.type === "set" && selectedDate) {
+              setShoppingTime(selectedDate);
+            } else {
+              console.log("User canceled the date picker.");
+            }
+          },
+        });
+      } else if (type === "time") {
+        DateTimePickerAndroid.open({
+          mode: "time",
+          is24Hour: true,
+          value: shoppingTime || new Date(),
+          onChange: (event, selectedDate) => {
+            if (event.type === "set" && selectedDate) {
+              setShoppingTime(selectedDate);
+            } else {
+              console.log("User canceled the time picker.");
+            }
+          },
+        });
+      }
+    } else {
+      if (type === "date") {
+        setShowDatePicker(true);
+      } else {
+        setShowTimePicker(true);
+      }
+    }
+  };
 
   // Function to add product to list
   const handleAddItem = () => {
@@ -52,40 +84,38 @@ const AddShoppingListScreen = () => {
   };
 
   // Function to create shopping list in the database
-const handleCreateList = async () => {
+  const handleCreateList = async () => {
+    if (listName.trim().length === 0) {
+      alert("Please enter a name for the shopping list.");
+      return;
+    }
 
-  if (listName.trim().length === 0) {
-    alert("Please enter a name for the shopping list.");
-    return;
-  }
+    if (shoppingItems.length === 0) {
+      alert("Please add at least one item to the shopping list.");
+      return;
+    }
 
-  if (shoppingItems.length === 0) {
-    alert("Please add at least one item to the shopping list.");
-    return;
-  }
+    if (!shoppingTime) {
+      alert("Please select a shopping time.");
+      return;
+    }
 
-  if (!shoppingTime) {
-    alert("Please select a shopping time.");
-    return;
-  }
+    const shoppingListData = {
+      name: listName,
+      items: shoppingItems,
+      shoppingTime: shoppingTime ? shoppingTime.toISOString() : null,
+      userId: null,
+    };
 
-  const shoppingListData = {
-    name: listName,
-    items: shoppingItems,
-    shoppingTime: shoppingTime ? shoppingTime.toISOString() : null, // Store time as a string
-    userId: null, // Set the userId to null or a placeholder value for now
+    const docId = await createDoc("shoppingLists", shoppingListData);
+
+    if (docId) {
+      console.log("Shopping list created with ID:", docId);
+      // Handle navigation or reset state after successful creation
+    } else {
+      console.error("Error creating shopping list.");
+    }
   };
-
-  const docId = await createDoc("shoppingLists", shoppingListData);
-
-  if (docId) {
-    console.log("Shopping list created with ID:", docId);
-    // Handle navigation or reset state after successful creation
-    router.push("/shopping-list");
-  } else {
-    console.error("Error creating shopping list.");
-  }
-};
 
   return (
     <View style={styles.container}>
@@ -129,25 +159,59 @@ const handleCreateList = async () => {
       />
 
       {/* Expected Shopping Time Picker */}
-      <TouchableOpacity
-        onPress={() => setShowDatePicker(true)}
-        style={styles.dateButton}
-      >
-        <Text style={styles.dateText}>
-          {shoppingTime
-            ? shoppingTime.toLocaleString()
-            : "Select Shopping Time"}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.timePicker}> 
+        <TouchableOpacity
+          onPress={() => handleOpenDatePicker("date")}
+          style={styles.dateButton}
+        >
+          <Text style={styles.dateText}>
+            {shoppingTime
+              ? shoppingTime.toLocaleDateString()
+              : "Select Shopping Date"}
+          </Text>
+        </TouchableOpacity>
 
+        <TouchableOpacity
+          onPress={() => handleOpenDatePicker("time")}
+          style={styles.dateButton}
+        >
+          <Text style={styles.dateText}>
+            {shoppingTime
+              ? shoppingTime.toLocaleTimeString()
+              : "Select Shopping Time"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* DateTime Picker for iOS (Date and Time separately) */}
       {showDatePicker && (
         <DateTimePicker
           value={shoppingTime || new Date()}
-          mode="datetime"
-          display="default"
+          mode="date"
+          display="spinner" // Use spinner to show the wheel picker
           onChange={(event, selectedDate) => {
             setShowDatePicker(false);
-            if (selectedDate) setShoppingTime(selectedDate);
+            if (event.type === "set" && selectedDate) {
+              setShoppingTime(selectedDate);
+            } else {
+              console.log("User canceled the date picker.");
+            }
+          }}
+        />
+      )}
+
+      {showTimePicker && (
+        <DateTimePicker
+          value={shoppingTime || new Date()}
+          mode="time"
+          display="spinner" // Use spinner to show the wheel picker
+          onChange={(event, selectedDate) => {
+            setShowTimePicker(false);
+            if (event.type === "set" && selectedDate) {
+              setShoppingTime(selectedDate);
+            } else {
+              console.log("User canceled the time picker.");
+            }
           }}
         />
       )}
@@ -158,7 +222,6 @@ const handleCreateList = async () => {
       {/* Cancel and Submit Buttons */}
       <View style={styles.buttonRow}>
         <Button title="Cancel" onPress={handleCancel} color="red" />
-
         <Button title="Create" onPress={handleCreateList} />
       </View>
     </View>
@@ -191,11 +254,11 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ddd",
   },
   dateButton: {
-    padding: 10,
+    padding: 8,
     backgroundColor: "#ddd",
     borderRadius: 5,
     alignItems: "center",
-    marginBottom: 10,
+    margin: 8,
   },
   dateText: {
     fontSize: 16,
@@ -205,4 +268,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 20,
   },
+  timePicker:{
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent:"center"
+  }
 });
