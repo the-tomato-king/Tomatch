@@ -224,16 +224,16 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="33%"><img src=" https://github.com/user-attachments/assets/6f570aa2-1dc7-4c7b-8c3e-a12283276cde" alt="Product Details" width="100%"/><br><em>All Product</em></td>
-<td width="33%"><img src=" https://github.com/user-attachments/assets/fa2926be-f2d1-4cf3-9906-c6e9b432a89b" alt="Price Record" width="100%"/><br><em>Product Detail</em></td>
-<td width="33%"><img src=" https://github.com/user-attachments/assets/d84eae06-938b-4815-880f-f894aa9fb1b0" alt="Add Record" width="100%"/><br><em>Record Detail</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/6f570aa2-1dc7-4c7b-8c3e-a12283276cde" alt="Product Details" width="100%"/><br><em>All Product</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/fa2926be-f2d1-4cf3-9906-c6e9b432a89b" alt="Price Record" width="100%"/><br><em>Product Detail</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/d84eae06-938b-4815-880f-f894aa9fb1b0" alt="Add Record" width="100%"/><br><em>Record Detail</em></td>
 </tr>
 </table>
 
 <table>
 <tr>
-<td width="50%"><img src=" https://github.com/user-attachments/assets/627d1454-6416-47ad-94af-82c3d6571067" alt="Product Details" width="100%"/><br><em>Add Record</em></td>
-<td width="50%"><img src=" https://github.com/user-attachments/assets/f3f1845c-1bb7-47c5-822a-1d42b0169655" alt="Price Record" width="100%"/><br><em>Product Library</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/627d1454-6416-47ad-94af-82c3d6571067" alt="Product Details" width="100%"/><br><em>Add Record</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/f3f1845c-1bb7-47c5-822a-1d42b0169655" alt="Price Record" width="100%"/><br><em>Product Library</em></td>
 </tr>
 </table>
 
@@ -242,8 +242,8 @@ Sub-Collections under users:
 <table>
 <tr>
 <td width="33%"><img src="https://github.com/user-attachments/assets/0b723089-569d-4f5c-bc7c-dbb0a82c879a" alt="Store List" width="100%"/><br><em>Store List</em></td>
-<td width="33%"><img src=" https://github.com/user-attachments/assets/2e946bac-04f0-4aa8-b897-6d960fb5de1a" alt="Store Details" width="100%"/><br><em>Add Store</em></td>
-<td width="33%"><img src=" https://github.com/user-attachments/assets/1d261652-40b9-4f01-aac9-f4a894537e87" alt="Product Library" width="100%"/><br><em>Store Details</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/2e946bac-04f0-4aa8-b897-6d960fb5de1a" alt="Store Details" width="100%"/><br><em>Add Store</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/1d261652-40b9-4f01-aac9-f4a894537e87" alt="Product Library" width="100%"/><br><em>Store Details</em></td>
 </tr>
 </table>
 
@@ -251,8 +251,8 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="50%"><img src=" https://github.com/user-attachments/assets/9506f5fd-d455-4d61-b76b-48769e9010f0" alt="Add Store" width="100%"/><br><em>Settings</em></td>
-<td width="50%"><img src=" https://github.com/user-attachments/assets/2dc4b062-9425-4cf4-b2a7-0b8d9fa433b1" alt="Home Screen" width="100%"/><br><em>Edit Profile</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/9506f5fd-d455-4d61-b76b-48769e9010f0" alt="Add Store" width="100%"/><br><em>Settings</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/2dc4b062-9425-4cf4-b2a7-0b8d9fa433b1" alt="Home Screen" width="100%"/><br><em>Edit Profile</em></td>
 </tr>
 </table>
 
