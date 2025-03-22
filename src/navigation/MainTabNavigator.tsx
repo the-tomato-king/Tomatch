@@ -7,7 +7,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import HomeStack from "./HomeStack";
 import StoreStack from "./StoreStack";
-import SettingScreen from "../screens/SettingScreen";
+import SettingStack from "./SettingStack";
 import { ButtomAddButton } from "../components/ButtomAddButton";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ShoppingListStack from "./ShoppingListStack";
@@ -99,8 +99,9 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Setting"
-        component={SettingScreen}
+        component={SettingStack}
         options={{
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="cog" color={color} size={size} />
           ),

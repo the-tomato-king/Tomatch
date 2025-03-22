@@ -10,7 +10,7 @@ const Stack = createNativeStackNavigator<ShoppingStackParamList>();
 const ShoppingListStack = () => {
   return (
     <Stack.Navigator>
- <Stack.Screen
+    <Stack.Screen
         name="ShoppingList"
         component={ShoppingListScreen} 
         options={({ navigation }) => ({
@@ -32,10 +32,10 @@ const ShoppingListStack = () => {
             title: "New List",
         }}
       />
-       <Stack.Screen 
-       name="ShoppingListDetail" 
-       component={ShoppingListDetailScreen} 
-       options={{ 
+      <Stack.Screen 
+      name="ShoppingListDetail" 
+      component={ShoppingListDetailScreen} 
+      options={{ 
         headerShown: true,
         title: "",
     }}/>

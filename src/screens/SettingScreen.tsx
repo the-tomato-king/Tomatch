@@ -6,61 +6,95 @@ import {
   SafeAreaView,
   StatusBar,
   Switch,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { User } from "../types";
 import LoadingLogo from "../components/LoadingLogo";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { SettingStackParamList } from "../types/navigation";
+import { COLLECTIONS } from "../constants/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../services/firebase/firebaseConfig";
+
+type SettingScreenNavigationProp =
+  NativeStackNavigationProp<SettingStackParamList>;
 
 const SettingPage = () => {
-  // 创建用户状态
+  const navigation = useNavigation<SettingScreenNavigationProp>();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
 
-  // 模拟获取用户数据
-  useEffect(() => {
-    // 这里应该是从API或本地存储获取用户数据
-    // 现在我们使用模拟数据
-    const mockUser: User = {
-      id: "user101",
-      name: "User101",
-      email: "user101@gmail.com",
-      phone_number: "123-456-7890",
-      location: {
-        country: "Canada",
-        province: "Ontario",
-        city: "Toronto",
-        street_address: "123 Maple Street",
-        postcode: "M5V 2T6",
-        coordinates: {
-          latitude: 43.6532,
-          longitude: -79.3832,
-        },
-      },
-      preferred_unit: {
-        weight: "lb",
-        volume: "oz",
-      },
-      preferred_currency: "CAD",
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
+  //TODO: delete this when auth is implemented
+  const userId = "user123";
 
-    // 模拟网络延迟
-    setTimeout(() => {
-      setUser(mockUser);
-      setLoading(false);
-    }, 500);
+  useEffect(() => {
+    setLoading(true);
+
+    const userDocRef = doc(db, COLLECTIONS.USERS, userId);
+
+    const unsubscribe = onSnapshot(
+      userDocRef,
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const userData = docSnapshot.data() as User;
+          setUser(userData);
+        } else {
+          console.error("User document does not exist");
+          Alert.alert(
+            "Error",
+            "User data not found. Please create a user profile first.",
+            [
+              {
+                text: "Go to Profile",
+                onPress: () => navigation.navigate("EditProfile"),
+              },
+              { text: "Cancel" },
+            ]
+          );
+        }
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error listening to user data:", error);
+        Alert.alert("Error", "Failed to load user data");
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
   }, []);
 
-  // 处理暗黑模式切换
   const toggleDarkMode = () => {
     setDarkMode((previousState) => !previousState);
   };
 
-  // 显示加载状态
+  const navigateToEditProfile = () => {
+    navigation.navigate("EditProfile");
+  };
+
   if (loading) {
     return <LoadingLogo />;
+  }
+
+  //TODO: delete this when auth is implemented
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>User data not available</Text>
+          <TouchableOpacity
+            style={styles.errorButton}
+            onPress={() => navigation.navigate("EditProfile")}
+          >
+            <Text style={styles.errorButtonText}>Create Profile</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -72,27 +106,31 @@ const SettingPage = () => {
         </View>
 
         {/* User Profile Section */}
-        <View style={styles.profileSection}>
+        <TouchableOpacity
+          style={styles.profileSection}
+          onPress={navigateToEditProfile}
+        >
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>Avatar</Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{user?.name || "User"}</Text>
-            <Text style={styles.userEmail}>
-              {user?.email || "user@example.com"}
-            </Text>
+            <Text style={styles.userName}>{user.name}</Text>
+            <Text style={styles.userEmail}>{user.email}</Text>
           </View>
           <Text style={styles.chevron}>{">"}</Text>
-        </View>
+        </TouchableOpacity>
 
         {/* Account Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
 
-          <View style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={navigateToEditProfile}
+          >
             <Text style={styles.settingLabel}>Edit Profile</Text>
             <Text style={styles.chevron}>{">"}</Text>
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Change Password</Text>
@@ -111,22 +149,20 @@ const SettingPage = () => {
 
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Currency</Text>
-            <Text style={styles.settingValue}>
-              {user?.preferred_currency || "USD"}
-            </Text>
+            <Text style={styles.settingValue}>{user.preferred_currency}</Text>
           </View>
 
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Weight Unit</Text>
             <Text style={styles.settingValue}>
-              {user?.preferred_unit?.weight || "kg"}
+              {user.preferred_unit.weight}
             </Text>
           </View>
 
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Volume Unit</Text>
             <Text style={styles.settingValue}>
-              {user?.preferred_unit?.volume || "ml"}
+              {user.preferred_unit.volume}
             </Text>
           </View>
 
@@ -141,8 +177,6 @@ const SettingPage = () => {
             />
           </View>
         </View>
-
-        {/* Content will go here */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -154,6 +188,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  errorButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  errorButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   header: {
     padding: 16,
