@@ -5,10 +5,64 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
+  Switch,
 } from "react-native";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { User } from "../types";
+import LoadingLogo from "../components/LoadingLogo";
 
 const SettingPage = () => {
+  // 创建用户状态
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // 模拟获取用户数据
+  useEffect(() => {
+    // 这里应该是从API或本地存储获取用户数据
+    // 现在我们使用模拟数据
+    const mockUser: User = {
+      id: "user101",
+      name: "User101",
+      email: "user101@gmail.com",
+      phone_number: "123-456-7890",
+      location: {
+        country: "Canada",
+        province: "Ontario",
+        city: "Toronto",
+        street_address: "123 Maple Street",
+        postcode: "M5V 2T6",
+        coordinates: {
+          latitude: 43.6532,
+          longitude: -79.3832,
+        },
+      },
+      preferred_unit: {
+        weight: "lb",
+        volume: "oz",
+      },
+      preferred_currency: "CAD",
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+
+    // 模拟网络延迟
+    setTimeout(() => {
+      setUser(mockUser);
+      setLoading(false);
+    }, 500);
+  }, []);
+
+  // 处理暗黑模式切换
+  const toggleDarkMode = () => {
+    setDarkMode((previousState) => !previousState);
+  };
+
+  // 显示加载状态
+  if (loading) {
+    return <LoadingLogo />;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar />
@@ -23,8 +77,10 @@ const SettingPage = () => {
             <Text style={styles.avatarText}>Avatar</Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>User123</Text>
-            <Text style={styles.userEmail}>user123@gmail.com</Text>
+            <Text style={styles.userName}>{user?.name || "User"}</Text>
+            <Text style={styles.userEmail}>
+              {user?.email || "user@example.com"}
+            </Text>
           </View>
           <Text style={styles.chevron}>{">"}</Text>
         </View>
@@ -55,19 +111,34 @@ const SettingPage = () => {
 
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Currency</Text>
-            <Text style={styles.settingValue}>CAD</Text>
+            <Text style={styles.settingValue}>
+              {user?.preferred_currency || "USD"}
+            </Text>
           </View>
 
           <View style={styles.settingItem}>
-            <Text style={styles.settingLabel}>Unit</Text>
-            <Text style={styles.settingValue}>lb</Text>
+            <Text style={styles.settingLabel}>Weight Unit</Text>
+            <Text style={styles.settingValue}>
+              {user?.preferred_unit?.weight || "kg"}
+            </Text>
+          </View>
+
+          <View style={styles.settingItem}>
+            <Text style={styles.settingLabel}>Volume Unit</Text>
+            <Text style={styles.settingValue}>
+              {user?.preferred_unit?.volume || "ml"}
+            </Text>
           </View>
 
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Dark Mode</Text>
-            <View style={styles.togglePlaceholder}>
-              <Text style={styles.toggleText}>OFF</Text>
-            </View>
+            <Switch
+              trackColor={{ false: "#eee", true: "#007AFF" }}
+              thumbColor={darkMode ? "#fff" : "#fff"}
+              ios_backgroundColor="#eee"
+              onValueChange={toggleDarkMode}
+              value={darkMode}
+            />
           </View>
         </View>
 
