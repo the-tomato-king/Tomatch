@@ -128,18 +128,19 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 	- logo
 	- updated_at
 
-4.shopping_list (collection)
- 	- id
-  	- name
-  	- items
-  	- shoppingTime
-   	- location
-   	- userid
-    		- shopping_list_item (subcollection)
-      			- id
-	 		- name
-    			- quantity
-       			- checked?
+4. shopping_list (collection)
+    - id
+    - name
+    - items
+    - shoppingTime
+    - location
+    - userid
+        - shopping_list_item (subcollection)
+            - id
+            - name
+            - quantity
+            - checked
+
 	  
 
 ## CRUD Operations on Collections
