@@ -14,7 +14,7 @@ const ShoppingListStack = () => {
         name="ShoppingList"
         component={ShoppingListScreen} 
         options={({ navigation }) => ({
-          headerShown: false,
+          headerShown: true,
           title: "My Shopping Lists",
           headerRight: () => (
             <Button 

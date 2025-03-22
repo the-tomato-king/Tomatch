@@ -33,7 +33,6 @@ const StoreScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.scrollView}>
-        <MainPageHeader title="Stores" />
         <View style={styles.searchSection}>
           <SearchBar
             value={address}

@@ -5,22 +5,27 @@ import {
   View,
   ActivityIndicator,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
-import { RouteProp, useRoute } from "@react-navigation/native";
+import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../types/navigation";
 import { COLLECTIONS } from "../constants/firebase";
 import { readOneDoc, readAllDocs } from "../services/firebase/firebaseHelper";
-import { Product, PriceRecord, UserProductStats } from "../types";
+import { Product, PriceRecord, UserProductStats, UserStore } from "../types";
 import LoadingLogo from "../components/LoadingLogo";
 import ProductImage from "../components/ProductImage";
 import { colors } from "../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
+type ProductDetailScreenNavigationProp =
+  NativeStackNavigationProp<HomeStackParamList>;
 
 const ProductDetailScreen = () => {
   const route = useRoute<ProductDetailRouteProp>();
   const { productId, userProductId } = route.params;
+  const navigation = useNavigation<ProductDetailScreenNavigationProp>();
 
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<Product | null>(null);
@@ -67,7 +72,25 @@ const ProductDetailScreen = () => {
           );
         });
 
-        setPriceRecords(filteredRecords);
+        // get store info for each record
+        const storesPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
+        const recordsWithStoreInfo = await Promise.all(
+          filteredRecords.map(async (record) => {
+            if (record.store_id) {
+              const storeData = await readOneDoc<UserStore>(storesPath, record.store_id);
+              return {
+                ...record,
+                store: storeData || { id: record.store_id, name: record.store_id } as UserStore
+              };
+            }
+            return {
+              ...record,
+              store: { id: "unknown", name: "Unknown Store" } as UserStore
+            };
+          })
+        );
+
+        setPriceRecords(recordsWithStoreInfo);
       } catch (error) {
         console.error("Error fetching product data:", error);
       } finally {
@@ -77,6 +100,39 @@ const ProductDetailScreen = () => {
 
     fetchProductData();
   }, [productId, userProductId]);
+
+  // Helper function to format date
+  const formatDateTime = (dateValue: any) => {
+    let date;
+
+    if (dateValue && typeof dateValue.toDate === "function") {
+      date = dateValue.toDate();
+    } else if (dateValue instanceof Date) {
+      date = dateValue;
+    } else if (typeof dateValue === "string") {
+      date = new Date(dateValue);
+    } else {
+      // Fallback for unexpected formats
+      console.warn("Unexpected date format:", dateValue);
+      return "Invalid date";
+    }
+
+    // Format date: May 10, 2025
+    const formattedDate = date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    // Format time: 10:00
+    const formattedTime = date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    return `${formattedDate} at ${formattedTime}`;
+  };
 
   if (loading) {
     return <LoadingLogo />;
@@ -103,9 +159,7 @@ const ProductDetailScreen = () => {
                 ${productStats?.average_price.toFixed(2)}
               </Text>
               <Text style={styles.priceUnit}>/lb</Text>
-              <Text style={styles.priceLabel}>
-                Average
-              </Text>
+              <Text style={styles.priceLabel}>Average</Text>
             </View>
           </View>
         </View>
@@ -137,15 +191,34 @@ const ProductDetailScreen = () => {
           Price Records ({priceRecords.length})
         </Text>
         {priceRecords.length > 0 ? (
-          priceRecords.map((record, index) => (
-            <View key={index} style={styles.recordItem}>
-              <Text>Price: ${record.price.toFixed(2)}</Text>
-              <Text>Store: {record.store_id}</Text>
-              <Text>
-                Date: {new Date(record.recorded_at).toLocaleDateString()}
-              </Text>
-            </View>
-          ))
+          <ScrollView style={styles.recordsContainer}>
+            {priceRecords.map((record, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.recordItem}
+                onPress={() =>
+                  navigation.navigate("PriceRecordInformation", {
+                    recordId: record.id,
+                  })
+                }
+              >
+                <View style={styles.recordLeftSection}>
+                  <View style={styles.storeCircle} />
+                  <View style={styles.recordInfo}>
+                    <Text style={styles.storeName}>
+                      {record.store?.name || "Unknown Store"}
+                    </Text>
+                    <Text style={styles.recordDate}>
+                      {formatDateTime(record.recorded_at)}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.recordPrice}>
+                  ${record.price.toFixed(2)}/lb
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         ) : (
           <Text>No price records available</Text>
         )}
@@ -241,11 +314,45 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "400",
   },
+  recordsContainer: {
+    maxHeight: 300,
+  },
   recordItem: {
-    padding: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    marginBottom: 8,
+    borderBottomColor: colors.lightGray2,
+  },
+  recordLeftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  storeCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.lightGray2,
+    marginRight: 12,
+  },
+  recordInfo: {
+    justifyContent: "center",
+  },
+  storeName: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: colors.darkText,
+    marginBottom: 4,
+  },
+  recordDate: {
+    fontSize: 14,
+    color: colors.secondaryText,
+  },
+  recordPrice: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.primary,
   },
 });
 

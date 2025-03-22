@@ -16,7 +16,7 @@ const StoreStack = () => {
         name="StoreScreen"
         component={StoreScreen}
         options={({ navigation }) => ({
-          headerShown: false,
+          headerShown: true,
           title: "Stores",
           headerRight: () => (
             <MaterialCommunityIcons

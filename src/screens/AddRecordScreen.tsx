@@ -23,7 +23,14 @@ import { RootStackParamList } from "../types/navigation";
 
 import { createDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
-import { BasePriceRecord, BaseUserProduct, BaseUserProductStats, PriceRecord, UserProduct, UserProductStats } from "../types";
+import {
+  BasePriceRecord,
+  BaseUserProduct,
+  BaseUserProductStats,
+  PriceRecord,
+  UserProduct,
+  UserProductStats,
+} from "../types";
 import ProductSearchInput from "../components/ProductSearchInput";
 import {
   collection,
@@ -34,6 +41,8 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
+import StoreSearchInput from "../components/StoreSearchInput";
+import { UserStore } from "../types";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -41,6 +50,7 @@ type AddRecordScreenNavigationProp =
 const AddRecordScreen = () => {
   const navigation = useNavigation<AddRecordScreenNavigationProp>();
   const [selectedProduct, setSelectedProduct] = useState<BaseUserProduct>();
+  const [selectedStore, setSelectedStore] = useState<UserStore>();
 
   const [image, setImage] = useState<string | null>(null);
   const [productName, setProductName] = useState("");
@@ -99,6 +109,11 @@ const AddRecordScreen = () => {
         return;
       }
 
+      if (!selectedStore) {
+        alert("Please select a store from the list");
+        return;
+      }
+
       // TODO: Link to real user, now hardcoded to user123
       const userId = "user123";
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
@@ -139,7 +154,7 @@ const AddRecordScreen = () => {
 
       const priceRecord: BasePriceRecord = {
         user_product_id: userProductId,
-        store_id: storeName, // TODO: Link to real store, now use the store name user typed in
+        store_id: selectedStore.id,
         price: numericPrice,
         unit_type: unitType,
         unit_price: numericPrice, //TODO: Calculate unit price, now same as price
@@ -172,8 +187,8 @@ const AddRecordScreen = () => {
           if (numericPrice < userProductStats.lowest_price) {
             userProductStats.lowest_price = numericPrice;
             userProductStats.lowest_price_store = {
-              store_id: storeName,
-              store_name: storeName,
+              store_id: selectedStore.id,
+              store_name: selectedStore.name,
             };
           }
 
@@ -204,8 +219,8 @@ const AddRecordScreen = () => {
             lowest_price: numericPrice,
             highest_price: numericPrice,
             lowest_price_store: {
-              store_id: storeName,
-              store_name: storeName,
+              store_id: selectedStore.id,
+              store_name: selectedStore.name,
             },
             total_price_records: 1,
             last_updated: new Date(),
@@ -277,17 +292,13 @@ const AddRecordScreen = () => {
               });
             }}
           />
-          <View style={globalStyles.inputContainer}>
-            <View style={globalStyles.labelContainer}>
-              <Text style={globalStyles.inputLabel}>Store</Text>
-            </View>
-            <TextInput
-              style={globalStyles.input}
-              placeholder="Select store..."
-              value={storeName}
-              onChangeText={setStoreName}
-            />
-          </View>
+          <StoreSearchInput
+            inputValue={storeName}
+            onChangeInputValue={setStoreName}
+            onSelectStore={(store) => {
+              setSelectedStore(store);
+            }}
+          />
           <View style={[globalStyles.inputContainer]}>
             <View style={globalStyles.labelContainer}>
               <Text style={globalStyles.inputLabel}>Price</Text>
