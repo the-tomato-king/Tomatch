@@ -1,17 +1,31 @@
 import { useState } from "react";
-import { Platform, StyleSheet, Text, View, TextInput, Button, FlatList, TouchableOpacity } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Button,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { createDoc } from "../services/firebase/firebaseHelper"; // Import the createDoc function
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { ShoppingStackParamList } from "../types/navigation";
 
 export interface ShoppingItem {
   id: string;
   name: string;
   quantity: number;
-  checked?: boolean; 
+  checked?: boolean;
 }
 
 const AddShoppingListScreen = () => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<ShoppingStackParamList>>();
   const [listName, setListName] = useState<string>("");
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   const [itemName, setItemName] = useState<string>("");
@@ -111,9 +125,10 @@ const AddShoppingListScreen = () => {
 
     if (docId) {
       console.log("Shopping list created with ID:", docId);
-      // Handle navigation or reset state after successful creation
+      navigation.goBack();
     } else {
       console.error("Error creating shopping list.");
+      alert("Failed to create shopping list. Please try again.");
     }
   };
 
@@ -159,7 +174,7 @@ const AddShoppingListScreen = () => {
       />
 
       {/* Expected Shopping Time Picker */}
-      <View style={styles.timePicker}> 
+      <View style={styles.timePicker}>
         <TouchableOpacity
           onPress={() => handleOpenDatePicker("date")}
           style={styles.dateButton}
@@ -268,9 +283,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 20,
   },
-  timePicker:{
-    flexDirection: "row", 
-    alignItems: "center", 
-    justifyContent:"center"
-  }
+  timePicker: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
