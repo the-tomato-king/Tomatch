@@ -4,17 +4,17 @@ import ShoppingListScreen from "../screens/ShoppingListScreen";
 import AddShoppingListScreen from "../screens/AddShoppingListScreen";
 import ShoppingListDetailScreen from "../screens/ShoppingListDetailScreen";
 import { Button } from "react-native";
-
+import BackButton from "../components/BackButton";
 const Stack = createNativeStackNavigator<ShoppingStackParamList>();
 
 const ShoppingListStack = () => {
   return (
     <Stack.Navigator>
- <Stack.Screen
+    <Stack.Screen
         name="ShoppingList"
         component={ShoppingListScreen} 
         options={({ navigation }) => ({
-          headerShown: true,
+          headerShown: false,
           title: "My Shopping Lists",
           headerRight: () => (
             <Button 
@@ -30,12 +30,13 @@ const ShoppingListStack = () => {
         options={{ 
             headerShown: true,
             title: "New List",
+            headerLeft: () => <BackButton />,
         }}
       />
-       <Stack.Screen 
-       name="ShoppingListDetail" 
-       component={ShoppingListDetailScreen} 
-       options={{ 
+      <Stack.Screen 
+      name="ShoppingListDetail" 
+      component={ShoppingListDetailScreen} 
+      options={{ 
         headerShown: true,
         title: "",
     }}/>

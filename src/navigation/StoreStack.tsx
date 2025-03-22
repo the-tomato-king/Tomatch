@@ -5,6 +5,7 @@ import StoreDetailScreen from "../screens/StoreDetailScreen";
 import { Button } from "react-native";
 import { StoreStackParamList } from "../types/navigation";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import BackButton from "../components/BackButton";
 
 const Stack = createNativeStackNavigator<StoreStackParamList>();
 
@@ -15,7 +16,7 @@ const StoreStack = () => {
         name="StoreScreen"
         component={StoreScreen}
         options={({ navigation }) => ({
-          headerShown: true,
+          headerShown: false,
           title: "Stores",
           headerRight: () => (
             <MaterialCommunityIcons
@@ -33,13 +34,14 @@ const StoreStack = () => {
         options={{
           headerShown: true,
           title: "Add New Store",
+          headerLeft: () => <BackButton />,
         }}
       />
       <Stack.Screen
         name="StoreDetail"
         component={StoreDetailScreen}
         options={{
-          headerShown: false, // 我们在组件内部自定义了头部
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

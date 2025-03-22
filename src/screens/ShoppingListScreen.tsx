@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -6,6 +6,7 @@ import { deleteOneDocFromDB } from '../services/firebase/firebaseHelper';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { ShoppingStackParamList } from '../types/navigation';
 import { db } from '../services/firebase/firebaseConfig';
+import MainPageHeader from '../components/MainPageHeader';
 
 interface ShoppingList {
   id: string;
@@ -44,11 +45,12 @@ const ShoppingListScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-    <FlatList
-      data={shoppingLists}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
+    <SafeAreaView style={styles.container}>
+      <MainPageHeader title="Shopping Lists" />
+      <FlatList
+        data={shoppingLists}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
         <TouchableOpacity
           style={styles.listItem}
           onPress={() => navigation.navigate('ShoppingListDetail', { id: item.id })}
@@ -68,7 +70,7 @@ const ShoppingListScreen = () => {
         </TouchableOpacity>
       )}
     />
-    </View>
+    </SafeAreaView>
   );
 };
 
