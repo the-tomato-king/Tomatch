@@ -6,14 +6,22 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState } from "react";
 import { colors } from "../theme/colors";
 import StoreCard from "../components/StoreCard";
 import SearchBar from "../components/SearchBar";
+import { UserStore, useUserStores } from "../hooks/useUserStores";
+import { updateDoc, doc } from "firebase/firestore";
+import { db } from "../services/firebase/firebaseConfig";
+import { COLLECTIONS } from "../constants/firebase";
+
 const StoreScreen = () => {
   const [activeTab, setActiveTab] = useState("favorites");
   const [address, setAddress] = useState("");
+  const { favoriteStores, allStores, loading, error } = useUserStores();
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.scrollView}>
@@ -76,10 +84,14 @@ const StoreScreen = () => {
 
           {/* Stores List Content */}
           <View style={styles.storesListContent}>
-            {activeTab === "favorites" ? (
-              <FavoritesStoresList />
+            {loading ? (
+              <ActivityIndicator size="large" color={colors.primary} />
+            ) : error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : activeTab === "favorites" ? (
+              <FavoritesStoresList stores={favoriteStores} />
             ) : (
-              <NearbyStoresList />
+              <NearbyStoresList stores={allStores} />
             )}
           </View>
         </View>
@@ -88,77 +100,38 @@ const StoreScreen = () => {
   );
 };
 
-// Mock data TODO: Replace with actual data
-const favoriteStores = [
-  {
-    id: "1",
-    name: "Walmart",
-    distance: "0.5km",
-    address: "123 maple st",
-    city: "Vancouver, BC, V6T 1Z7",
-    isFavorite: true,
-  },
-  {
-    id: "2",
-    name: "Walmart",
-    distance: "0.5km",
-    address: "123 maple st",
-    city: "Vancouver, BC, V6T 1Z7",
-    isFavorite: true,
-  },
-  {
-    id: "3",
-    name: "Walmart",
-    distance: "0.5km",
-    address: "123 maple st",
-    city: "Vancouver, BC, V6T 1Z7",
-    isFavorite: true,
-  },
-];
+// modify to receive store data as a parameter
+const FavoritesStoresList = ({ stores }: { stores: UserStore[] }) => {
+  const handleToggleFavorite = async (id: string) => {
+    try {
+      // TODO: get current user id
+      const userId = "user123";
+      const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${id}`;
 
-const nearbyStores = [
-  {
-    id: "1",
-    name: "Walmart",
-    distance: "0.5km",
-    address: "123 maple st",
-    city: "Vancouver, BC, V6T 1Z7",
-    isFavorite: true,
-  },
-  {
-    id: "2",
-    name: "Costco",
-    distance: "1.2km",
-    address: "456 oak ave",
-    city: "Vancouver, BC, V6T 2A1",
-    isFavorite: false,
-  },
-  {
-    id: "3",
-    name: "Save-On-Foods",
-    distance: "2.0km",
-    address: "789 pine rd",
-    city: "Vancouver, BC, V6T 3B2",
-    isFavorite: false,
-  },
-];
+      // update favorite status
+      await updateDoc(doc(db, storeDocPath), {
+        is_favorite: false,
+        updated_at: new Date(),
+      });
 
-const FavoritesStoresList = () => {
-  const handleToggleFavorite = (id: string) => {
-    console.log(`Toggle favorite for store ${id}`);
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
   };
 
-  return (
+  return stores.length === 0 ? (
+    <Text style={styles.emptyListText}>No favorite stores yet</Text>
+  ) : (
     <FlatList
-      data={favoriteStores}
+      data={stores}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <StoreCard
           name={item.name}
-          distance={item.distance}
+          distance={item.distance || "Unknown"}
           address={item.address}
-          city={item.city}
-          isFavorite={item.isFavorite}
+          city={item.address.split(",").slice(1).join(",").trim()} // simple address format
+          isFavorite={item.is_favorite}
           onToggleFavorite={() => handleToggleFavorite(item.id)}
           onPress={() => console.log(`Pressed store ${item.id}`)}
         />
@@ -167,23 +140,39 @@ const FavoritesStoresList = () => {
   );
 };
 
-const NearbyStoresList = () => {
-  const handleToggleFavorite = (id: string) => {
-    console.log(`Toggle favorite for store ${id}`);
+const NearbyStoresList = ({ stores }: { stores: UserStore[] }) => {
+  const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
+    try {
+      // TODO: get current user id
+      const userId = "user123";
+      const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${id}`;
+
+      // update favorite status
+      await updateDoc(doc(db, storeDocPath), {
+        is_favorite: !currentStatus,
+        updated_at: new Date(),
+      });
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
   };
 
-  return (
+  return stores.length === 0 ? (
+    <Text style={styles.emptyListText}>No stores found nearby</Text>
+  ) : (
     <FlatList
-      data={nearbyStores}
+      data={stores}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <StoreCard
           name={item.name}
-          distance={item.distance}
+          distance={item.distance || "Unknown"}
           address={item.address}
-          city={item.city}
-          isFavorite={item.isFavorite}
-          onToggleFavorite={() => handleToggleFavorite(item.id)}
+          city={item.address.split(",").slice(1).join(",").trim()} // simple address format
+          isFavorite={item.is_favorite}
+          onToggleFavorite={() =>
+            handleToggleFavorite(item.id, item.is_favorite)
+          }
           onPress={() => console.log(`Pressed store ${item.id}`)}
         />
       )}
@@ -260,5 +249,17 @@ const styles = StyleSheet.create({
   storesListContent: {
     flex: 1,
     height: 300,
+  },
+  emptyListText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: colors.secondaryText,
+  },
+  errorText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "red",
   },
 });
