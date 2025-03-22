@@ -178,7 +178,7 @@ Sub-Collections under users:
 
 
 ## Screeshots
-
+![Shoppinglists Screen on Android Emulator](https://github.com/user-attachments/assets/97ff3563-a1cd-4ee8-9a29-5d2604880893)
 
 
 
