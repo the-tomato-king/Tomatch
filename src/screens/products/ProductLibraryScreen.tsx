@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View, FlatList } from "react-native";
 import React, { useState } from "react";
-import { PRODUCTS, PRODUCT_CATEGORIES } from "../data/Product";
-import { colors } from "../theme/colors";
+import { PRODUCTS, PRODUCT_CATEGORIES } from "../../data/Product";
+import { colors } from "../../theme/colors";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import ProductImage from "../components/ProductImage";
-import CategoryFilter from "../components/CategoryFilter";
-import SearchBar from "../components/SearchBar";
+import ProductImage from "../../components/ProductImage";
+import CategoryFilter from "../../components/CategoryFilter";
+import SearchBar from "../../components/SearchBar";
 
 const ProductLibraryScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");

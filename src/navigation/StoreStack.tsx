@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import StoreScreen from "../screens/StoreScreen";
-import AddStoreScreen from "../screens/AddStoreScreen";
-import StoreDetailScreen from "../screens/StoreDetailScreen";
+import StoreScreen from "../screens/stores/StoreScreen";
+import AddStoreScreen from "../screens/stores/AddStoreScreen";
+import StoreDetailScreen from "../screens/stores/StoreDetailScreen";
 import { Button } from "react-native";
 import { StoreStackParamList } from "../types/navigation";
 import { MaterialCommunityIcons } from "@expo/vector-icons";

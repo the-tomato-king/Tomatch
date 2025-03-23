@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState, useLayoutEffect } from "react";
-import { globalStyles } from "../theme/styles";
-import { colors } from "../theme/colors";
-import { UNITS, ALL_UNITS } from "../constants/units";
+import { globalStyles } from "../../theme/styles";
+import { colors } from "../../theme/colors";
+import { UNITS, ALL_UNITS } from "../../constants/units";
 import DropDownPicker from "react-native-dropdown-picker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
@@ -19,10 +19,10 @@ import {
   launchImageLibraryAsync,
 } from "expo-image-picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types/navigation";
+import { RootStackParamList } from "../../types/navigation";
 
-import { createDoc } from "../services/firebase/firebaseHelper";
-import { COLLECTIONS } from "../constants/firebase";
+import { createDoc } from "../../services/firebase/firebaseHelper";
+import { COLLECTIONS } from "../../constants/firebase";
 import {
   BasePriceRecord,
   BaseUserProduct,
@@ -30,8 +30,8 @@ import {
   PriceRecord,
   UserProduct,
   UserProductStats,
-} from "../types";
-import ProductSearchInput from "../components/ProductSearchInput";
+} from "../../types";
+import ProductSearchInput from "../../components/ProductSearchInput";
 import {
   collection,
   getDocs,
@@ -40,9 +40,9 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "../services/firebase/firebaseConfig";
-import StoreSearchInput from "../components/StoreSearchInput";
-import { UserStore } from "../types";
+import { db } from "../../services/firebase/firebaseConfig";
+import StoreSearchInput from "../../components/StoreSearchInput";
+import { UserStore } from "../../types";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;

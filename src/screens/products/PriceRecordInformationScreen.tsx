@@ -10,12 +10,12 @@ import {
 } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { colors } from "../theme/colors";
-import { HomeStackParamList } from "../types/navigation";
-import { PriceRecord, Product, UserProduct, UserStore } from "../types";
-import { COLLECTIONS } from "../constants/firebase";
-import { readOneDoc } from "../services/firebase/firebaseHelper";
-import LoadingLogo from "../components/LoadingLogo";
+import { colors } from "../../theme/colors";
+import { HomeStackParamList } from "../../types/navigation";
+import { PriceRecord, Product, UserProduct, UserStore } from "../../types";
+import { COLLECTIONS } from "../../constants/firebase";
+import { readOneDoc } from "../../services/firebase/firebaseHelper";
+import LoadingLogo from "../../components/LoadingLogo";
 
 type PriceRecordInformationRouteProp = RouteProp<
   HomeStackParamList,

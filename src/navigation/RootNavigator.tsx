@@ -2,8 +2,8 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
 import MainTabNavigator from "./MainTabNavigator";
-import AddRecordScreen from "../screens/AddRecordScreen";
-import ProductLibraryScreen from "../screens/ProductLibraryScreen";
+import AddRecordScreen from "../screens/products/AddRecordScreen";
+import ProductLibraryScreen from "../screens/products/ProductLibraryScreen";
 import { Text } from "react-native";
 import { globalStyles } from "../theme/styles";
 

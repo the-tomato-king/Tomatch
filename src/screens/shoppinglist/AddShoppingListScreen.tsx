@@ -11,14 +11,14 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
-import { createDoc } from "../services/firebase/firebaseHelper"; // Import the createDoc function
+import { createDoc } from "../../services/firebase/firebaseHelper"; // Import the createDoc function
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { ShoppingStackParamList } from "../types/navigation";
-import ProductSearchInput from "../components/ProductSearchInput";
-import { Product } from "../types";
-import { globalStyles } from "../theme/styles";
-import { colors } from "../theme/colors";
+import { ShoppingStackParamList } from "../../types/navigation";
+import ProductSearchInput from "../../components/ProductSearchInput";
+import { Product } from "../../types";
+import { globalStyles } from "../../theme/styles";
+import { colors } from "../../theme/colors";
 export interface ShoppingItem {
   id: string;
   name: string;
@@ -142,7 +142,10 @@ const AddShoppingListScreen = () => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Text style={[globalStyles.headerButton, { color: colors.primary }]} onPress={handleCreateList} >
+        <Text
+          style={[globalStyles.headerButton, { color: colors.primary }]}
+          onPress={handleCreateList}
+        >
           Save
         </Text>
       ),
@@ -176,7 +179,9 @@ const AddShoppingListScreen = () => {
             }}
           />
         </View>
-        <View style={[globalStyles.inputContainer, { width: 50, marginLeft: 10 }]}>
+        <View
+          style={[globalStyles.inputContainer, { width: 50, marginLeft: 10 }]}
+        >
           <TextInput
             style={[globalStyles.input, { width: 80, textAlign: "center" }]}
             placeholder="Qty"

@@ -9,15 +9,15 @@ import {
   Alert,
 } from "react-native";
 import React, { useState } from "react";
-import { globalStyles } from "../theme/styles";
+import { globalStyles } from "../../theme/styles";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { StoreStackParamList } from "../types/navigation";
-import { createDoc } from "../services/firebase/firebaseHelper";
-import { COLLECTIONS } from "../constants/firebase";
-import { BaseUserStore } from "../types";
-import SearchBar from "../components/SearchBar";
-import { useBrands } from "../hooks/useBrands";
+import { StoreStackParamList } from "../../types/navigation";
+import { createDoc } from "../../services/firebase/firebaseHelper";
+import { COLLECTIONS } from "../../constants/firebase";
+import { BaseUserStore } from "../../types";
+import SearchBar from "../../components/SearchBar";
+import { useBrands } from "../../hooks/useBrands";
 
 type AddStoreScreenNavigationProp =
   NativeStackNavigationProp<StoreStackParamList>;

@@ -9,17 +9,17 @@ import {
   ActivityIndicator,
 } from "react-native";
 import React, { useState } from "react";
-import { colors } from "../theme/colors";
-import StoreCard from "../components/StoreCard";
-import SearchBar from "../components/SearchBar";
-import { UserStore, useUserStores } from "../hooks/useUserStores";
+import { colors } from "../../theme/colors";
+import StoreCard from "../../components/StoreCard";
+import SearchBar from "../../components/SearchBar";
+import { UserStore, useUserStores } from "../../hooks/useUserStores";
 import { updateDoc, doc } from "firebase/firestore";
-import { db } from "../services/firebase/firebaseConfig";
-import { COLLECTIONS } from "../constants/firebase";
+import { db } from "../../services/firebase/firebaseConfig";
+import { COLLECTIONS } from "../../constants/firebase";
 import { useNavigation } from "@react-navigation/native";
-import { StoreStackParamList } from "../types/navigation";
+import { StoreStackParamList } from "../../types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import MainPageHeader from "../components/MainPageHeader";
+import MainPageHeader from "../../components/MainPageHeader";
 
 type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
 

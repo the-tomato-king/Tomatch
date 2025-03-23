@@ -1,10 +1,10 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../types/navigation";
-import ProductDetailScreen from "../screens/ProductDetailScreen";
+import ProductDetailScreen from "../screens/products/ProductDetailScreen";
 import HomeScreen from "../screens/HomeScreen";
 import BackButton from "../components/BackButton";
-import PriceRecordInformationScreen from "../screens/PriceRecordInformationScreen";
+import PriceRecordInformationScreen from "../screens/products/PriceRecordInformationScreen";
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 

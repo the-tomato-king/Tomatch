@@ -10,15 +10,15 @@ import {
   Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { User } from "../types";
-import LoadingLogo from "../components/LoadingLogo";
+import { User } from "../../types";
+import LoadingLogo from "../../components/LoadingLogo";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { SettingStackParamList } from "../types/navigation";
-import { COLLECTIONS } from "../constants/firebase";
+import { SettingStackParamList } from "../../types/navigation";
+import { COLLECTIONS } from "../../constants/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../services/firebase/firebaseConfig";
-import MainPageHeader from "../components/MainPageHeader";
+import { db } from "../../services/firebase/firebaseConfig";
+import MainPageHeader from "../../components/MainPageHeader";
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
 

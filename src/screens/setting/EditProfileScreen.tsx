@@ -11,14 +11,14 @@ import {
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { User } from "../types";
-import LoadingLogo from "../components/LoadingLogo";
-import { colors } from "../theme/colors";
+import { User } from "../../types";
+import LoadingLogo from "../../components/LoadingLogo";
+import { colors } from "../../theme/colors";
 import {
   readOneDoc,
   updateOneDocInDB,
-} from "../services/firebase/firebaseHelper";
-import { COLLECTIONS } from "../constants/firebase";
+} from "../../services/firebase/firebaseHelper";
+import { COLLECTIONS } from "../../constants/firebase";
 
 const EditProfileScreen = () => {
   const navigation = useNavigation();

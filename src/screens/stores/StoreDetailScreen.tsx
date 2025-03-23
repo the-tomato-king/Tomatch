@@ -11,9 +11,9 @@ import {
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { colors } from "../theme/colors";
-import { COLLECTIONS } from "../constants/firebase";
-import { db } from "../services/firebase/firebaseConfig";
+import { colors } from "../../theme/colors";
+import { COLLECTIONS } from "../../constants/firebase";
+import { db } from "../../services/firebase/firebaseConfig";
 import {
   collection,
   query,
@@ -22,10 +22,10 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { StoreStackParamList } from "../types/navigation";
-import { readOneDoc } from "../services/firebase/firebaseHelper";
-import { UserStore } from "../hooks/useUserStores";
-import { UserProduct, Product } from "../types";
+import { StoreStackParamList } from "../../types/navigation";
+import { readOneDoc } from "../../services/firebase/firebaseHelper";
+import { UserStore } from "../../hooks/useUserStores";
+import { UserProduct, Product } from "../../types";
 
 type StoreDetailRouteProp = RouteProp<StoreStackParamList, "StoreDetail">;
 

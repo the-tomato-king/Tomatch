@@ -9,13 +9,16 @@ import {
 } from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { HomeStackParamList } from "../types/navigation";
-import { COLLECTIONS } from "../constants/firebase";
-import { readOneDoc, readAllDocs } from "../services/firebase/firebaseHelper";
-import { Product, PriceRecord, UserProductStats, UserStore } from "../types";
-import LoadingLogo from "../components/LoadingLogo";
-import ProductImage from "../components/ProductImage";
-import { colors } from "../theme/colors";
+import { HomeStackParamList } from "../../types/navigation";
+import { COLLECTIONS } from "../../constants/firebase";
+import {
+  readOneDoc,
+  readAllDocs,
+} from "../../services/firebase/firebaseHelper";
+import { Product, PriceRecord, UserProductStats, UserStore } from "../../types";
+import LoadingLogo from "../../components/LoadingLogo";
+import ProductImage from "../../components/ProductImage";
+import { colors } from "../../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
@@ -77,15 +80,20 @@ const ProductDetailScreen = () => {
         const recordsWithStoreInfo = await Promise.all(
           filteredRecords.map(async (record) => {
             if (record.store_id) {
-              const storeData = await readOneDoc<UserStore>(storesPath, record.store_id);
+              const storeData = await readOneDoc<UserStore>(
+                storesPath,
+                record.store_id
+              );
               return {
                 ...record,
-                store: storeData || { id: record.store_id, name: record.store_id } as UserStore
+                store:
+                  storeData ||
+                  ({ id: record.store_id, name: record.store_id } as UserStore),
               };
             }
             return {
               ...record,
-              store: { id: "unknown", name: "Unknown Store" } as UserStore
+              store: { id: "unknown", name: "Unknown Store" } as UserStore,
             };
           })
         );
