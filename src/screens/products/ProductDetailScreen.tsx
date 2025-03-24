@@ -15,6 +15,8 @@ import {
   readOneDoc,
   readAllDocs,
 } from "../../services/firebase/firebaseHelper";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "../../services/firebase/firebaseConfig";
 import { Product, PriceRecord, UserProductStats, UserStore } from "../../types";
 import LoadingLogo from "../../components/LoadingLogo";
 import ProductImage from "../../components/ProductImage";
@@ -57,48 +59,6 @@ const ProductDetailScreen = () => {
           productId
         );
         setProductStats(statsData);
-
-        // get price records
-        const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-        const records = await readAllDocs<PriceRecord>(recordsPath);
-
-        // filter records belong to current product
-        const filteredRecords = records.filter(
-          (record) => record.user_product_id === userProductId
-        );
-
-        // sort by date, latest first
-        filteredRecords.sort((a, b) => {
-          return (
-            new Date(b.recorded_at).getTime() -
-            new Date(a.recorded_at).getTime()
-          );
-        });
-
-        // get store info for each record
-        const storesPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
-        const recordsWithStoreInfo = await Promise.all(
-          filteredRecords.map(async (record) => {
-            if (record.store_id) {
-              const storeData = await readOneDoc<UserStore>(
-                storesPath,
-                record.store_id
-              );
-              return {
-                ...record,
-                store:
-                  storeData ||
-                  ({ id: record.store_id, name: record.store_id } as UserStore),
-              };
-            }
-            return {
-              ...record,
-              store: { id: "unknown", name: "Unknown Store" } as UserStore,
-            };
-          })
-        );
-
-        setPriceRecords(recordsWithStoreInfo);
       } catch (error) {
         console.error("Error fetching product data:", error);
       } finally {
@@ -107,7 +67,70 @@ const ProductDetailScreen = () => {
     };
 
     fetchProductData();
-  }, [productId, userProductId]);
+  }, [productId]);
+
+  useEffect(() => {
+    const userId = "user123"; // TODO: get user id from auth
+    const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+
+    const recordsQuery = query(
+      collection(db, recordsPath),
+      where("user_product_id", "==", userProductId)
+    );
+
+    const unsubscribe = onSnapshot(
+      recordsQuery,
+      async (snapshot) => {
+        try {
+          const filteredRecords = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as PriceRecord[];
+
+          filteredRecords.sort((a, b) => {
+            return (
+              new Date(b.recorded_at).getTime() -
+              new Date(a.recorded_at).getTime()
+            );
+          });
+
+          const storesPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
+          const recordsWithStoreInfo = await Promise.all(
+            filteredRecords.map(async (record) => {
+              if (record.store_id) {
+                const storeData = await readOneDoc<UserStore>(
+                  storesPath,
+                  record.store_id
+                );
+                return {
+                  ...record,
+                  store:
+                    storeData ||
+                    ({
+                      id: record.store_id,
+                      name: record.store_id,
+                    } as UserStore),
+                };
+              }
+              return {
+                ...record,
+                store: { id: "unknown", name: "Unknown Store" } as UserStore,
+              };
+            })
+          );
+
+          setPriceRecords(recordsWithStoreInfo);
+        } catch (error) {
+          console.error("Error processing price records:", error);
+        }
+      },
+      (error) => {
+        console.error("Error listening to price records:", error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [userProductId]);
 
   // Helper function to format date
   const formatDateTime = (dateValue: any) => {
@@ -202,7 +225,7 @@ const ProductDetailScreen = () => {
           <ScrollView style={styles.recordsContainer}>
             {priceRecords.map((record, index) => (
               <TouchableOpacity
-                key={index}
+                key={record.id}
                 style={styles.recordItem}
                 onPress={() =>
                   navigation.navigate("PriceRecordInformation", {
@@ -222,7 +245,7 @@ const ProductDetailScreen = () => {
                   </View>
                 </View>
                 <Text style={styles.recordPrice}>
-                  ${record.price.toFixed(2)}/lb
+                  ${record.price.toFixed(2)}/{record.unit_type}
                 </Text>
               </TouchableOpacity>
             ))}

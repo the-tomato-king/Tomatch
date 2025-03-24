@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -14,8 +15,12 @@ import { colors } from "../../theme/colors";
 import { HomeStackParamList } from "../../types/navigation";
 import { PriceRecord, Product, UserProduct, UserStore } from "../../types";
 import { COLLECTIONS } from "../../constants/firebase";
-import { readOneDoc } from "../../services/firebase/firebaseHelper";
+import {
+  readOneDoc,
+  deleteOneDocFromDB,
+} from "../../services/firebase/firebaseHelper";
 import LoadingLogo from "../../components/LoadingLogo";
+import { globalStyles } from "../../theme/styles";
 
 type PriceRecordInformationRouteProp = RouteProp<
   HomeStackParamList,
@@ -115,6 +120,41 @@ const PriceRecordInformationScreen = () => {
     return `${formattedDate} at ${formattedTime}`;
   };
 
+  const handleDeleteRecord = async () => {
+    try {
+      Alert.alert(
+        "Delete Record",
+        "Are you sure you want to delete this price record?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              // TODO: get user id from auth
+              const userId = "user123";
+
+              const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+              const success = await deleteOneDocFromDB(recordPath, recordId);
+
+              if (success) {
+                navigation.goBack();
+              } else {
+                Alert.alert(
+                  "Error",
+                  "Failed to delete the record. Please try again."
+                );
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      Alert.alert("Error", "An error occurred while deleting the record.");
+    }
+  };
+
   if (loading) {
     return <LoadingLogo />;
   }
@@ -145,11 +185,12 @@ const PriceRecordInformationScreen = () => {
       <ScrollView style={styles.scrollContainer}>
         {/* Product Price Card */}
         <View style={styles.productPriceCard}>
-          <Text style={styles.productName}>{product?.name || "Product"}</Text>
-          <Text style={styles.priceValue}>
-            ${record.price.toFixed(2)}/{record.unit_type}
-          </Text>
-
+          <View style={styles.productDetails}>
+            <Text style={styles.productName}>{product?.name || "Product"}</Text>
+            <Text style={styles.priceValue}>
+              ${record.price.toFixed(2)}/{record.unit_type}
+            </Text>
+          </View>
           {/* Original Price and Record Date */}
           <View style={styles.additionalInfo}>
             <Text style={styles.originalPrice}>
@@ -185,14 +226,6 @@ const PriceRecordInformationScreen = () => {
                 style={styles.recordPhoto}
                 resizeMode="cover"
               />
-              <View style={styles.photoActions}>
-                <TouchableOpacity style={styles.photoButton}>
-                  <Text style={styles.photoButtonText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.photoButton}>
-                  <Text style={styles.photoButtonText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
             </View>
           ) : (
             <View style={styles.noPhotoContainer}>
@@ -201,6 +234,23 @@ const PriceRecordInformationScreen = () => {
           )}
         </View>
       </ScrollView>
+      {/* Buttons */}
+      <View style={styles.buttonsContainer}>
+        <View style={[globalStyles.buttonsContainer, { marginBottom: 20 }]}>
+          <TouchableOpacity
+            style={[globalStyles.button, globalStyles.primaryButton]}
+            onPress={handleDeleteRecord}
+          >
+            <Text style={globalStyles.primaryButtonText}>Delete</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[globalStyles.button, globalStyles.primaryButton]}
+            onPress={() => {}}
+          >
+            <Text style={globalStyles.primaryButtonText}>Edit</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </SafeAreaView>
   );
 };
@@ -244,8 +294,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  productDetails: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   productName: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "500",
     marginBottom: 8,
   },
@@ -356,6 +410,9 @@ const styles = StyleSheet.create({
     color: "red",
     textAlign: "center",
     marginTop: 20,
+  },
+  buttonsContainer: {
+    marginHorizontal: 16,
   },
 });
 

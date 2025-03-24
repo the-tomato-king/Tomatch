@@ -4,7 +4,7 @@ import { HomeStackParamList } from "../types/navigation";
 import ProductDetailScreen from "../screens/products/ProductDetailScreen";
 import HomeScreen from "../screens/HomeScreen";
 import BackButton from "../components/BackButton";
-import PriceRecordInformationScreen from "../screens/products/PriceRecordInformationScreen";
+import PriceRecordInformationScreen from "../screens/products/RecordDetailScreen";
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
