@@ -10,6 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import { HomeStackParamList } from "../../types/navigation";
@@ -27,8 +28,11 @@ type PriceRecordInformationRouteProp = RouteProp<
   "PriceRecordInformation"
 >;
 
+type RecordDetailScreenNavigationProp =
+  NativeStackNavigationProp<HomeStackParamList>;
+
 const PriceRecordInformationScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<RecordDetailScreenNavigationProp>();
   const route = useRoute<PriceRecordInformationRouteProp>();
   const { recordId } = route.params;
 
@@ -245,7 +249,9 @@ const PriceRecordInformationScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[globalStyles.button, globalStyles.primaryButton]}
-            onPress={() => {}}
+            onPress={() =>
+              navigation.navigate("EditPriceRecord", { recordId: recordId })
+            }
           >
             <Text style={globalStyles.primaryButtonText}>Edit</Text>
           </TouchableOpacity>
