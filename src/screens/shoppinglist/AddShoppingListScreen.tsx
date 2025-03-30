@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useEffect } from "react";
 import {
   Platform,
   StyleSheet,
@@ -12,7 +12,7 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { createDoc } from "../../services/firebase/firebaseHelper"; // Import the createDoc function
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ShoppingStackParamList } from "../../types/navigation";
 import ProductSearchInput from "../../components/ProductSearchInput";
@@ -26,9 +26,17 @@ export interface ShoppingItem {
   checked?: boolean;
 }
 
+interface Location {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+}
+
 const AddShoppingListScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<ShoppingStackParamList>>();
+  const route = useRoute();
   const [listName, setListName] = useState<string>("");
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   const [itemName, setItemName] = useState<string>("");
@@ -37,6 +45,14 @@ const AddShoppingListScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false); // Track time picker visibility
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  
+  // Get selected location from route params when navigating back from map
+  // useEffect(() => {
+  //   if (route.params?.selectedLocation) {
+  //     setSelectedLocation(route.params.selectedLocation);
+  //   }
+  // }, [route.params]);
 
   // Function to handle opening date picker
   const handleOpenDatePicker = (type: "date" | "time") => {
@@ -77,6 +93,11 @@ const AddShoppingListScreen = () => {
     }
   };
 
+  // Function to navigate to the map screen
+  const handleOpenLocationPicker = () => {
+    navigation.navigate('SupermarketMap');
+  };
+
   // Function to add product to list
   const handleAddItem = () => {
     if (itemName.trim().length === 0 || parseInt(quantity) <= 0) {
@@ -102,6 +123,7 @@ const AddShoppingListScreen = () => {
     setShoppingTime(null);
     setItemName("");
     setQuantity("1");
+    setSelectedLocation(null);
   };
 
   // Function to create shopping list in the database
@@ -121,10 +143,21 @@ const AddShoppingListScreen = () => {
       return;
     }
 
+    if (!selectedLocation) {
+      alert("Please select a supermarket location.");
+      return;
+    }
+
     const shoppingListData = {
       name: listName,
       items: shoppingItems,
       shoppingTime: shoppingTime ? shoppingTime.toISOString() : null,
+      location: selectedLocation ? {
+        name: selectedLocation.name,
+        address: selectedLocation.address,
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude
+      } : null,
       userId: null,
     };
 
@@ -264,8 +297,24 @@ const AddShoppingListScreen = () => {
         />
       )}
 
-      {/* TODO: Add location selection later */}
-      <Button title="Select Location (Coming Soon)" disabled />
+      {/* Location Selection */}
+      <View style={styles.locationSection}>
+        <TouchableOpacity
+          onPress={handleOpenLocationPicker}
+          style={styles.locationButton}
+        >
+          <Text style={styles.locationButtonText}>
+            {selectedLocation ? "Change Location" : "Select Location"}
+          </Text>
+        </TouchableOpacity>
+        
+        {selectedLocation && (
+          <View style={styles.selectedLocationContainer}>
+            <Text style={styles.locationName}>{selectedLocation.name}</Text>
+            <Text style={styles.locationAddress}>{selectedLocation.address}</Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -317,5 +366,38 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  locationSection: {
+    marginTop: 20,
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  locationButton: {
+    backgroundColor: colors.primary,
+    padding: 12,
+    borderRadius: 5,
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  locationButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  selectedLocationContainer: {
+    backgroundColor: "#f5f5f5",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  locationName: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  locationAddress: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 5,
   },
 });

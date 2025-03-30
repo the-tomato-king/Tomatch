@@ -15,7 +15,6 @@ import { deleteOneDocFromDB } from "../../services/firebase/firebaseHelper";
 import { collection, onSnapshot } from "firebase/firestore";
 import { ShoppingStackParamList } from "../../types/navigation";
 import { db } from "../../services/firebase/firebaseConfig";
-import MainPageHeader from "../../components/MainPageHeader";
 
 interface ShoppingList {
   id: string;

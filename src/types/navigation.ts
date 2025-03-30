@@ -23,8 +23,9 @@ export type StoreStackParamList = {
 
 export type ShoppingStackParamList = {
   ShoppingList: undefined;
-  AddShoppingList: undefined;
+  AddShoppingList: { selectedLocation?: { name: string; address: string; latitude: number; longitude: number } };
   ShoppingListDetail: { id: string };
+  SupermarketMap: undefined;
 };
 
 export type RootStackParamList = {
