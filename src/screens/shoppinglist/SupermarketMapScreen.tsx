@@ -106,25 +106,14 @@
 import React from "react";
 import { View, Text } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+import { Image } from 'react-native';
+import MapComponent from "../../components/Map";
+
 
 const SupermarketMapScreen = () => {
   return (
     <View style={{ flex: 1 }}>
-      <Text>Supermarket Map</Text>
-      {/* <MapView
-        style={{ flex: 1 }}
-        provider="google"
-        initialRegion={{
-          latitude: 37.7749,
-          longitude: -122.4194,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-        apiKey="AIzaSyCS7TUO7ZdUjsJnbORK06HD2ZawhhsEwPU"
-      >
-        <Marker coordinate={{ latitude: 37.7749, longitude: -122.4194 }} title="Supermarket" />
-      </MapView> */}
-      
+          <MapComponent/>
     </View>
   );
 };
