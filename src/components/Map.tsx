@@ -7,6 +7,8 @@ interface Store {
   name: string;
   coordinate: LatLng;
   address: string;
+  latitude: number;
+  longitude: number;
 }
 
 interface MapComponentProps {
@@ -65,6 +67,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ onStoreSelect }) => {
             longitude: store.geometry.location.lng,
           },
           address: store.vicinity,
+          latitude: store.geometry.location.lat,  // Ensure latitude is included
+          longitude: store.geometry.location.lng, // Ensure longitude is included
         }));
         setStores(storeLocations);
       }
@@ -79,7 +83,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ onStoreSelect }) => {
   };
 
   const handleStorePress = (store: Store) => {
-    onStoreSelect(store); 
+    onStoreSelect(store);  // Ensure `onStoreSelect` is called with a valid `Store` object
   };
 
   return (
@@ -87,8 +91,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ onStoreSelect }) => {
       {location ? (
         <MapView
           style={styles.map}
-          initialRegion={location}
-          region={location}
+          region={location}  // Use only region here, not initialRegion and region
           onPress={handleMapPress}
         >
           {pins.map((pin, index) => (
