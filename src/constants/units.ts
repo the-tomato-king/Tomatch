@@ -1,7 +1,6 @@
 export const UNITS = {
   WEIGHT: {
     G: "g",
-    HUNDRED_G: "100g",
     KG: "kg",
     MG: "mg",
     LB: "lb",
@@ -23,7 +22,6 @@ export const UNITS = {
 export const UNIT_CONVERSIONS = {
   WEIGHT: {
     G: 1,
-    HUNDRED_G: 100,
     KG: 1000,
     MG: 0.001,
     LB: 453.6,
@@ -42,7 +40,6 @@ export const UNIT_CONVERSIONS = {
 export const ALL_UNITS = [
   // Weight Units
   UNITS.WEIGHT.G,
-  UNITS.WEIGHT.HUNDRED_G,
   UNITS.WEIGHT.KG,
   UNITS.WEIGHT.MG,
   UNITS.WEIGHT.LB,

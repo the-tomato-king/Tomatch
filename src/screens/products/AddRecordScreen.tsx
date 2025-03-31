@@ -53,7 +53,7 @@ import { db } from "../../services/firebase/firebaseConfig";
 import StoreSearchInput from "../../components/StoreSearchInput";
 import LoadingLogo from "../../components/LoadingLogo";
 import { uploadImage } from "../../services/firebase/storageHelper";
-
+import { analyzeReceiptImage } from "../../services/openai/openaiService";
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
@@ -79,6 +79,7 @@ const AddRecordScreen = () => {
   const [storeName, setStoreName] = useState("");
   const [price, setPrice] = useState("");
   const [unitType, setUnitType] = useState<string>(UNITS.WEIGHT.LB);
+  const [unitValue, setUnitValue] = useState("");
 
   // state for DropDownPicker
   const [open, setOpen] = useState(false);
@@ -174,10 +175,49 @@ const AddRecordScreen = () => {
       const result = await launchCameraAsync({
         mediaTypes: "images",
         quality: 0.2,
+        base64: true,
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets[0]) {
         setImage(result.assets[0].uri);
+
+        // Test OpenAI API
+        try {
+          setLoading(true);
+
+          const receiptData = await analyzeReceiptImage(
+            result.assets[0].base64 || ""
+          );
+
+          // auto fill form
+          if (receiptData.productName) {
+            setProductName(receiptData.productName);
+          }
+          if (receiptData.priceValue) {
+            setPrice(receiptData.priceValue);
+          }
+          if (receiptData.unitValue) {
+            setUnitValue(receiptData.unitValue);
+          }
+          if (receiptData.unitType) {
+            // check if unit is in allowed units list
+            const validUnit = ALL_UNITS.find(
+              (unit) =>
+                unit.toLowerCase() === receiptData.unitType?.toLowerCase()
+            );
+            if (validUnit) {
+              setUnitType(validUnit);
+            }
+          }
+        } catch (error) {
+          console.error("Error testing OpenAI API:", error);
+          Alert.alert(
+            "Error",
+            "Failed to analyze receipt image. Check console for details."
+          );
+        } finally {
+          setLoading(false);
+        }
       }
     } catch (error) {
       console.error("Error taking photo:", error);
@@ -505,6 +545,13 @@ const AddRecordScreen = () => {
                 />
               </View>
               <View style={styles.unitContainer}>
+                <TextInput
+                  style={styles.unitValueInput}
+                  value={unitValue}
+                  onChangeText={setUnitValue}
+                  keyboardType="decimal-pad"
+                  placeholder="/"
+                />
                 <DropDownPicker
                   open={open}
                   value={unitType}
@@ -518,6 +565,8 @@ const AddRecordScreen = () => {
                     backgroundColor: colors.white,
                     borderWidth: 1,
                     borderColor: colors.lightGray2,
+                    position: "absolute",
+                    width: 60,
                   }}
                   maxHeight={200}
                 />
@@ -558,15 +607,15 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 4,
   },
   priceInputContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.lightGray2,
-    borderEndEndRadius: 8,
-    borderStartEndRadius: 8,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
     paddingHorizontal: 12,
   },
   currencySymbol: {
@@ -584,7 +633,17 @@ const styles = StyleSheet.create({
   unitContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    maxWidth: 180,
+  },
+  unitValueInput: {
+    backgroundColor: colors.lightGray2,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+    paddingHorizontal: 8,
+    minHeight: 48,
+    width: 50,
+    fontSize: 16,
+    textAlign: "center",
   },
   perText: {
     fontSize: 16,
@@ -592,10 +651,12 @@ const styles = StyleSheet.create({
   },
   unitPicker: {
     backgroundColor: colors.lightGray2,
+    borderRadius: 0,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
     borderWidth: 0,
     minHeight: 48,
-    paddingHorizontal: 12,
-    width: 80,
+    paddingHorizontal: 8,
     zIndex: 1,
   },
   dropdownContainer: {
