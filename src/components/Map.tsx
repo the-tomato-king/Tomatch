@@ -3,9 +3,11 @@ import { View, StyleSheet, Text, Alert } from 'react-native';
 import MapView, { Marker, Region, LatLng } from 'react-native-maps';
 import * as Location from 'expo-location';
 
+
 const MapComponent: React.FC = () => {
   const [pins, setPins] = useState<LatLng[]>([]);
-  const [location, setLocation] = useState<Region | null>(null); 
+  const [location, setLocation] = useState<Region | null>(null);
+  const [stores, setStores] = useState<LatLng[]>([]);
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   useEffect(() => {
@@ -23,9 +25,11 @@ const MapComponent: React.FC = () => {
         setLocation({
           latitude,
           longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
         });
+
+        fetchNearbyStores(latitude, longitude);
       } catch (error) {
         setErrorMsg('Error getting location');
         console.error(error);
@@ -35,6 +39,26 @@ const MapComponent: React.FC = () => {
     getLocation();
   }, []);
 
+  const fetchNearbyStores = async (latitude: number, longitude: number) => {
+    const radius = 5000; // 5km
+    const type = 'supermarket'; // or grocery_store
+
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+
+    try {
+      let response = await fetch(url);
+      let data = await response.json();
+      if (data.results) {
+        const storeLocations = data.results.map((store: any) => ({
+          latitude: store.geometry.location.lat,
+          longitude: store.geometry.location.lng,
+        }));
+        setStores(storeLocations);
+      }
+    } catch (error) {
+      console.error('Error fetching stores:', error);
+    }
+  };
 
   const handleMapPress = (e: any): void => {
     const coordinate = e.nativeEvent.coordinate;
@@ -43,7 +67,7 @@ const MapComponent: React.FC = () => {
 
   useEffect(() => {
     if (errorMsg) {
-      Alert.alert('位置获取失败', errorMsg);
+      Alert.alert(errorMsg);
     }
   }, [errorMsg]);
 
@@ -58,6 +82,15 @@ const MapComponent: React.FC = () => {
         >
           {pins.map((pin, index) => (
             <Marker key={index} coordinate={pin} />
+          ))}
+
+          {stores.map((store, index) => (
+            <Marker
+              key={`store-${index}`}
+              coordinate={store}
+              pinColor="blue"
+              title="supermarket"
+            />
           ))}
         </MapView>
       ) : (
@@ -76,14 +109,6 @@ const styles = StyleSheet.create({
   map: {
     width: '100%',
     height: '100%',
-  },
-  pinsInfo: {
-    padding: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-    borderRadius: 10,
   },
 });
 
