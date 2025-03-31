@@ -6,8 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import React, { useEffect, useState, useLayoutEffect } from "react";
 import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
@@ -16,20 +17,28 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   requestMediaLibraryPermissionsAsync,
+  requestCameraPermissionsAsync,
   launchImageLibraryAsync,
+  launchCameraAsync,
 } from "expo-image-picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../types/navigation";
+import { RootStackParamList, HomeStackParamList } from "../../types/navigation";
 
-import { createDoc } from "../../services/firebase/firebaseHelper";
+import {
+  createDoc,
+  readOneDoc,
+  updateOneDocInDB,
+} from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
 import {
   BasePriceRecord,
   BaseUserProduct,
   BaseUserProductStats,
   PriceRecord,
+  Product,
   UserProduct,
   UserProductStats,
+  UserStore,
 } from "../../types";
 import ProductSearchInput from "../../components/ProductSearchInput";
 import {
@@ -38,25 +47,38 @@ import {
   doc,
   getDoc,
   setDoc,
-  updateDoc,
+  updateDoc as firebaseUpdateDoc,
 } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import StoreSearchInput from "../../components/StoreSearchInput";
-import { UserStore } from "../../types";
+import LoadingLogo from "../../components/LoadingLogo";
+import { uploadImage } from "../../services/firebase/storageHelper";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
+type EditRecordScreenRouteProp = RouteProp<
+  HomeStackParamList,
+  "EditPriceRecord"
+>;
+
 const AddRecordScreen = () => {
-  const navigation = useNavigation<AddRecordScreenNavigationProp>();
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+
+  const isEditMode = route.name === "EditPriceRecord";
+  const recordId = isEditMode ? route.params?.recordId : null;
+
+  const [loading, setLoading] = useState(isEditMode);
   const [selectedProduct, setSelectedProduct] = useState<BaseUserProduct>();
   const [selectedStore, setSelectedStore] = useState<UserStore>();
+  const [product, setProduct] = useState<Product | null>(null);
 
   const [image, setImage] = useState<string | null>(null);
   const [productName, setProductName] = useState("");
   const [storeName, setStoreName] = useState("");
   const [price, setPrice] = useState("");
-  const [unitType, setUnitType] = useState(UNITS.WEIGHT.LB);
+  const [unitType, setUnitType] = useState<string>(UNITS.WEIGHT.LB);
 
   // state for DropDownPicker
   const [open, setOpen] = useState(false);
@@ -67,12 +89,108 @@ const AddRecordScreen = () => {
     }))
   );
 
-  const pickImage = async () => {
+  // fetch record data if in edit mode
+  useEffect(() => {
+    if (isEditMode && recordId) {
+      const fetchRecordData = async () => {
+        try {
+          setLoading(true);
+
+          // TODO: get user id from auth
+          const userId = "user123";
+
+          const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+          const recordData = await readOneDoc<PriceRecord>(
+            recordPath,
+            recordId
+          );
+
+          if (recordData) {
+            setPrice(recordData.price.toString());
+            setUnitType(recordData.unit_type);
+            if (recordData.photo_url) {
+              setImage(recordData.photo_url);
+            }
+
+            if (recordData.user_product_id) {
+              const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+              const userProductData = await readOneDoc<UserProduct>(
+                userProductPath,
+                recordData.user_product_id
+              );
+
+              if (userProductData && userProductData.product_id) {
+                const productData = await readOneDoc<Product>(
+                  COLLECTIONS.PRODUCTS,
+                  userProductData.product_id
+                );
+
+                if (productData) {
+                  setProduct(productData);
+                  setProductName(productData.name);
+                  setSelectedProduct({
+                    product_id: productData.id,
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                  });
+                }
+              }
+            }
+
+            if (recordData.store_id) {
+              const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
+              const storeData = await readOneDoc<UserStore>(
+                storePath,
+                recordData.store_id
+              );
+
+              if (storeData) {
+                setStoreName(storeData.name);
+                setSelectedStore(storeData);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching record data:", error);
+          Alert.alert("Error", "Failed to load record data");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchRecordData();
+    }
+  }, [isEditMode, recordId]);
+
+  const takePhoto = async () => {
+    try {
+      const permissionResult = await requestCameraPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        alert("Need camera permission to take photo");
+        return;
+      }
+
+      const result = await launchCameraAsync({
+        mediaTypes: "images",
+        quality: 0.2,
+      });
+
+      if (!result.canceled) {
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      alert("Failed to take photo");
+    }
+  };
+
+  const pickFromLibrary = async () => {
     try {
       const permissionResult = await requestMediaLibraryPermissionsAsync();
 
       if (permissionResult.granted === false) {
-        alert("You need to enable permission to access the photo library!");
+        alert("Need photo library permission to select photo");
         return;
       }
 
@@ -85,9 +203,31 @@ const AddRecordScreen = () => {
         setImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.error("Error picking image:", error);
-      alert("Failed to pick image");
+      console.error("Error selecting photo:", error);
+      alert("Failed to select photo");
     }
+  };
+
+  const pickImage = () => {
+    Alert.alert(
+      "Select Photo",
+      "Please select photo source",
+      [
+        {
+          text: "Take Photo",
+          onPress: takePhoto,
+        },
+        {
+          text: "Select from Library",
+          onPress: pickFromLibrary,
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleSave = async () => {
@@ -118,125 +258,165 @@ const AddRecordScreen = () => {
       const userId = "user123";
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
 
-      // Check if user already has this product
-      const userProductsRef = collection(
-        db,
-        COLLECTIONS.USERS,
-        userId,
-        COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
-      );
+      let photoUrl = "";
+      if (image) {
+        // use timestamp as unique identifier
+        const timestamp = new Date().getTime();
+        const imagePath = `price_records/${userId}/${timestamp}.jpg`;
 
-      const querySnapshot = await getDocs(userProductsRef);
-      const existingUserProduct = querySnapshot.docs.find(
-        (doc) => doc.data().product_id === selectedProduct.product_id
-      );
+        // upload image and get URL
+        photoUrl = await uploadImage(image, imagePath);
+      }
 
-      let userProductId;
-      if (existingUserProduct) {
-        // If product exists, use its ID directly
-        userProductId = existingUserProduct.id;
-      } else {
-        // create user product if it doesn't exist
-        const userProduct: BaseUserProduct = {
-          product_id: selectedProduct.product_id,
-          created_at: new Date(),
+      if (isEditMode && recordId) {
+        // update existing record
+        const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+        const updatedRecord = {
+          price: numericPrice,
+          unit_type: unitType,
+          unit_price: numericPrice,
+          photo_url: photoUrl || "",
+          store_id: selectedStore.id,
           updated_at: new Date(),
         };
 
-        const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-        userProductId = await createDoc(userProductPath, userProduct);
+        const success = await updateOneDocInDB(
+          recordPath,
+          recordId,
+          updatedRecord
+        );
 
-        if (!userProductId) {
-          alert("Failed to save user product");
-          return;
+        if (success) {
+          Alert.alert("Success", "Record updated successfully");
+          navigation.goBack();
+        } else {
+          Alert.alert("Error", "Failed to update record");
         }
-      }
-
-      const priceRecord: BasePriceRecord = {
-        user_product_id: userProductId,
-        store_id: selectedStore.id,
-        price: numericPrice,
-        unit_type: unitType,
-        unit_price: numericPrice, //TODO: Calculate unit price, now same as price
-        photo_url: image || "",
-        recorded_at: new Date(),
-      };
-
-      const priceRecordPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-      const recordId = await createDoc(priceRecordPath, priceRecord);
-
-      if (recordId) {
-        const userProductStatsRef = doc(
+      } else {
+        // create new record - original add record logic
+        // Check if user already has this product
+        const userProductsRef = collection(
           db,
           COLLECTIONS.USERS,
           userId,
-          COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS,
-          selectedProduct.product_id
+          COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
         );
-        const userProductStatsDoc = await getDoc(userProductStatsRef);
 
-        let userProductStats: BaseUserProductStats;
+        const querySnapshot = await getDocs(userProductsRef);
+        const existingUserProduct = querySnapshot.docs.find(
+          (doc) => doc.data().product_id === selectedProduct.product_id
+        );
 
-        if (userProductStatsDoc.exists()) {
-          userProductStats = userProductStatsDoc.data() as BaseUserProductStats;
-
-          const newTotalRecords = userProductStats.total_price_records + 1;
-          const newTotalPrice = userProductStats.total_price + numericPrice;
-          const newAveragePrice = newTotalPrice / newTotalRecords;
-
-          if (numericPrice < userProductStats.lowest_price) {
-            userProductStats.lowest_price = numericPrice;
-            userProductStats.lowest_price_store = {
-              store_id: selectedStore.id,
-              store_name: selectedStore.name,
-            };
-          }
-
-          if (numericPrice > userProductStats.highest_price) {
-            userProductStats.highest_price = numericPrice;
-          }
-
-          userProductStats.total_price = newTotalPrice;
-          userProductStats.average_price = newAveragePrice;
-          userProductStats.total_price_records = newTotalRecords;
-          userProductStats.last_updated = new Date();
-
-          await updateDoc(userProductStatsRef, {
-            total_price: userProductStats.total_price,
-            average_price: userProductStats.average_price,
-            lowest_price: userProductStats.lowest_price,
-            highest_price: userProductStats.highest_price,
-            lowest_price_store: userProductStats.lowest_price_store,
-            total_price_records: userProductStats.total_price_records,
-            last_updated: userProductStats.last_updated,
-          });
+        let userProductId;
+        if (existingUserProduct) {
+          // If product exists, use its ID directly
+          userProductId = existingUserProduct.id;
         } else {
-          userProductStats = {
+          // create user product if it doesn't exist
+          const userProduct: BaseUserProduct = {
             product_id: selectedProduct.product_id,
-            currency: "$", // TODO: Get from user settings
-            total_price: numericPrice,
-            average_price: numericPrice,
-            lowest_price: numericPrice,
-            highest_price: numericPrice,
-            lowest_price_store: {
-              store_id: selectedStore.id,
-              store_name: selectedStore.name,
-            },
-            total_price_records: 1,
-            last_updated: new Date(),
+            created_at: new Date(),
+            updated_at: new Date(),
           };
 
-          await setDoc(userProductStatsRef, userProductStats);
+          const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+          userProductId = await createDoc(userProductPath, userProduct);
+
+          if (!userProductId) {
+            alert("Failed to save user product");
+            return;
+          }
         }
 
-        alert("Record saved successfully!");
-        navigation.goBack();
-      } else {
-        alert("Failed to save record");
+        const priceRecord: BasePriceRecord = {
+          user_product_id: userProductId,
+          store_id: selectedStore.id,
+          price: numericPrice,
+          unit_type: unitType,
+          unit_price: numericPrice, //TODO: Calculate unit price, now same as price
+          photo_url: photoUrl,
+          recorded_at: new Date(),
+        };
+
+        const priceRecordPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+        const recordId = await createDoc(priceRecordPath, priceRecord);
+
+        if (recordId) {
+          const userProductStatsRef = doc(
+            db,
+            COLLECTIONS.USERS,
+            userId,
+            COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS,
+            selectedProduct.product_id
+          );
+          const userProductStatsDoc = await getDoc(userProductStatsRef);
+
+          let userProductStats: BaseUserProductStats;
+
+          if (userProductStatsDoc.exists()) {
+            const existingStats =
+              userProductStatsDoc.data() as UserProductStats;
+            const newTotalPrice = existingStats.total_price + numericPrice;
+            const newTotalRecords = existingStats.total_price_records + 1;
+            const newAveragePrice = newTotalPrice / newTotalRecords;
+
+            userProductStats = {
+              ...existingStats,
+              total_price: newTotalPrice,
+              average_price: newAveragePrice,
+              lowest_price:
+                numericPrice < existingStats.lowest_price
+                  ? numericPrice
+                  : existingStats.lowest_price,
+              highest_price:
+                numericPrice > existingStats.highest_price
+                  ? numericPrice
+                  : existingStats.highest_price,
+              lowest_price_store:
+                numericPrice < existingStats.lowest_price
+                  ? {
+                      store_id: selectedStore.id,
+                      store_name: selectedStore.name,
+                    }
+                  : existingStats.lowest_price_store,
+              total_price_records: newTotalRecords,
+              last_updated: new Date(),
+            };
+
+            const userProductStatsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
+            await updateOneDocInDB(
+              userProductStatsPath,
+              userProductStats.product_id,
+              userProductStats
+            );
+          } else {
+            userProductStats = {
+              product_id: selectedProduct.product_id,
+              currency: "$", // TODO: Get from user settings
+              total_price: numericPrice,
+              average_price: numericPrice,
+              lowest_price: numericPrice,
+              highest_price: numericPrice,
+              lowest_price_store: {
+                store_id: selectedStore.id,
+                store_name: selectedStore.name,
+              },
+              total_price_records: 1,
+              last_updated: new Date(),
+            };
+
+            await setDoc(userProductStatsRef, userProductStats);
+          }
+
+          alert("Record saved successfully!");
+          navigation.goBack();
+        } else {
+          alert("Failed to save record");
+        }
       }
     } catch (error) {
       console.error("Error saving record:", error);
-      alert("Failed to save record");
+      Alert.alert("Error", "Failed to save record");
     }
   };
 
@@ -244,11 +424,15 @@ const AddRecordScreen = () => {
     navigation.setOptions({
       headerRight: () => (
         <Text style={globalStyles.headerButton} onPress={handleSave}>
-          Save
+          {isEditMode ? "Update" : "Save"}
         </Text>
       ),
     });
-  }, [navigation, handleSave]);
+  }, [navigation, handleSave, isEditMode]);
+
+  if (loading) {
+    return <LoadingLogo />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -274,30 +458,34 @@ const AddRecordScreen = () => {
                     color={colors.mediumGray}
                   />
                 </View>
-                <Text style={styles.uploadText}>Click to add photo</Text>
+                <Text style={styles.uploadText}>Click to take photo</Text>
               </View>
             </TouchableOpacity>
           </>
         )}
         <View style={globalStyles.inputsContainer}>
-          <ProductSearchInput
-            inputValue={productName}
-            onChangeInputValue={setProductName}
-            onSelectProduct={(product) => {
-              setProductName(product.name);
-              setSelectedProduct({
-                product_id: product.id,
-                created_at: new Date(),
-                updated_at: new Date(),
-              });
-            }}
-          />
+          {!isEditMode && (
+            <ProductSearchInput
+              inputValue={productName}
+              onChangeInputValue={setProductName}
+              onSelectProduct={(product) => {
+                setProductName(product.name);
+                setSelectedProduct({
+                  product_id: product.id,
+                  created_at: new Date(),
+                  updated_at: new Date(),
+                });
+              }}
+            />
+          )}
           <StoreSearchInput
             inputValue={storeName}
             onChangeInputValue={setStoreName}
             onSelectStore={(store) => {
               setSelectedStore(store);
             }}
+            initialStoreId={selectedStore?.id}
+            disabled={false}
           />
           <View style={[globalStyles.inputContainer]}>
             <View style={globalStyles.labelContainer}>

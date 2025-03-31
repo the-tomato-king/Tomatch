@@ -65,9 +65,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
   }, [product.product_id]);
 
   const handlePress = () => {
-    console.log("Product:", product);
-    console.log("Product ID:", product.product_id);
-    console.log("User Product ID:", product.id);
     navigation.navigate("ProductDetail", {
       productId: product.product_id,
       userProductId: product.id,

@@ -13,6 +13,7 @@ export type HomeStackParamList = {
     userProductId: string;
   };
   PriceRecordInformation: { recordId: string };
+  EditPriceRecord: { recordId: string };
 };
 
 export type StoreStackParamList = {

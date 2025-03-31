@@ -4,7 +4,8 @@ import { HomeStackParamList } from "../types/navigation";
 import ProductDetailScreen from "../screens/products/ProductDetailScreen";
 import HomeScreen from "../screens/HomeScreen";
 import BackButton from "../components/BackButton";
-import PriceRecordInformationScreen from "../screens/products/PriceRecordInformationScreen";
+import PriceRecordInformationScreen from "../screens/products/RecordDetailScreen";
+import AddRecordScreen from "../screens/products/AddRecordScreen";
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
@@ -30,6 +31,15 @@ const HomeStack = () => {
         name="PriceRecordInformation"
         component={PriceRecordInformationScreen}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="EditPriceRecord"
+        component={AddRecordScreen}
+        options={{
+          headerShown: true,
+          headerTitle: "Edit Price Record",
+          headerLeft: () => <BackButton />,
+        }}
       />
     </Stack.Navigator>
   );
