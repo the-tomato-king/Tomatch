@@ -75,7 +75,13 @@ const ProductSearchInput = ({
             <GeneralPressable
               containerStyle={styles.questionIcon}
               onPress={() => {
-                navigation.navigate("ProductLibrary");
+                navigation.navigate("ProductLibrary", {
+                  onSelectProduct: (product) => {
+                    onSelectProduct(product);
+                    setShowSuggestions(false);
+                    setSuggestions([]);
+                  },
+                });
               }}
             >
               <MaterialCommunityIcons

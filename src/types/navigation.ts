@@ -1,3 +1,5 @@
+import { Product } from ".";
+
 export type MainTabParamList = {
   Home: undefined;
   ShoppingList: undefined;
@@ -39,7 +41,9 @@ export type RootStackParamList = {
   AddRecordModal: {
     handleSave?: () => void;
   };
-  ProductLibrary: undefined;
+  ProductLibrary: {
+    onSelectProduct?: (product: Product) => void;
+  };
 };
 
 export type SettingStackParamList = {
