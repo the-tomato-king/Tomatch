@@ -15,12 +15,17 @@ import { deleteOneDocFromDB } from "../../services/firebase/firebaseHelper";
 import { collection, onSnapshot } from "firebase/firestore";
 import { ShoppingStackParamList } from "../../types/navigation";
 import { db } from "../../services/firebase/firebaseConfig";
-import MainPageHeader from "../../components/MainPageHeader";
 
 interface ShoppingList {
   id: string;
   name: string;
   shoppingTime: string;
+  location: {
+    name: string;
+    address: string;
+    longitude: number;
+    latitude: number;
+  };
 }
 
 const ShoppingListScreen = () => {
@@ -77,6 +82,9 @@ const ShoppingListScreen = () => {
           >
             <View style={styles.itemContent}>
               <Text style={styles.listName}>{item.name}</Text>
+              <Text style={styles.shoppingTime}>
+                Store: {item.location?.name}
+              </Text>
               <Text style={styles.shoppingTime}>
                 Shopping Time:{" "}
                 {new Date(item.shoppingTime).toLocaleDateString()}
