@@ -17,7 +17,9 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   requestMediaLibraryPermissionsAsync,
+  requestCameraPermissionsAsync,
   launchImageLibraryAsync,
+  launchCameraAsync,
 } from "expo-image-picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, HomeStackParamList } from "../../types/navigation";
@@ -159,12 +161,35 @@ const AddRecordScreen = () => {
     }
   }, [isEditMode, recordId]);
 
-  const pickImage = async () => {
+  const takePhoto = async () => {
+    try {
+      const permissionResult = await requestCameraPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        alert("Need camera permission to take photo");
+        return;
+      }
+
+      const result = await launchCameraAsync({
+        mediaTypes: "images",
+        quality: 0.2,
+      });
+
+      if (!result.canceled) {
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      alert("Failed to take photo");
+    }
+  };
+
+  const pickFromLibrary = async () => {
     try {
       const permissionResult = await requestMediaLibraryPermissionsAsync();
 
       if (permissionResult.granted === false) {
-        alert("You need to enable permission to access the photo library!");
+        alert("Need photo library permission to select photo");
         return;
       }
 
@@ -177,9 +202,31 @@ const AddRecordScreen = () => {
         setImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.error("Error picking image:", error);
-      alert("Failed to pick image");
+      console.error("Error selecting photo:", error);
+      alert("Failed to select photo");
     }
+  };
+
+  const pickImage = () => {
+    Alert.alert(
+      "Select Photo",
+      "Please select photo source",
+      [
+        {
+          text: "Take Photo",
+          onPress: takePhoto,
+        },
+        {
+          text: "Select from Library",
+          onPress: pickFromLibrary,
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleSave = async () => {
@@ -400,7 +447,7 @@ const AddRecordScreen = () => {
                     color={colors.mediumGray}
                   />
                 </View>
-                <Text style={styles.uploadText}>Click to add photo</Text>
+                <Text style={styles.uploadText}>Click to take photo</Text>
               </View>
             </TouchableOpacity>
           </>
