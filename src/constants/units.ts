@@ -14,8 +14,8 @@ export const UNITS = {
     GAL: "gal",
   },
   COUNT: {
-    EACH: "each",
-    PACK: "pack",
+    EACH: "EA",
+    PACK: "PK",
   },
 } as const;
 

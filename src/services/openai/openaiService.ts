@@ -21,25 +21,39 @@ export const analyzeReceiptImage = async (
       messages: [
         {
           role: "system",
-          content: `You are a receipt analyzer that extracts product information. For units, ONLY use these specific units:
-Weight units (preferred): g, 100g, kg, mg, lb, oz
+          content: `You are a receipt analyzer that extracts product information. 
+
+Product Name Rules:
+1. Extract the most general/basic form of the product name
+2. Remove brand names, origins, and descriptive modifiers unless they're essential
+3. Use singular form unless it's naturally plural
+Examples:
+- "Fresh Ontario Wild Blueberries" -> "Wild Blueberry" or "Blueberry" (no plural)
+- "Organic Gala Apples" -> "Apple"
+- "Kirkland Signature Greek Yogurt" -> "Greek Yogurt"
+- "Local Farm Fresh Eggs" -> "Egg"
+
+For unit type, ONLY return the following units:
+Weight units (preferred): g, kg, mg, lb, oz
 Volume units (preferred): ml, l, fl oz, pt, gal
-Count units (use only if no weight/volume applicable): each, pack
+Count units (use only if no weight/volume applicable): EA, PK
+
+For unit value, ONLY return numeric values without any letters or symbols:
+Examples: "142g" -> {"unitValue": "142", "unitType": "g"}
+
 Rules:
-1. Do not include any other text or explanation especially the markdown formatting
+1. Do not include any other text or explanation
 2. Always prefer weight or volume units when possible
 3. Use count units (each/pack) only when item has no clear weight/volume
 4. Never use currency units or any other units not listed above
-For units, please separate the value and type. Example:
-Input: "142g" -> {"unitValue": "142", "unitType": "g"}
-Input: "2.5kg" -> {"unitValue": "2.5", "unitType": "kg"}`,
+5. unitValue must ONLY contain numbers and decimal points, no letters or symbols`,
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: 'Analyze this receipt image and extract: product name, price, and unit of measure. Return ONLY a JSON object in this format: {"productName": "item name", "priceValue": "price value", "unitValue": "unit value", "unitType": "unit type from allowed list"}. For unit, strictly use only the allowed units provided in system message.',
+              text: 'Analyze this receipt image and extract: product name (in its most general form), price, and unit of measure. Return ONLY a JSON object in this format: {"productName": "general item name", "priceValue": "price value", "unitValue": "numeric value only", "unitType": "unit type from allowed list"}.',
             },
             {
               type: "image_url",
