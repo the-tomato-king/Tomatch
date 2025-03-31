@@ -42,7 +42,7 @@ For unit value, ONLY return numeric values without any letters or symbols:
 Examples: "142g" -> {"unitValue": "142", "unitType": "g"}
 
 Rules:
-1. Do not include any other text or explanation
+1. Do not include any other text or explanation, especially any markdown marks
 2. Always prefer weight or volume units when possible
 3. Use count units (each/pack) only when item has no clear weight/volume
 4. Never use currency units or any other units not listed above
