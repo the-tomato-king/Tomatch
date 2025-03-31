@@ -18,10 +18,15 @@ import { PriceRecord, Product, UserProduct, UserStore } from "../../types";
 import { COLLECTIONS } from "../../constants/firebase";
 import {
   readOneDoc,
+  updateOneDocInDB,
   deleteOneDocFromDB,
 } from "../../services/firebase/firebaseHelper";
 import LoadingLogo from "../../components/LoadingLogo";
 import { globalStyles } from "../../theme/styles";
+import { onSnapshot, doc } from "firebase/firestore";
+import { db } from "../../services/firebase/firebaseConfig";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { UserProductStats, BaseUserProductStats } from "../../types";
 
 type PriceRecordInformationRouteProp = RouteProp<
   HomeStackParamList,
@@ -37,63 +42,89 @@ const PriceRecordInformationScreen = () => {
   const { recordId } = route.params;
 
   const [loading, setLoading] = useState(true);
-  const [record, setRecord] = useState<PriceRecord | null>(null);
+  const [record, setRecord] = useState<PriceRecord>();
   const [product, setProduct] = useState<Product | null>(null);
   const [store, setStore] = useState<UserStore | null>(null);
 
   useEffect(() => {
-    const fetchRecordData = async () => {
-      try {
-        setLoading(true);
+    const userId = "user123"; // TODO: get user id from auth
+    const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
 
-        // TODO: get user id from auth
-        const userId = "user123";
-
-        const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-        const recordData = await readOneDoc<PriceRecord>(recordPath, recordId);
-
-        if (recordData) {
+    // Create listener for the record
+    const unsubscribeRecord = onSnapshot(
+      doc(db, recordPath, recordId),
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const recordData = docSnapshot.data() as PriceRecord;
           setRecord(recordData);
-
-          if (recordData.user_product_id) {
-            const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-            const userProductData = await readOneDoc<UserProduct>(
-              userProductPath,
-              recordData.user_product_id
-            );
-
-            if (userProductData && userProductData.product_id) {
-              const productData = await readOneDoc<Product>(
-                COLLECTIONS.PRODUCTS,
-                userProductData.product_id
-              );
-              setProduct(productData);
-            }
-          }
-
-          if (recordData.store_id) {
-            const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
-            const storeData = await readOneDoc<UserStore>(
-              storePath,
-              recordData.store_id
-            );
-
-            if (storeData) {
-              setStore(storeData);
-            } else {
-              alert("Store not found");
-            }
-          }
+          setLoading(false);
+        } else {
+          alert("Record not found");
+          setLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching record data:", error);
-      } finally {
+      },
+      (error) => {
+        console.error("Error listening to record:", error);
         setLoading(false);
       }
-    };
+    );
 
-    fetchRecordData();
+    // Cleanup subscription
+    return () => unsubscribeRecord();
   }, [recordId]);
+
+  // Separate useEffect for product
+  useEffect(() => {
+    if (!record?.user_product_id) return;
+
+    const userId = "user123"; // TODO: get user id from auth
+    const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+
+    const unsubscribeProduct = onSnapshot(
+      doc(db, userProductPath, record.user_product_id),
+      async (userProductSnapshot) => {
+        if (userProductSnapshot.exists()) {
+          const userProductData = userProductSnapshot.data() as UserProduct;
+          if (userProductData.product_id) {
+            // Get product data
+            const unsubscribeProductDetails = onSnapshot(
+              doc(db, COLLECTIONS.PRODUCTS, userProductData.product_id),
+              (productSnapshot) => {
+                if (productSnapshot.exists()) {
+                  setProduct(productSnapshot.data() as Product);
+                }
+              }
+            );
+            return () => unsubscribeProductDetails();
+          }
+        }
+      }
+    );
+
+    return () => unsubscribeProduct();
+  }, [record?.user_product_id]);
+
+  // Separate useEffect for store
+  useEffect(() => {
+    if (!record?.store_id) return;
+
+    const userId = "user123"; // TODO: get user id from auth
+    const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
+
+    const unsubscribeStore = onSnapshot(
+      doc(db, storePath, record.store_id),
+      (storeSnapshot) => {
+        if (storeSnapshot.exists()) {
+          setStore(storeSnapshot.data() as UserStore);
+        } else {
+          alert("Store not found");
+          setStore(null);
+        }
+      }
+    );
+
+    return () => unsubscribeStore();
+  }, [record?.store_id]);
 
   const formatDateTime = (dateValue: any) => {
     let date;
@@ -126,6 +157,11 @@ const PriceRecordInformationScreen = () => {
 
   const handleDeleteRecord = async () => {
     try {
+      if (!record) {
+        console.error("Record not found");
+        return;
+      }
+
       Alert.alert(
         "Delete Record",
         "Are you sure you want to delete this price record?",
@@ -135,18 +171,115 @@ const PriceRecordInformationScreen = () => {
             text: "Delete",
             style: "destructive",
             onPress: async () => {
-              // TODO: get user id from auth
-              const userId = "user123";
+              const userId = "user123"; // TODO: get user id from auth
 
-              const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-              const success = await deleteOneDocFromDB(recordPath, recordId);
+              try {
+                // 1. Get product stats
+                const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+                const userProduct = await readOneDoc<UserProduct>(
+                  userProductPath,
+                  record.user_product_id
+                );
 
-              if (success) {
-                navigation.goBack();
-              } else {
+                if (!userProduct) {
+                  console.error("User product not found");
+                  return;
+                }
+
+                const userProductStatsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
+                const stats = await readOneDoc<UserProductStats>(
+                  userProductStatsPath,
+                  userProduct.product_id
+                );
+
+                if (!stats) {
+                  console.error("Product stats not found");
+                  return;
+                }
+
+                const newTotalRecords = stats.total_price_records - 1;
+                const newTotalPrice = stats.total_price - record.price;
+
+                // 2. If this is the last record
+                if (newTotalRecords === 0) {
+                  // Delete product stats
+                  await deleteOneDocFromDB(
+                    userProductStatsPath,
+                    userProduct.product_id
+                  );
+
+                  // Delete user product
+                  const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+                  await deleteOneDocFromDB(
+                    userProductPath,
+                    record.user_product_id
+                  );
+                } else {
+                  // 3. Update product stats
+                  // Get all remaining records to recalculate min/max
+                  const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+                  const recordsQuery = query(
+                    collection(db, recordsPath),
+                    where("user_product_id", "==", record.user_product_id)
+                  );
+                  const recordsSnapshot = await getDocs(recordsQuery);
+
+                  let lowestPrice = Infinity;
+                  let highestPrice = -Infinity;
+                  let lowestPriceStore = stats.lowest_price_store;
+
+                  recordsSnapshot.docs.forEach((doc) => {
+                    const recordData = doc.data();
+                    if (doc.id !== recordId) {
+                      // Skip current record
+                      if (recordData.price < lowestPrice) {
+                        lowestPrice = recordData.price;
+                        lowestPriceStore = {
+                          store_id: recordData.store_id,
+                          store_name: store?.name || "",
+                        };
+                      }
+                      if (recordData.price > highestPrice) {
+                        highestPrice = recordData.price;
+                      }
+                    }
+                  });
+
+                  const updatedStats: BaseUserProductStats = {
+                    ...stats,
+                    total_price: newTotalPrice,
+                    average_price: newTotalPrice / newTotalRecords,
+                    lowest_price: lowestPrice,
+                    highest_price: highestPrice,
+                    lowest_price_store: lowestPriceStore,
+                    total_price_records: newTotalRecords,
+                    last_updated: new Date(),
+                  };
+
+                  await updateOneDocInDB(
+                    userProductStatsPath,
+                    userProduct.product_id,
+                    updatedStats
+                  );
+                }
+
+                // 4. Delete the price record
+                const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+                const success = await deleteOneDocFromDB(recordPath, recordId);
+
+                if (success) {
+                  navigation.goBack();
+                } else {
+                  Alert.alert(
+                    "Error",
+                    "Failed to delete the record. Please try again."
+                  );
+                }
+              } catch (error) {
+                console.error("Error during delete operation:", error);
                 Alert.alert(
                   "Error",
-                  "Failed to delete the record. Please try again."
+                  "An error occurred while deleting the record."
                 );
               }
             },
@@ -180,9 +313,7 @@ const PriceRecordInformationScreen = () => {
         >
           <MaterialCommunityIcons name="chevron-left" size={30} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {store?.name || "Store"} - {product?.name || "Product"}
-        </Text>
+        <Text style={styles.headerTitle}>{product?.name || "Product"}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -190,10 +321,11 @@ const PriceRecordInformationScreen = () => {
         {/* Product Price Card */}
         <View style={styles.productPriceCard}>
           <View style={styles.productDetails}>
-            <Text style={styles.productName}>{product?.name || "Product"}</Text>
-            <Text style={styles.priceValue}>
-              ${record.price.toFixed(2)}/{record.unit_type}
-            </Text>
+            <View style={styles.priceValueContainer}>
+              <Text style={styles.priceValue}>
+                ${record.price.toFixed(2)}/{record.unit_type}
+              </Text>
+            </View>
           </View>
           {/* Original Price and Record Date */}
           <View style={styles.additionalInfo}>
@@ -304,13 +436,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  productName: {
-    fontSize: 30,
-    fontWeight: "500",
-    marginBottom: 8,
+  priceValueContainer: {
+    // maxWidth: "40%",
   },
   priceValue: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: "bold",
     color: colors.primary,
     marginBottom: 16,
