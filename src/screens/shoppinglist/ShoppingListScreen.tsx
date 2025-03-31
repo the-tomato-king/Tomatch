@@ -20,6 +20,12 @@ interface ShoppingList {
   id: string;
   name: string;
   shoppingTime: string;
+  location: {
+    name: string;
+    address: string;
+    longitude: number;
+    latitude: number;
+  };
 }
 
 const ShoppingListScreen = () => {
@@ -76,6 +82,9 @@ const ShoppingListScreen = () => {
           >
             <View style={styles.itemContent}>
               <Text style={styles.listName}>{item.name}</Text>
+              <Text style={styles.shoppingTime}>
+                Store: {item.location?.name}
+              </Text>
               <Text style={styles.shoppingTime}>
                 Shopping Time:{" "}
                 {new Date(item.shoppingTime).toLocaleDateString()}

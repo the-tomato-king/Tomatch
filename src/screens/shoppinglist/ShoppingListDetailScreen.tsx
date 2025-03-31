@@ -25,6 +25,12 @@ export interface ShoppingListDetails {
   name: string;
   items: ShoppingItem[];
   shoppingTime: string;
+  location: {
+    name: string;
+    address: string;
+    longitude: number;
+    latitude: number;
+  };
 }
 
 const ShoppingListDetailScreen = () => {
@@ -109,7 +115,7 @@ const ShoppingListDetailScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.dateText}>
-        supermarket selection will be coming soon
+        Store: {shoppingList.location?.name}
       </Text>
       <Text style={styles.dateText}>
         Shopping Time:{" "}
