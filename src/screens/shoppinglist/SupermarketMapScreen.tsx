@@ -1,49 +1,29 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack"; 
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import MapComponent from "../../components/Map";
 import { LatLng } from "react-native-maps";
-import { ShoppingStackParamList } from "../../types/navigation"; 
+import { ShoppingStackParamList } from "../../types/navigation";
 
 interface Store {
   name: string;
   coordinate: LatLng;
   address: string;
-  latitude: number;   
-  longitude: number; 
+  latitude: number;
+  longitude: number;
 }
 
-type SupermarketMapScreenNavigationProp = NativeStackNavigationProp<
-  ShoppingStackParamList,
-  "SupermarketMap"
->;
 
-interface SupermarketMapScreenProps {
-  navigation: SupermarketMapScreenNavigationProp;
-}
-
-const SupermarketMapScreen: React.FC<SupermarketMapScreenProps> = ({ navigation }) => {
+const SupermarketMapScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<ShoppingStackParamList, "SupermarketMap">>();
+  const route = useRoute<RouteProp<ShoppingStackParamList, "SupermarketMap">>();
+  
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 
   const handleSelectStore = (store: Store) => {
     setSelectedStore(store);
   };
-
-  // const handleConfirmStore = () => {
-  //   if (selectedStore) {
-  //     navigation.navigate("AddShoppingList", {
-  //       selectedLocation: {
-  //         name: selectedStore.name,
-  //         address: selectedStore.address,
-  //         latitude: selectedStore.coordinate.latitude,
-  //         longitude: selectedStore.coordinate.longitude,
-  //       },
-  //     });
-  //   } else {
-  //     alert("Please select a store.");
-  //   }
-  // };
-
 
   const handleConfirmStore = () => {
     if (selectedStore) {
@@ -53,16 +33,11 @@ const SupermarketMapScreen: React.FC<SupermarketMapScreenProps> = ({ navigation 
         latitude: selectedStore.coordinate.latitude,
         longitude: selectedStore.coordinate.longitude,
       };
-      
-      // Get the previous screen's route
-      const previousScreen = navigation.getState().routes[navigation.getState().index - 1];
-      
-      if (previousScreen && previousScreen.name === "AddShoppingList") {
-        // Use navigation.navigate to go back with params
-        navigation.navigate("AddShoppingList", {
-          selectedLocation: storeData,
-        });
+      if (route.params?.onSelectStore) {
+        route.params.onSelectStore(storeData);
       }
+      
+      navigation.goBack();
     } else {
       alert("Please select a store.");
     }

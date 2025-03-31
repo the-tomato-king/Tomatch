@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, useEffect } from "react";
+import { useLayoutEffect, useState, useEffect, useCallback } from "react";
 import {
   Platform,
   StyleSheet,
@@ -49,14 +49,9 @@ const AddShoppingListScreen = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<StoreLocation | null>(null);
 
-  // Get location from route params if available
-  useEffect(() => {
-    if (route.params?.selectedLocation) {
-      console.log(route.params.selectedLocation)
-      setSelectedLocation(route.params.selectedLocation);
-    }
-  }, [route.params?.selectedLocation]);
-  
+  const handleStoreSelect = useCallback((storeData: StoreLocation) => {
+    setSelectedLocation(storeData);
+  }, []);
 
   // Function to handle opening date picker
   const handleOpenDatePicker = (type: "date" | "time") => {
@@ -117,17 +112,9 @@ const AddShoppingListScreen = () => {
 
   // Function to select location
   const handleSelectLocation = () => {
-    navigation.navigate("SupermarketMap");
-  };
-
-  // Function to cancel the creation of the shopping list
-  const handleCancel = () => {
-    setListName("");
-    setShoppingItems([]);
-    setShoppingTime(null);
-    setItemName("");
-    setQuantity("1");
-    setSelectedLocation(null);
+    navigation.navigate("SupermarketMap", {
+      onSelectStore: handleStoreSelect
+    });
   };
 
   // Function to create shopping list in the database
