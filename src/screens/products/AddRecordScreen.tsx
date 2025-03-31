@@ -163,6 +163,41 @@ const AddRecordScreen = () => {
     }
   }, [isEditMode, recordId]);
 
+  const analyzeImage = async (imageBase64: string) => {
+    try {
+      setLoading(true);
+
+      const receiptData = await analyzeReceiptImage(imageBase64);
+
+      // auto fill form
+      if (receiptData.productName) {
+        setProductName(receiptData.productName);
+      }
+      if (receiptData.priceValue) {
+        setPrice(receiptData.priceValue);
+      }
+      if (receiptData.unitValue) {
+        setUnitValue(receiptData.unitValue);
+      }
+      if (receiptData.unitType) {
+        const validUnit = ALL_UNITS.find(
+          (unit) => unit.toLowerCase() === receiptData.unitType?.toLowerCase()
+        );
+        if (validUnit) {
+          setUnitType(validUnit);
+        }
+      }
+    } catch (error) {
+      console.error("Error analyzing receipt image:", error);
+      Alert.alert(
+        "Error",
+        "Failed to analyze receipt image. Check console for details."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const takePhoto = async () => {
     try {
       const permissionResult = await requestCameraPermissionsAsync();
@@ -180,44 +215,7 @@ const AddRecordScreen = () => {
 
       if (!result.canceled && result.assets[0]) {
         setImage(result.assets[0].uri);
-
-        // Test OpenAI API
-        try {
-          setLoading(true);
-
-          const receiptData = await analyzeReceiptImage(
-            result.assets[0].base64 || ""
-          );
-
-          // auto fill form
-          if (receiptData.productName) {
-            setProductName(receiptData.productName);
-          }
-          if (receiptData.priceValue) {
-            setPrice(receiptData.priceValue);
-          }
-          if (receiptData.unitValue) {
-            setUnitValue(receiptData.unitValue);
-          }
-          if (receiptData.unitType) {
-            // check if unit is in allowed units list
-            const validUnit = ALL_UNITS.find(
-              (unit) =>
-                unit.toLowerCase() === receiptData.unitType?.toLowerCase()
-            );
-            if (validUnit) {
-              setUnitType(validUnit);
-            }
-          }
-        } catch (error) {
-          console.error("Error testing OpenAI API:", error);
-          Alert.alert(
-            "Error",
-            "Failed to analyze receipt image. Check console for details."
-          );
-        } finally {
-          setLoading(false);
-        }
+        await analyzeImage(result.assets[0].base64 || "");
       }
     } catch (error) {
       console.error("Error taking photo:", error);
@@ -237,10 +235,12 @@ const AddRecordScreen = () => {
       const result = await launchImageLibraryAsync({
         mediaTypes: "images",
         quality: 0.2,
+        base64: true,
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets[0]) {
         setImage(result.assets[0].uri);
+        await analyzeImage(result.assets[0].base64 || "");
       }
     } catch (error) {
       console.error("Error selecting photo:", error);
