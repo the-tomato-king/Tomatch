@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, Alert } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import MapView, { Marker, Region, LatLng, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
 
 interface Store {
   name: string;
   coordinate: LatLng;
+  address: string;
 }
 
-const MapComponent: React.FC = () => {
+interface MapComponentProps {
+  onStoreSelect: (store: Store) => void; 
+}
+
+const MapComponent: React.FC<MapComponentProps> = ({ onStoreSelect }) => {
   const [pins, setPins] = useState<LatLng[]>([]);
   const [location, setLocation] = useState<Region | null>(null);
   const [stores, setStores] = useState<Store[]>([]);
@@ -44,8 +49,8 @@ const MapComponent: React.FC = () => {
   }, []);
 
   const fetchNearbyStores = async (latitude: number, longitude: number) => {
-    const radius = 5000; 
-    const type = 'supermarket'; 
+    const radius = 5000; // 5km
+    const type = 'supermarket'; // or grocery_store
 
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
 
@@ -59,6 +64,7 @@ const MapComponent: React.FC = () => {
             latitude: store.geometry.location.lat,
             longitude: store.geometry.location.lng,
           },
+          address: store.vicinity,
         }));
         setStores(storeLocations);
       }
@@ -72,11 +78,9 @@ const MapComponent: React.FC = () => {
     setPins((prevPins) => [...prevPins, coordinate]);
   };
 
-  useEffect(() => {
-    if (errorMsg) {
-      Alert.alert(errorMsg);
-    }
-  }, [errorMsg]);
+  const handleStorePress = (store: Store) => {
+    onStoreSelect(store); 
+  };
 
   return (
     <View style={styles.container}>
@@ -96,10 +100,12 @@ const MapComponent: React.FC = () => {
               key={`store-${index}`}
               coordinate={store.coordinate}
               pinColor="blue"
-              title={store.name} >
-                <Callout>
-                <Text>{store.name}</Text>
-                </Callout>
+              onPress={() => handleStorePress(store)} 
+            >
+              <Callout>
+                <Text style={styles.storeName}>{store.name}</Text>
+                <Text>{store.address}</Text>
+              </Callout>
             </Marker>
           ))}
         </MapView>
@@ -119,6 +125,9 @@ const styles = StyleSheet.create({
   map: {
     width: '100%',
     height: '100%',
+  },
+  storeName: {
+    fontWeight: 'bold',
   },
 });
 
