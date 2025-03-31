@@ -52,6 +52,7 @@ import {
 import { db } from "../../services/firebase/firebaseConfig";
 import StoreSearchInput from "../../components/StoreSearchInput";
 import LoadingLogo from "../../components/LoadingLogo";
+import { uploadImage } from "../../services/firebase/storageHelper";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -257,6 +258,16 @@ const AddRecordScreen = () => {
       const userId = "user123";
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
 
+      let photoUrl = "";
+      if (image) {
+        // use timestamp as unique identifier
+        const timestamp = new Date().getTime();
+        const imagePath = `price_records/${userId}/${timestamp}.jpg`;
+
+        // upload image and get URL
+        photoUrl = await uploadImage(image, imagePath);
+      }
+
       if (isEditMode && recordId) {
         // update existing record
         const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
@@ -264,7 +275,7 @@ const AddRecordScreen = () => {
           price: numericPrice,
           unit_type: unitType,
           unit_price: numericPrice,
-          photo_url: image || "",
+          photo_url: photoUrl || "",
           store_id: selectedStore.id,
           updated_at: new Date(),
         };
@@ -323,7 +334,7 @@ const AddRecordScreen = () => {
           price: numericPrice,
           unit_type: unitType,
           unit_price: numericPrice, //TODO: Calculate unit price, now same as price
-          photo_url: image || "",
+          photo_url: photoUrl,
           recorded_at: new Date(),
         };
 
@@ -405,7 +416,7 @@ const AddRecordScreen = () => {
       }
     } catch (error) {
       console.error("Error saving record:", error);
-      alert("Failed to save record");
+      Alert.alert("Error", "Failed to save record");
     }
   };
 
