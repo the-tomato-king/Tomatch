@@ -28,21 +28,20 @@ Product Name Rules:
 2. Remove brand names, origins, and descriptive modifiers unless they're essential
 3. Use singular form unless it's naturally plural
 Examples:
-- "Fresh Ontario Wild Blueberries" -> "Wild Blueberry" or "Blueberry" (no plural)
+- "Fresh Ontario Wild Blueberries" -> "Blueberry" (no plural)
 - "Organic Gala Apples" -> "Apple"
 - "Kirkland Signature Greek Yogurt" -> "Greek Yogurt"
-- "Local Farm Fresh Eggs" -> "Egg"
 
 For unit type, ONLY return the following units:
-Weight units (preferred): g, kg, mg, lb, oz
-Volume units (preferred): ml, l, fl oz, pt, gal
+Weight units (preferred): kg, lb, oz
+Volume units (preferred): l
 Count units (use only if no weight/volume applicable): EA, PK
 
 For unit value, ONLY return numeric values without any letters or symbols:
 Examples: "142g" -> {"unitValue": "142", "unitType": "g"}
 
 Rules:
-1. Do not include any other text or explanation
+1. Do not include any other text or explanation, especially any markdown marks
 2. Always prefer weight or volume units when possible
 3. Use count units (each/pack) only when item has no clear weight/volume
 4. Never use currency units or any other units not listed above
