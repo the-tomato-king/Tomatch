@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, Alert } from 'react-native';
-import MapView, { Marker, Region, LatLng } from 'react-native-maps';
+import MapView, { Marker, Region, LatLng, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
 
+interface Store {
+  name: string;
+  coordinate: LatLng;
+}
 
 const MapComponent: React.FC = () => {
   const [pins, setPins] = useState<LatLng[]>([]);
   const [location, setLocation] = useState<Region | null>(null);
-  const [stores, setStores] = useState<LatLng[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   useEffect(() => {
@@ -40,8 +44,8 @@ const MapComponent: React.FC = () => {
   }, []);
 
   const fetchNearbyStores = async (latitude: number, longitude: number) => {
-    const radius = 5000; // 5km
-    const type = 'supermarket'; // or grocery_store
+    const radius = 5000; 
+    const type = 'supermarket'; 
 
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
 
@@ -50,8 +54,11 @@ const MapComponent: React.FC = () => {
       let data = await response.json();
       if (data.results) {
         const storeLocations = data.results.map((store: any) => ({
-          latitude: store.geometry.location.lat,
-          longitude: store.geometry.location.lng,
+          name: store.name,
+          coordinate: {
+            latitude: store.geometry.location.lat,
+            longitude: store.geometry.location.lng,
+          },
         }));
         setStores(storeLocations);
       }
@@ -62,7 +69,7 @@ const MapComponent: React.FC = () => {
 
   const handleMapPress = (e: any): void => {
     const coordinate = e.nativeEvent.coordinate;
-    setPins((prevPins) => [...prevPins, coordinate]); 
+    setPins((prevPins) => [...prevPins, coordinate]);
   };
 
   useEffect(() => {
@@ -77,8 +84,8 @@ const MapComponent: React.FC = () => {
         <MapView
           style={styles.map}
           initialRegion={location}
-          region={location} 
-          onPress={handleMapPress} 
+          region={location}
+          onPress={handleMapPress}
         >
           {pins.map((pin, index) => (
             <Marker key={index} coordinate={pin} />
@@ -87,14 +94,17 @@ const MapComponent: React.FC = () => {
           {stores.map((store, index) => (
             <Marker
               key={`store-${index}`}
-              coordinate={store}
+              coordinate={store.coordinate}
               pinColor="blue"
-              title="supermarket"
-            />
+              title={store.name} >
+                <Callout>
+                <Text>{store.name}</Text>
+                </Callout>
+            </Marker>
           ))}
         </MapView>
       ) : (
-        <Text>loading...</Text>
+        <Text>Loading...</Text>
       )}
     </View>
   );
