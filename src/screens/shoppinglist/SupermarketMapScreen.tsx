@@ -29,16 +29,40 @@ const SupermarketMapScreen: React.FC<SupermarketMapScreenProps> = ({ navigation 
     setSelectedStore(store);
   };
 
+  // const handleConfirmStore = () => {
+  //   if (selectedStore) {
+  //     navigation.navigate("AddShoppingList", {
+  //       selectedLocation: {
+  //         name: selectedStore.name,
+  //         address: selectedStore.address,
+  //         latitude: selectedStore.coordinate.latitude,
+  //         longitude: selectedStore.coordinate.longitude,
+  //       },
+  //     });
+  //   } else {
+  //     alert("Please select a store.");
+  //   }
+  // };
+
+
   const handleConfirmStore = () => {
     if (selectedStore) {
-      navigation.navigate("AddShoppingList", {
-        selectedLocation: {
-          name: selectedStore.name,
-          address: selectedStore.address,
-          latitude: selectedStore.coordinate.latitude,
-          longitude: selectedStore.coordinate.longitude,
-        },
-      });
+      const storeData = {
+        name: selectedStore.name,
+        address: selectedStore.address,
+        latitude: selectedStore.coordinate.latitude,
+        longitude: selectedStore.coordinate.longitude,
+      };
+      
+      // Get the previous screen's route
+      const previousScreen = navigation.getState().routes[navigation.getState().index - 1];
+      
+      if (previousScreen && previousScreen.name === "AddShoppingList") {
+        // Use navigation.navigate to go back with params
+        navigation.navigate("AddShoppingList", {
+          selectedLocation: storeData,
+        });
+      }
     } else {
       alert("Please select a store.");
     }

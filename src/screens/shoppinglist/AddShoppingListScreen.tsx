@@ -52,9 +52,11 @@ const AddShoppingListScreen = () => {
   // Get location from route params if available
   useEffect(() => {
     if (route.params?.selectedLocation) {
+      console.log(route.params.selectedLocation)
       setSelectedLocation(route.params.selectedLocation);
     }
-  }, [route.params]);
+  }, [route.params?.selectedLocation]);
+  
 
   // Function to handle opening date picker
   const handleOpenDatePicker = (type: "date" | "time") => {
@@ -235,9 +237,9 @@ const AddShoppingListScreen = () => {
       <View style={styles.timePicker}>
         <TouchableOpacity
           onPress={() => handleOpenDatePicker("date")}
-          style={styles.dateButton}
+          style={styles.selectLocationButton}
         >
-          <Text style={styles.dateText}>
+          <Text  style={styles.selectLocationText}>
             {shoppingTime
               ? shoppingTime.toLocaleDateString()
               : "Select Shopping Date"}
@@ -246,9 +248,9 @@ const AddShoppingListScreen = () => {
 
         <TouchableOpacity
           onPress={() => handleOpenDatePicker("time")}
-          style={styles.dateButton}
+          style={styles.selectLocationButton}
         >
-          <Text style={styles.dateText}>
+          <Text  style={styles.selectLocationText}>
             {shoppingTime
               ? shoppingTime.toLocaleTimeString()
               : "Select Shopping Time"}
@@ -291,7 +293,6 @@ const AddShoppingListScreen = () => {
 
       {/* Location Selection */}
       <View style={styles.locationContainer}>
-        <Text style={styles.sectionTitle}>Shopping Location:</Text>
         {selectedLocation ? (
           <View style={styles.selectedLocationContainer}>
             <View style={styles.locationInfo}>
@@ -346,16 +347,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
   },
-  dateButton: {
-    padding: 8,
-    backgroundColor: "#ddd",
-    borderRadius: 5,
-    alignItems: "center",
-    margin: 8,
-  },
-  dateText: {
-    fontSize: 16,
-  },
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -368,7 +359,6 @@ const styles = StyleSheet.create({
   },
   locationContainer: {
     marginTop: 20,
-    padding: 10,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
   },
@@ -378,14 +368,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   selectLocationButton: {
-    backgroundColor: "#1a73e8",
     padding: 12,
     borderRadius: 5,
     alignItems: "center",
   },
   selectLocationText: {
-    color: "white",
-    fontWeight: "bold",
+    color: "#1a73e8",
     fontSize: 16,
   },
   selectedLocationContainer: {
