@@ -8,6 +8,7 @@ import {
   Button,
   FlatList,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
@@ -117,6 +118,36 @@ const AddShoppingListScreen = () => {
     });
   };
 
+  // Function to save shopping list after notification confirmation
+  const saveShoppingList = async (setNotification: boolean) => {
+    const shoppingListData = {
+      name: listName,
+      items: shoppingItems,
+      shoppingTime: shoppingTime ? shoppingTime.toISOString() : null,
+      userId: null,
+      location: selectedLocation || null,
+      notification: setNotification ? true : false,
+    };
+
+    const docId = await createDoc("shoppingLists", shoppingListData);
+
+    if (docId) {
+      console.log("Shopping list created with ID:", docId);
+      
+      // If notification is enabled, you would set up the notification here
+      if (setNotification && shoppingTime) {
+        // This would be where you'd schedule the notification
+        console.log("Notification scheduled for:", shoppingTime.toLocaleString());
+        // You'd need to implement notification scheduling here
+      }
+      
+      navigation.navigate("ShoppingList");
+    } else {
+      console.error("Error creating shopping list.");
+      alert("Failed to create shopping list. Please try again.");
+    }
+  };
+
   // Function to create shopping list in the database
   const handleCreateList = async () => {
     if (listName.trim().length === 0) {
@@ -134,23 +165,23 @@ const AddShoppingListScreen = () => {
       return;
     }
 
-    const shoppingListData = {
-      name: listName,
-      items: shoppingItems,
-      shoppingTime: shoppingTime ? shoppingTime.toISOString() : null,
-      userId: null,
-      location: selectedLocation || null,
-    };
-
-    const docId = await createDoc("shoppingLists", shoppingListData);
-
-    if (docId) {
-      console.log("Shopping list created with ID:", docId);
-      navigation.navigate("ShoppingList");
-    } else {
-      console.error("Error creating shopping list.");
-      alert("Failed to create shopping list. Please try again.");
-    }
+    // Ask user about notification
+    Alert.alert(
+      "Shopping Reminder", 
+      `Would you like to receive a reminder notification on ${shoppingTime.toLocaleDateString()}?`, 
+      [
+        {
+          text: "No", 
+          onPress: () => saveShoppingList(false),
+          style: "cancel"
+        },
+        { 
+          text: "Yes", 
+          onPress: () => saveShoppingList(true)
+        }
+      ],
+      { cancelable: false }
+    );
   };
 
   useLayoutEffect(() => {
