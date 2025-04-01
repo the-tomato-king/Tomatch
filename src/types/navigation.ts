@@ -1,4 +1,5 @@
 import { Product } from ".";
+import { StoreLocation } from "../screens/shoppinglist/AddShoppingListScreen";
 
 export type MainTabParamList = {
   Home: undefined;
@@ -26,8 +27,13 @@ export type StoreStackParamList = {
 
 export type ShoppingStackParamList = {
   ShoppingList: undefined;
-  AddShoppingList: undefined;
   ShoppingListDetail: { id: string };
+  AddShoppingList: {
+    selectedLocation?: StoreLocation;
+  };
+  SupermarketMap: {
+    onSelectStore?: (location: StoreLocation) => void;
+  };
 };
 
 export type RootStackParamList = {

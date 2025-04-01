@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useEffect, useCallback } from "react";
 import {
   Platform,
   StyleSheet,
@@ -11,14 +11,15 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
-import { createDoc } from "../../services/firebase/firebaseHelper"; // Import the createDoc function
-import { useNavigation } from "@react-navigation/native";
+import { createDoc } from "../../services/firebase/firebaseHelper";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ShoppingStackParamList } from "../../types/navigation";
 import ProductSearchInput from "../../components/ProductSearchInput";
 import { Product } from "../../types";
 import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
+
 export interface ShoppingItem {
   id: string;
   name: string;
@@ -26,17 +27,31 @@ export interface ShoppingItem {
   checked?: boolean;
 }
 
+export interface StoreLocation {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+}
+
 const AddShoppingListScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<ShoppingStackParamList>>();
+  const route = useRoute<RouteProp<ShoppingStackParamList, "AddShoppingList">>();
+  
   const [listName, setListName] = useState<string>("");
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   const [itemName, setItemName] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("1");
   const [shoppingTime, setShoppingTime] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
-  const [showTimePicker, setShowTimePicker] = useState<boolean>(false); // Track time picker visibility
+  const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<StoreLocation | null>(null);
+
+  const handleStoreSelect = useCallback((storeData: StoreLocation) => {
+    setSelectedLocation(storeData);
+  }, []);
 
   // Function to handle opening date picker
   const handleOpenDatePicker = (type: "date" | "time") => {
@@ -95,13 +110,11 @@ const AddShoppingListScreen = () => {
     setQuantity("1"); // Reset quantity input
   };
 
-  // Function to cancel the creation of the shopping list
-  const handleCancel = () => {
-    setListName("");
-    setShoppingItems([]);
-    setShoppingTime(null);
-    setItemName("");
-    setQuantity("1");
+  // Function to select location
+  const handleSelectLocation = () => {
+    navigation.navigate("SupermarketMap", {
+      onSelectStore: handleStoreSelect
+    });
   };
 
   // Function to create shopping list in the database
@@ -126,13 +139,14 @@ const AddShoppingListScreen = () => {
       items: shoppingItems,
       shoppingTime: shoppingTime ? shoppingTime.toISOString() : null,
       userId: null,
+      location: selectedLocation || null,
     };
 
     const docId = await createDoc("shoppingLists", shoppingListData);
 
     if (docId) {
       console.log("Shopping list created with ID:", docId);
-      navigation.goBack();
+      navigation.navigate("ShoppingList");
     } else {
       console.error("Error creating shopping list.");
       alert("Failed to create shopping list. Please try again.");
@@ -150,7 +164,7 @@ const AddShoppingListScreen = () => {
         </Text>
       ),
     });
-  }, [navigation, handleCreateList]);
+  }, [navigation, listName, shoppingItems, shoppingTime, selectedLocation]);
 
   return (
     <View style={styles.container}>
@@ -210,9 +224,9 @@ const AddShoppingListScreen = () => {
       <View style={styles.timePicker}>
         <TouchableOpacity
           onPress={() => handleOpenDatePicker("date")}
-          style={styles.dateButton}
+          style={styles.selectLocationButton}
         >
-          <Text style={styles.dateText}>
+          <Text  style={styles.selectLocationText}>
             {shoppingTime
               ? shoppingTime.toLocaleDateString()
               : "Select Shopping Date"}
@@ -221,9 +235,9 @@ const AddShoppingListScreen = () => {
 
         <TouchableOpacity
           onPress={() => handleOpenDatePicker("time")}
-          style={styles.dateButton}
+          style={styles.selectLocationButton}
         >
-          <Text style={styles.dateText}>
+          <Text  style={styles.selectLocationText}>
             {shoppingTime
               ? shoppingTime.toLocaleTimeString()
               : "Select Shopping Time"}
@@ -236,7 +250,7 @@ const AddShoppingListScreen = () => {
         <DateTimePicker
           value={shoppingTime || new Date()}
           mode="date"
-          display="spinner" // Use spinner to show the wheel picker
+          display="spinner"
           onChange={(event, selectedDate) => {
             setShowDatePicker(false);
             if (event.type === "set" && selectedDate) {
@@ -252,7 +266,7 @@ const AddShoppingListScreen = () => {
         <DateTimePicker
           value={shoppingTime || new Date()}
           mode="time"
-          display="spinner" // Use spinner to show the wheel picker
+          display="spinner"
           onChange={(event, selectedDate) => {
             setShowTimePicker(false);
             if (event.type === "set" && selectedDate) {
@@ -264,8 +278,30 @@ const AddShoppingListScreen = () => {
         />
       )}
 
-      {/* TODO: Add location selection later */}
-      <Button title="Select Location (Coming Soon)" disabled />
+      {/* Location Selection */}
+      <View style={styles.locationContainer}>
+        {selectedLocation ? (
+          <View style={styles.selectedLocationContainer}>
+            <View style={styles.locationInfo}>
+              <Text style={styles.locationName}>{selectedLocation.name}</Text>
+              <Text style={styles.locationAddress}>{selectedLocation.address}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.changeLocationButton}
+              onPress={handleSelectLocation}
+            >
+              <Text style={styles.changeLocationText}>Change</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.selectLocationButton}
+            onPress={handleSelectLocation}
+          >
+            <Text style={styles.selectLocationText}>Select Store Location</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
@@ -298,16 +334,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
   },
-  dateButton: {
-    padding: 8,
-    backgroundColor: "#ddd",
-    borderRadius: 5,
-    alignItems: "center",
-    margin: 8,
-  },
-  dateText: {
-    fontSize: 16,
-  },
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -317,5 +343,55 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  locationContainer: {
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  selectLocationButton: {
+    padding: 12,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  selectLocationText: {
+    color: "#1a73e8",
+    fontSize: 16,
+  },
+  selectedLocationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f8ff",
+    borderRadius: 5,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#d0e0f0",
+  },
+  locationInfo: {
+    flex: 1,
+  },
+  locationName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1a73e8",
+  },
+  locationAddress: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 4,
+  },
+  changeLocationButton: {
+    backgroundColor: "#ddd",
+    padding: 8,
+    borderRadius: 5,
+  },
+  changeLocationText: {
+    color: "#333",
+    fontWeight: "bold",
   },
 });
