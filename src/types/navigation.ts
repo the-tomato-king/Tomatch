@@ -45,6 +45,7 @@ export type RootStackParamList = {
     onSelectProduct?: (product: Product) => void;
     initialSearchText?: string;
   };
+  AddProduct: undefined;
 };
 
 export type SettingStackParamList = {

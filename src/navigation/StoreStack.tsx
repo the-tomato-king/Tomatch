@@ -2,10 +2,9 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import StoreScreen from "../screens/stores/StoreScreen";
 import AddStoreScreen from "../screens/stores/AddStoreScreen";
 import StoreDetailScreen from "../screens/stores/StoreDetailScreen";
-import { Button } from "react-native";
 import { StoreStackParamList } from "../types/navigation";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BackButton from "../components/BackButton";
+import HeaderAddButton from "../components/HeaderAddButton";
 
 const Stack = createNativeStackNavigator<StoreStackParamList>();
 
@@ -19,12 +18,7 @@ const StoreStack = () => {
           headerShown: true,
           title: "Stores",
           headerRight: () => (
-            <MaterialCommunityIcons
-              name="plus"
-              size={24}
-              color="black"
-              onPress={() => navigation.navigate("AddStore")}
-            />
+            <HeaderAddButton onPress={() => navigation.navigate("AddStore")} />
           ),
         })}
       />

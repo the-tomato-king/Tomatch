@@ -6,6 +6,8 @@ import AddRecordScreen from "../screens/products/AddRecordScreen";
 import ProductLibraryScreen from "../screens/products/ProductLibraryScreen";
 import { Text } from "react-native";
 import { globalStyles } from "../theme/styles";
+import AddProductScreen from "../screens/products/AddProductScreen";
+import HeaderAddButton from "../components/HeaderAddButton";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -47,7 +49,17 @@ const RootNavigator = () => {
               Cancel
             </Text>
           ),
+          headerRight: () => (
+            <HeaderAddButton
+              onPress={() => navigation.navigate("AddProduct")}
+            />
+          ),
         })}
+      />
+      <Stack.Screen
+        name="AddProduct"
+        component={AddProductScreen}
+        options={{ headerShown: true, headerTitle: "Add Product" }}
       />
     </Stack.Navigator>
   );
