@@ -20,6 +20,7 @@ import ProductSearchInput from "../../components/ProductSearchInput";
 import { Product } from "../../types";
 import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
+import * as Notifications from "expo-notifications";
 
 export interface ShoppingItem {
   id: string;
@@ -52,6 +53,54 @@ const AddShoppingListScreen = () => {
 
   const handleStoreSelect = useCallback((storeData: StoreLocation) => {
     setSelectedLocation(storeData);
+  }, []);
+
+  useEffect(() => {
+    // Set up notification handler
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+    });
+  
+    // Set up Android channel
+    if (Platform.OS === 'android') {
+      Notifications.setNotificationChannelAsync('shopping-reminders', {
+        name: 'Shopping Reminders',
+        importance: Notifications.AndroidImportance.HIGH,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+  
+    // Request permissions
+    const requestPermissions = async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== "granted") {
+        alert("Permission for notifications was denied.");
+      }
+    };
+    requestPermissions();
+    
+    // ONLY add these listeners if you need to respond to notifications 
+    // while the app is open - they can be moved to a separate component 
+    // or commented out during development
+    /*
+    const subscription = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Notification received:', notification);
+    });
+    
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log('Notification response received:', response);
+    });
+  
+    return () => {
+      subscription.remove();
+      responseSubscription.remove();
+    };
+    */
   }, []);
 
   // Function to handle opening date picker
@@ -118,6 +167,58 @@ const AddShoppingListScreen = () => {
     });
   };
 
+  const scheduleNotification = async (shoppingTime: Date) => {
+    try {
+        const now = new Date();
+        
+        // Make sure we're comparing valid dates
+        if (!shoppingTime || isNaN(shoppingTime.getTime())) {
+            console.log("Invalid shopping time provided");
+            return false;
+        }
+        
+        // Calculate time difference in milliseconds, then convert to seconds
+        const timeDiff = Math.max(
+            Math.floor((shoppingTime.getTime() - now.getTime()) / 1000),
+            1 // Ensure at least 1 second in the future
+        );
+        
+        // Add validation to prevent past notifications
+        if (timeDiff <= 0) {
+            console.log("Cannot schedule notification for past time");
+            return false;
+        }
+        
+        // Log the exact time being scheduled
+        console.log("Scheduling notification for:", shoppingTime.toLocaleString());
+        console.log("Current time:", now.toLocaleString());
+        console.log("Time difference in seconds:", timeDiff);
+        
+        // Cancel any existing notifications before scheduling a new one
+        await Notifications.cancelAllScheduledNotificationsAsync();
+        
+        // Schedule the new notification
+        const identifier = await Notifications.scheduleNotificationAsync({
+            content: {
+                title: "Shopping Reminder 🛒",
+                body: `Don't forget to go shopping today! (${shoppingTime.toLocaleTimeString()})`,
+                sound: "default",
+                data: { type: 'shopping_reminder', scheduledFor: shoppingTime.toISOString() }
+            },
+            trigger: {
+                seconds: timeDiff,
+                repeats: false,
+            } as Notifications.TimeIntervalTriggerInput,
+        });
+
+        console.log(`Notification scheduled with ID ${identifier} for:`, shoppingTime.toLocaleString());
+        return true;
+    } catch (error) {
+        console.error("Error scheduling notification:", error);
+        return false;
+    }
+};
+
   // Function to save shopping list after notification confirmation
   const saveShoppingList = async (setNotification: boolean) => {
     const shoppingListData = {
@@ -134,12 +235,14 @@ const AddShoppingListScreen = () => {
     if (docId) {
       console.log("Shopping list created with ID:", docId);
       
-      // If notification is enabled, you would set up the notification here
       if (setNotification && shoppingTime) {
-        // This would be where you'd schedule the notification
-        console.log("Notification scheduled for:", shoppingTime.toLocaleString());
-        // You'd need to implement notification scheduling here
-      }
+        const scheduledSuccessfully = await scheduleNotification(shoppingTime);
+        if (scheduledSuccessfully) {
+            console.log("Notification scheduled for:", shoppingTime.toLocaleString());
+        } else {
+            console.log("Failed to schedule notification");
+        }
+    }
       
       navigation.navigate("ShoppingList");
     } else {
