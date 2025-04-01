@@ -1,3 +1,4 @@
+import { Product } from ".";
 import { StoreLocation } from "../screens/shoppinglist/AddShoppingListScreen";
 
 export type MainTabParamList = {
@@ -46,7 +47,11 @@ export type RootStackParamList = {
   AddRecordModal: {
     handleSave?: () => void;
   };
-  ProductLibrary: undefined;
+  ProductLibrary: {
+    onSelectProduct?: (product: Product) => void;
+    initialSearchText?: string;
+  };
+  AddProduct: undefined;
 };
 
 export type SettingStackParamList = {

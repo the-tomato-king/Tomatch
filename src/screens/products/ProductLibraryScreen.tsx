@@ -1,4 +1,10 @@
-import { StyleSheet, Text, View, FlatList } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import React, { useState } from "react";
 import { PRODUCTS, PRODUCT_CATEGORIES } from "../../data/Product";
 import { colors } from "../../theme/colors";
@@ -6,10 +12,21 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import ProductImage from "../../components/ProductImage";
 import CategoryFilter from "../../components/CategoryFilter";
 import SearchBar from "../../components/SearchBar";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../types/navigation";
+
+type ProductLibraryRouteProp = NativeStackScreenProps<
+  RootStackParamList,
+  "ProductLibrary"
+>["route"];
 
 const ProductLibraryScreen = () => {
+  const navigation = useNavigation();
+  const route = useRoute<ProductLibraryRouteProp>();
+  const initialSearchText = route.params?.initialSearchText || "";
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialSearchText);
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
@@ -21,6 +38,13 @@ const ProductLibraryScreen = () => {
   ).filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleProductSelect = (product: (typeof PRODUCTS)[0]) => {
+    if (route.params?.onSelectProduct) {
+      route.params.onSelectProduct({ ...product, id: product.name });
+    }
+    navigation.goBack();
+  };
 
   return (
     <View style={styles.container}>
@@ -51,16 +75,18 @@ const ProductLibraryScreen = () => {
             data={filteredProducts}
             keyExtractor={(item) => item.name}
             renderItem={({ item }) => (
-              <View style={styles.productItem}>
-                <ProductImage
-                  imageType={item.image_type}
-                  imageSource={item.image_source}
-                />
-                <View style={styles.productInfo}>
-                  <Text style={styles.productName}>{item.name}</Text>
-                  <Text style={styles.productCategory}>{item.category}</Text>
+              <TouchableOpacity onPress={() => handleProductSelect(item)}>
+                <View style={styles.productItem}>
+                  <ProductImage
+                    imageType={item.image_type}
+                    imageSource={item.image_source}
+                  />
+                  <View style={styles.productInfo}>
+                    <Text style={styles.productName}>{item.name}</Text>
+                    <Text style={styles.productCategory}>{item.category}</Text>
+                  </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             )}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
           />
