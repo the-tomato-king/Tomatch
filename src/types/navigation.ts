@@ -43,6 +43,7 @@ export type RootStackParamList = {
   };
   ProductLibrary: {
     onSelectProduct?: (product: Product) => void;
+    initialSearchText?: string;
   };
 };
 

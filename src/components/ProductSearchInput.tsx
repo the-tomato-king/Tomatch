@@ -81,6 +81,7 @@ const ProductSearchInput = ({
                     setShowSuggestions(false);
                     setSuggestions([]);
                   },
+                  initialSearchText: inputValue,
                 });
               }}
             >

@@ -24,8 +24,9 @@ type ProductLibraryRouteProp = NativeStackScreenProps<
 const ProductLibraryScreen = () => {
   const navigation = useNavigation();
   const route = useRoute<ProductLibraryRouteProp>();
+  const initialSearchText = route.params?.initialSearchText || "";
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialSearchText);
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
