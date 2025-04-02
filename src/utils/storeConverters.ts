@@ -5,7 +5,7 @@ export const convertNearbyStoreToUserStore = (
   nearbyStore: NearbyStore
 ): Omit<UserStore, "id"> => {
   return {
-    brand_id: "1",
+    brand_id: "", // TODO: get real brand id
     name: nearbyStore.name,
     address: nearbyStore.address,
     location: {

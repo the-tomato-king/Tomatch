@@ -185,7 +185,7 @@ Sub-Collections under users:
 - [x] Delete: Removed when a user deletes the associated product from their tracking.
 
 1.6 user_stores (Sub-collection): Stores information about stores that users have visited or added.
-- [ ] Create: Users can add new stores manually or when adding price records.
+- [x] Create: Users can add new stores manually or when adding price records.
 - [x] Read: Users can view their list of stores and details about each store.
 - [x] Update: Users can update store information or mark stores as favorites.
 - [x] Delete: Users can remove stores they no longer visit.
@@ -198,7 +198,7 @@ Sub-Collections under users:
 
 1. store_brands (collection): Stores information about retail brands.
 - Create: Only Admins can add new store brands.
-- [ ] Read: Users can view store brand information.
+- [x] Read: Users can view store brand information.
 - Update: Only Admins can update store brand details.
 - Delete: Only Admins can remove outdated or incorrect store brands.
  
