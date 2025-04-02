@@ -7,13 +7,14 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { colors } from "../../theme/colors";
 import StoreCard from "../../components/StoreCard";
 import SearchBar from "../../components/SearchBar";
 import { UserStore, useUserStores } from "../../hooks/useUserStores";
-import { updateDoc, doc } from "firebase/firestore";
+import { updateDoc, doc, setDoc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../../constants/firebase";
 import { useNavigation } from "@react-navigation/native";
@@ -24,6 +25,9 @@ import MapComponent from "../../components/Map";
 import { NearbyStore } from "../../types/location";
 import LocationSelector from "../../components/LocationSelector";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useLocation } from "../../contexts/LocationContext";
+import { convertNearbyStoreToUserStore } from "../../utils/storeConverters";
+import NearbyStoresList from "../../components/NearbyStoresList";
 
 type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
 
@@ -34,43 +38,16 @@ const StoreScreen = () => {
 
   const navigation = useNavigation<StoreScreenNavigationProp>();
   const [selectedStore, setSelectedStore] = useState<NearbyStore | null>(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-  const [userLocation, setUserLocation] = useState<{
-    latitude: number;
-    longitude: number;
-    address: string;
-  } | null>(null);
-  const [nearbyStores, setNearbyStores] = useState<NearbyStore[]>([]);
+  const {
+    userLocation,
+    nearbyStores,
+    isLoadingLocation,
+    setUserLocationAndStores,
+  } = useLocation();
 
   const handleStoreSelect = (store: NearbyStore) => {
     setSelectedStore(store);
     setActiveTab("nearby");
-  };
-
-  const fetchNearbyStores = async (latitude: number, longitude: number) => {
-    const radius = 5000; // 5km
-    const type = "supermarket";
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
-
-    try {
-      let response = await fetch(url);
-      let data = await response.json();
-      if (data.results) {
-        const storeLocations = data.results.map((store: any) => ({
-          name: store.name,
-          coordinate: {
-            latitude: store.geometry.location.lat,
-            longitude: store.geometry.location.lng,
-          },
-          address: store.vicinity,
-          latitude: store.geometry.location.lat,
-          longitude: store.geometry.location.lng,
-        }));
-        setNearbyStores(storeLocations);
-      }
-    } catch (error) {
-      console.error("Error fetching stores:", error);
-    }
   };
 
   const handleLocationSelect = async (location: {
@@ -78,11 +55,26 @@ const StoreScreen = () => {
     longitude: number;
     address: string;
   }) => {
-    setIsLoadingLocation(true);
-    setUserLocation(location);
-    setAddress(location.address);
-    await fetchNearbyStores(location.latitude, location.longitude);
-    setIsLoadingLocation(false);
+    await setUserLocationAndStores(location);
+  };
+
+  const handleFavoriteStore = async (store: NearbyStore) => {
+    const userStore = convertNearbyStoreToUserStore(store);
+    try {
+      // TODO: get current user id
+      const userId = "user123";
+      const storeRef = doc(
+        db,
+        COLLECTIONS.USERS,
+        userId,
+        COLLECTIONS.SUB_COLLECTIONS.USER_STORES
+      );
+      await setDoc(storeRef, userStore);
+      // TODO: add success message
+    } catch (error) {
+      console.error("Error adding store to favorites:", error);
+      Alert.alert("Error", "Failed to add store to favorites");
+    }
   };
 
   return (
@@ -159,7 +151,7 @@ const StoreScreen = () => {
             ) : activeTab === "favorites" ? (
               <FavoritesStoresList stores={favoriteStores} />
             ) : (
-              <NearbyStoresList stores={allStores} />
+              <NearbyStoresList stores={nearbyStores} onFavorite={handleFavoriteStore} />
             )}
           </View>
         </View>
@@ -212,50 +204,50 @@ const FavoritesStoresList = ({ stores }: { stores: UserStore[] }) => {
   );
 };
 
-const NearbyStoresList = ({ stores }: { stores: UserStore[] }) => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
+// const NearbyStoresList = ({ stores }: { stores: UserStore[] }) => {
+//   const navigation =
+//     useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
 
-  const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
-    try {
-      // TODO: get current user id
-      const userId = "user123";
-      const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${id}`;
+//   const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
+//     try {
+//       // TODO: get current user id
+//       const userId = "user123";
+//       const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${id}`;
 
-      // update favorite status
-      await updateDoc(doc(db, storeDocPath), {
-        is_favorite: !currentStatus,
-        updated_at: new Date(),
-      });
-    } catch (error) {
-      console.error("Error toggling favorite:", error);
-    }
-  };
+//       // update favorite status
+//       await updateDoc(doc(db, storeDocPath), {
+//         is_favorite: !currentStatus,
+//         updated_at: new Date(),
+//       });
+//     } catch (error) {
+//       console.error("Error toggling favorite:", error);
+//     }
+//   };
 
-  return stores.length === 0 ? (
-    <Text style={styles.emptyListText}>No stores found nearby</Text>
-  ) : (
-    <FlatList
-      data={stores}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <StoreCard
-          name={item.name}
-          distance={item.distance || "Unknown"}
-          address={item.address}
-          city={item.address.split(",").slice(1).join(",").trim()}
-          isFavorite={item.is_favorite}
-          onToggleFavorite={() =>
-            handleToggleFavorite(item.id, item.is_favorite)
-          }
-          onPress={() =>
-            navigation.navigate("StoreDetail", { storeId: item.id })
-          }
-        />
-      )}
-    />
-  );
-};
+//   return stores.length === 0 ? (
+//     <Text style={styles.emptyListText}>No stores found nearby</Text>
+//   ) : (
+//     <FlatList
+//       data={stores}
+//       keyExtractor={(item) => item.id}
+//       renderItem={({ item }) => (
+//         <StoreCard
+//           name={item.name}
+//           distance={item.distance || "Unknown"}
+//           address={item.address}
+//           city={item.address.split(",").slice(1).join(",").trim()}
+//           isFavorite={item.is_favorite}
+//           onToggleFavorite={() =>
+//             handleToggleFavorite(item.id, item.is_favorite)
+//           }
+//           onPress={() =>
+//             navigation.navigate("StoreDetail", { storeId: item.id })
+//           }
+//         />
+//       )}
+//     />
+//   );
+// };
 
 export default StoreScreen;
 
