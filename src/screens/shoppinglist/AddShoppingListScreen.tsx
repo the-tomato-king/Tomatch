@@ -199,16 +199,20 @@ const AddShoppingListScreen = () => {
         
         // Schedule the new notification
         const identifier = await Notifications.scheduleNotificationAsync({
-            content: {
-                title: "Shopping Reminder 🛒",
-                body: `Don't forget to go shopping today! (${shoppingTime.toLocaleTimeString()})`,
-                sound: "default",
-                data: { type: 'shopping_reminder', scheduledFor: shoppingTime.toISOString() }
+          content: {
+            title: "Shopping Reminder 🛒",
+            body: `Don't forget to go shopping today! (${shoppingTime.toLocaleTimeString()})`,
+            sound: "default",
+            data: {
+              type: "shopping_reminder",
+              scheduledFor: shoppingTime.toISOString(),
             },
-            trigger: {
-                seconds: timeDiff,
-                repeats: false,
-            } as Notifications.TimeIntervalTriggerInput,
+          },
+          trigger: {
+            seconds: timeDiff,
+            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+            repeats: false,
+          } as Notifications.TimeIntervalTriggerInput,
         });
 
         console.log(`Notification scheduled with ID ${identifier} for:`, shoppingTime.toLocaleString());
