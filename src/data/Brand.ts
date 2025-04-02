@@ -15,15 +15,15 @@ export const BRAND_VERSION = {
 // Store logo filenames in Firebase Storage
 export const STORE_LOGOS = {
   SUPERSTORE: "superstore",
-  WALMART: "",
-  COSTCO: "",
-  SAVE_ON_FOODS: "",
-  T_AND_T: "",
-  WHOLE_FOODS: "",
-  NO_FRILLS: "",
-  FRESHCO: "",
-  SHOPPERS: "",
-  LONDON_DRUGS: "",
+  WALMART: "Walmart",
+  COSTCO: "Costco",
+  SAVE_ON_FOODS: "SaveOnFoods",
+  T_AND_T: "T&T",
+  WHOLE_FOODS: "WholeFoodsMarket",
+  NO_FRILLS: "NoFills",
+  FRESHCO: "FreshCo",
+  SHOPPERS: "ShoppersDrugMart",
+  LONDON_DRUGS: "LondonDrugs",
 } as const;
 
 // Common Canadian retail brands data

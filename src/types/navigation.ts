@@ -1,4 +1,4 @@
-import { Product } from ".";
+import { Product, StoreBrand } from ".";
 import { StoreLocation } from "../screens/shoppinglist/AddShoppingListScreen";
 
 export type MainTabParamList = {
@@ -23,6 +23,9 @@ export type StoreStackParamList = {
   StoreScreen: undefined;
   AddStore: undefined;
   StoreDetail: { storeId: string };
+  SelectStoreBrand: {
+    onSelect: (brand: StoreBrand) => void;
+  };
 };
 
 export type ShoppingStackParamList = {

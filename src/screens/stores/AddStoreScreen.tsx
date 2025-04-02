@@ -18,6 +18,7 @@ import { COLLECTIONS } from "../../constants/firebase";
 import { BaseUserStore } from "../../types";
 import SearchBar from "../../components/SearchBar";
 import { useBrands } from "../../hooks/useBrands";
+import { StoreBrand } from "../../types";
 
 type AddStoreScreenNavigationProp =
   NativeStackNavigationProp<StoreStackParamList>;
@@ -28,6 +29,7 @@ const AddStoreScreen = () => {
   const [address, setAddress] = useState("");
   const [addressSearch, setAddressSearch] = useState("");
   const { brands, loading } = useBrands();
+  const [selectedBrand, setSelectedBrand] = useState<StoreBrand | null>(null);
 
   // TODO: get location from user's device, now use a fixed location
   const [location, setLocation] = useState({
@@ -65,7 +67,7 @@ const AddStoreScreen = () => {
 
       // create store data object
       const storeData: BaseUserStore = {
-        brand_id: matchingBrand.id, // 使用找到的品牌 ID
+        brand_id: matchingBrand.id,
         name: storeName.trim(),
         address: address.trim(),
         location: location,
@@ -98,6 +100,15 @@ const AddStoreScreen = () => {
     navigation.goBack();
   };
 
+  const handleSelectBrand = () => {
+    navigation.navigate("SelectStoreBrand", {
+      onSelect: (brand: StoreBrand) => {
+        setSelectedBrand(brand);
+        setStoreName(brand.name);
+      },
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -109,14 +120,16 @@ const AddStoreScreen = () => {
 
             <View style={styles.nameInputContainer}>
               <Text style={styles.inputLabel}>
-                Name<Text style={styles.requiredStar}>*</Text>
+                Brand<Text style={styles.requiredStar}>*</Text>
               </Text>
-              <TextInput
+              <TouchableOpacity
                 style={styles.nameInput}
-                placeholder="Store name (e.g., Costco, Walmart)"
-                value={storeName}
-                onChangeText={setStoreName}
-              />
+                onPress={handleSelectBrand}
+              >
+                <Text>
+                  {selectedBrand ? selectedBrand.name : "Select a store brand"}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
