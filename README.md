@@ -175,20 +175,20 @@ Sub-Collections under users:
 1.4 price_records (Sub-collection): Stores individual price entries for products.
 - [x] Create: Users add price records manually or via OCR from price tags.
 - [x] Read: Users retrieve product price history and price trends.
-- [ ] Update: Users can edit incorrect prices or store information.
-- [ ] Delete: Users can remove outdated or incorrect price records.
+- [x] Update: Users can edit incorrect prices or store information.
+- [x] Delete: Users can remove outdated or incorrect price records.
 
 1.5 user_product_stats (Sub-collection): Stores aggregated statistics for each product a user tracks.
 - [x] Create: Automatically generated when a user adds their first price record for a product.
-- [ ] Read: Users view statistics like average price, lowest price, etc.
+- [x] Read: Users view statistics like average price, lowest price, etc.
 - [x] Update: Automatically updated when new price records are added.
-- [ ] Delete: Removed when a user deletes the associated product from their tracking.
+- [x] Delete: Removed when a user deletes the associated product from their tracking.
 
 1.6 user_stores (Sub-collection): Stores information about stores that users have visited or added.
-- [ ] Create: Users can add new stores manually or when adding price records.
+- [x] Create: Users can add new stores manually or when adding price records.
 - [x] Read: Users can view their list of stores and details about each store.
 - [x] Update: Users can update store information or mark stores as favorites.
-- [ ] Delete: Users can remove stores they no longer visit.
+- [x] Delete: Users can remove stores they no longer visit.
 
 2. products (collection): Global product database.
 - Create: Only Admins can add new product entries.
@@ -198,7 +198,7 @@ Sub-Collections under users:
 
 1. store_brands (collection): Stores information about retail brands.
 - Create: Only Admins can add new store brands.
-- [ ] Read: Users can view store brand information.
+- [x] Read: Users can view store brand information.
 - Update: Only Admins can update store brand details.
 - Delete: Only Admins can remove outdated or incorrect store brands.
  

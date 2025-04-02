@@ -3,25 +3,22 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import MapComponent from "../../components/Map";
-import { LatLng } from "react-native-maps";
 import { ShoppingStackParamList } from "../../types/navigation";
-
-interface Store {
-  name: string;
-  coordinate: LatLng;
-  address: string;
-  latitude: number;
-  longitude: number;
-}
-
+import { useLocation } from "../../contexts/LocationContext";
+import LocationSelector from "../../components/LocationSelector";
+import { NearbyStore } from "../../types/location";
 
 const SupermarketMapScreen = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<ShoppingStackParamList, "SupermarketMap">>();
+  const navigation =
+    useNavigation<
+      NativeStackNavigationProp<ShoppingStackParamList, "SupermarketMap">
+    >();
   const route = useRoute<RouteProp<ShoppingStackParamList, "SupermarketMap">>();
-  
-  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const { userLocation, nearbyStores, isLoadingLocation } = useLocation();
 
-  const handleSelectStore = (store: Store) => {
+  const [selectedStore, setSelectedStore] = useState<NearbyStore | null>(null);
+
+  const handleSelectStore = (store: NearbyStore) => {
     setSelectedStore(store);
   };
 
@@ -36,7 +33,7 @@ const SupermarketMapScreen = () => {
       if (route.params?.onSelectStore) {
         route.params.onSelectStore(storeData);
       }
-      
+
       navigation.goBack();
     } else {
       alert("Please select a store.");
@@ -45,20 +42,31 @@ const SupermarketMapScreen = () => {
 
   return (
     <View style={styles.container}>
-      <MapComponent onStoreSelect={handleSelectStore} />
+      <View style={styles.locationSection}>
+        <LocationSelector
+          address={userLocation?.address || null}
+          isLoading={isLoadingLocation}
+          onLocationSelect={() => {}}
+        />
+      </View>
+      <View style={styles.mapContainer}>
+        <MapComponent
+          onStoreSelect={handleSelectStore}
+          userLocation={userLocation}
+          stores={nearbyStores}
+        />
+      </View>
       {selectedStore && (
         <View style={styles.storeInfoCard}>
           <Text style={styles.cardTitle}>Selected Store:</Text>
           <Text style={styles.storeName}>{selectedStore.name}</Text>
           <Text style={styles.storeAddress}>{selectedStore.address}</Text>
-          <View style={styles.container}>
-            <TouchableOpacity
-              onPress={handleConfirmStore}
-              style={styles.confirmButton}
-            >
-              <Text style={styles.buttonText}>Confirm Selection</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={handleConfirmStore}
+            style={styles.confirmButton}
+          >
+            <Text style={styles.buttonText}>Confirm Selection</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -67,6 +75,15 @@ const SupermarketMapScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  locationSection: {
+    padding: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  mapContainer: {
     flex: 1,
   },
   storeInfoCard: {

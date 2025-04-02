@@ -3,25 +3,29 @@ import React from "react";
 import { colors } from "../theme/colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-export interface StoreItemProps {
+interface StoreCardProps {
   name: string;
   distance: string;
   address: string;
   city: string;
-  isFavorite: boolean;
+  showAddButton?: boolean;
+  onAdd?: () => void;
+  onPress: () => void;
+  isFavorite?: boolean;
   onToggleFavorite?: () => void;
-  onPress?: () => void;
 }
 
-const StoreItem = ({
+const StoreCard: React.FC<StoreCardProps> = ({
   name,
   distance,
   address,
   city,
+  showAddButton,
+  onAdd,
+  onPress,
   isFavorite,
   onToggleFavorite,
-  onPress,
-}: StoreItemProps) => {
+}) => {
   return (
     <TouchableOpacity style={styles.storeItem} onPress={onPress}>
       <View style={styles.storeLogoContainer}>
@@ -37,23 +41,35 @@ const StoreItem = ({
             <Text style={styles.storeAddress}>{address}</Text>
             <Text style={styles.storeCity}>{city}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.favoriteButton}
-            onPress={onToggleFavorite}
-          >
-            <MaterialCommunityIcons
-              name={isFavorite ? "heart" : "heart-outline"}
-              size={24}
-              color={colors.negative}
-            />
-          </TouchableOpacity>
+          {showAddButton !== undefined ? (
+            showAddButton && (
+              <TouchableOpacity style={styles.actionButton} onPress={onAdd}>
+                <MaterialCommunityIcons
+                  name="plus"
+                  size={24}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            )
+          ) : (
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={onToggleFavorite}
+            >
+              <MaterialCommunityIcons
+                name={isFavorite ? "heart" : "heart-outline"}
+                size={24}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </TouchableOpacity>
   );
 };
 
-export default StoreItem;
+export default StoreCard;
 
 const styles = StyleSheet.create({
   storeItem: {
@@ -83,6 +99,7 @@ const styles = StyleSheet.create({
   storeName: {
     fontSize: 18,
     fontWeight: "bold",
+    width: "80%",
   },
   storeDistance: {
     fontSize: 16,
@@ -104,7 +121,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.secondaryText,
   },
-  favoriteButton: {
+  actionButton: {
     padding: 8,
   },
   heartIcon: {

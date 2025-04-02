@@ -7,19 +7,28 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { colors } from "../../theme/colors";
 import StoreCard from "../../components/StoreCard";
 import SearchBar from "../../components/SearchBar";
 import { UserStore, useUserStores } from "../../hooks/useUserStores";
-import { updateDoc, doc } from "firebase/firestore";
+import { updateDoc, doc, setDoc, collection, addDoc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../../constants/firebase";
 import { useNavigation } from "@react-navigation/native";
 import { StoreStackParamList } from "../../types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import MainPageHeader from "../../components/MainPageHeader";
+import MapComponent from "../../components/Map";
+import { NearbyStore } from "../../types/location";
+import LocationSelector from "../../components/LocationSelector";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useLocation } from "../../contexts/LocationContext";
+import { convertNearbyStoreToUserStore } from "../../utils/storeConverters";
+import NearbyStoresList from "../../components/NearbyStoresList";
+import MyStoresList from "../../components/MyStoresList";
 
 type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
 
@@ -29,6 +38,47 @@ const StoreScreen = () => {
   const { favoriteStores, allStores, loading, error } = useUserStores();
 
   const navigation = useNavigation<StoreScreenNavigationProp>();
+  const [selectedStore, setSelectedStore] = useState<NearbyStore | null>(null);
+  const {
+    userLocation,
+    nearbyStores,
+    isLoadingLocation,
+    setUserLocationAndStores,
+  } = useLocation();
+
+  const handleStoreSelect = (store: NearbyStore) => {
+    setSelectedStore(store);
+    setActiveTab("nearby");
+  };
+
+  const handleLocationSelect = async (location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  }) => {
+    await setUserLocationAndStores(location);
+  };
+
+  const handleFavoriteStore = async (store: NearbyStore) => {
+    const userStore = convertNearbyStoreToUserStore(store);
+    try {
+      // TODO: get current user id
+      const userId = "user123";
+      // Create a new document reference with a unique ID
+      const userStoresRef = collection(
+        db,
+        COLLECTIONS.USERS,
+        userId,
+        COLLECTIONS.SUB_COLLECTIONS.USER_STORES
+      );
+
+      await addDoc(userStoresRef, userStore);
+      // TODO: add success message
+    } catch (error) {
+      console.error("Error adding store to favorites:", error);
+      Alert.alert("Error", "Failed to add store to favorites");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -43,14 +93,19 @@ const StoreScreen = () => {
 
         {/* Map Section */}
         <View style={styles.mapSection}>
-          {/* Location Section */}
           <View style={styles.locationSection}>
-            <Text style={styles.locationText}>
-              Current Location: 7395 maple st
-            </Text>
+            <LocationSelector
+              address={userLocation?.address || null}
+              isLoading={isLoadingLocation}
+              onLocationSelect={handleLocationSelect}
+            />
           </View>
           <View style={styles.mapContainer}>
-            <Text>TODO: Implement google map api</Text>
+            <MapComponent
+              onStoreSelect={handleStoreSelect}
+              userLocation={userLocation}
+              stores={nearbyStores}
+            />
           </View>
         </View>
         <View style={styles.storesListSection}>
@@ -97,103 +152,18 @@ const StoreScreen = () => {
             ) : error ? (
               <Text style={styles.errorText}>{error}</Text>
             ) : activeTab === "favorites" ? (
-              <FavoritesStoresList stores={favoriteStores} />
+              <MyStoresList stores={allStores} />
             ) : (
-              <NearbyStoresList stores={allStores} />
+              <NearbyStoresList
+                stores={nearbyStores}
+                onFavorite={handleFavoriteStore}
+                favoriteStores={favoriteStores}
+              />
             )}
           </View>
         </View>
       </View>
     </SafeAreaView>
-  );
-};
-
-// modify to receive store data as a parameter
-const FavoritesStoresList = ({ stores }: { stores: UserStore[] }) => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
-
-  const handleToggleFavorite = async (id: string) => {
-    try {
-      // TODO: get current user id
-      const userId = "user123";
-      const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${id}`;
-
-      // update favorite status
-      await updateDoc(doc(db, storeDocPath), {
-        is_favorite: false,
-        updated_at: new Date(),
-      });
-    } catch (error) {
-      console.error("Error toggling favorite:", error);
-    }
-  };
-
-  return stores.length === 0 ? (
-    <Text style={styles.emptyListText}>No favorite stores yet</Text>
-  ) : (
-    <FlatList
-      data={stores}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <StoreCard
-          name={item.name}
-          distance={item.distance || "Unknown"}
-          address={item.address}
-          city={item.address.split(",").slice(1).join(",").trim()}
-          isFavorite={item.is_favorite}
-          onToggleFavorite={() => handleToggleFavorite(item.id)}
-          onPress={() =>
-            navigation.navigate("StoreDetail", { storeId: item.id })
-          }
-        />
-      )}
-    />
-  );
-};
-
-const NearbyStoresList = ({ stores }: { stores: UserStore[] }) => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
-
-  const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
-    try {
-      // TODO: get current user id
-      const userId = "user123";
-      const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${id}`;
-
-      // update favorite status
-      await updateDoc(doc(db, storeDocPath), {
-        is_favorite: !currentStatus,
-        updated_at: new Date(),
-      });
-    } catch (error) {
-      console.error("Error toggling favorite:", error);
-    }
-  };
-
-  return stores.length === 0 ? (
-    <Text style={styles.emptyListText}>No stores found nearby</Text>
-  ) : (
-    <FlatList
-      data={stores}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <StoreCard
-          name={item.name}
-          distance={item.distance || "Unknown"}
-          address={item.address}
-          city={item.address.split(",").slice(1).join(",").trim()}
-          isFavorite={item.is_favorite}
-          onToggleFavorite={() =>
-            handleToggleFavorite(item.id, item.is_favorite)
-          }
-          onPress={() =>
-            navigation.navigate("StoreDetail", { storeId: item.id })
-          }
-        />
-      )}
-    />
   );
 };
 
@@ -220,8 +190,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   locationSection: {
-    paddingHorizontal: 16,
     paddingBottom: 16,
+    width: "100%",
   },
   locationText: {
     fontSize: 16,
@@ -233,7 +203,8 @@ const styles = StyleSheet.create({
   mapContainer: {
     width: "100%",
     height: 300,
-    backgroundColor: "pink",
+    overflow: "hidden",
+    borderRadius: 10,
   },
   storesListSection: {
     flex: 1,

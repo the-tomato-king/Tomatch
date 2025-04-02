@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   Image,
+  Alert,
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -21,6 +22,7 @@ import {
   getDocs,
   doc,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { StoreStackParamList } from "../../types/navigation";
 import { readOneDoc } from "../../services/firebase/firebaseHelper";
@@ -165,6 +167,35 @@ const StoreDetailScreen = () => {
     }
   };
 
+  const handleDeleteStore = async () => {
+    if (!store) return;
+
+    Alert.alert(
+      "Delete Store",
+      "Are you sure you want to delete this store? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const userId = "user123"; // TODO: get user id from auth
+              const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${storeId}`;
+              
+              await deleteDoc(doc(db, storeDocPath));
+              Alert.alert("Success", "Store deleted successfully");
+              navigation.goBack();
+            } catch (error) {
+              console.error("Error deleting store:", error);
+              Alert.alert("Error", "Failed to delete the store. Please try again.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -191,16 +222,28 @@ const StoreDetailScreen = () => {
           <MaterialCommunityIcons name="chevron-left" size={30} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Store Details</Text>
-        <TouchableOpacity
-          style={styles.favoriteButton}
-          onPress={handleToggleFavorite}
-        >
-          <MaterialCommunityIcons
-            name={store.is_favorite ? "heart" : "heart-outline"}
-            size={30}
-            color={colors.negative}
-          />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={handleToggleFavorite}
+          >
+            <MaterialCommunityIcons
+              name={store.is_favorite ? "heart" : "heart-outline"}
+              size={30}
+              color={colors.negative}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDeleteStore}
+          >
+            <MaterialCommunityIcons
+              name="delete-outline"
+              size={30}
+              color={colors.negative}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.storeInfoCard}>
@@ -271,8 +314,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   favoriteButton: {
     padding: 8,
+  },
+  deleteButton: {
+    padding: 8,
+    marginLeft: 8,
   },
   storeInfoCard: {
     flexDirection: "row",
