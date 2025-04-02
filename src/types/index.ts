@@ -44,6 +44,7 @@ export interface BaseUserStore {
   last_visited: Date;
   created_at: Date;
   updated_at: Date;
+  is_inactive: boolean;
 }
 
 export interface UserStore extends BaseUserStore {

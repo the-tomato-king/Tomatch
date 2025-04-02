@@ -19,6 +19,7 @@ import { BaseUserStore } from "../../types";
 import SearchBar from "../../components/SearchBar";
 import { useBrands } from "../../hooks/useBrands";
 import { StoreBrand } from "../../types";
+import StoreLogo from "../../components/StoreLogo";
 
 type AddStoreScreenNavigationProp =
   NativeStackNavigationProp<StoreStackParamList>;
@@ -26,6 +27,7 @@ type AddStoreScreenNavigationProp =
 const AddStoreScreen = () => {
   const navigation = useNavigation<AddStoreScreenNavigationProp>();
   const [storeName, setStoreName] = useState("");
+  const [customStoreName, setCustomStoreName] = useState("");
   const [address, setAddress] = useState("");
   const [addressSearch, setAddressSearch] = useState("");
   const { brands, loading } = useBrands();
@@ -44,7 +46,12 @@ const AddStoreScreen = () => {
 
   const handleSaveStore = async () => {
     // validate input
-    if (!storeName.trim()) {
+    if (!selectedBrand) {
+      Alert.alert("Error", "Please select a store brand");
+      return;
+    }
+
+    if (!customStoreName.trim()) {
       Alert.alert("Error", "Please enter a store name");
       return;
     }
@@ -55,26 +62,17 @@ const AddStoreScreen = () => {
     }
 
     try {
-      // 查找匹配的品牌
-      const matchingBrand = brands.find(
-        (brand) => brand.name.toLowerCase() === storeName.trim().toLowerCase()
-      );
-
-      if (!matchingBrand) {
-        Alert.alert("Error", "Please enter a valid store brand name");
-        return;
-      }
-
       // create store data object
       const storeData: BaseUserStore = {
-        brand_id: matchingBrand.id,
-        name: storeName.trim(),
+        brand_id: selectedBrand.id,
+        name: customStoreName.trim(),
         address: address.trim(),
         location: location,
         is_favorite: false,
         last_visited: new Date(),
         created_at: new Date(),
         updated_at: new Date(),
+        is_inactive: false,
       };
 
       // TODO: get current user id, now use a fixed user id
@@ -100,11 +98,21 @@ const AddStoreScreen = () => {
     navigation.goBack();
   };
 
+  const generateDefaultStoreName = (brandName: string, address: string) => {
+    const shortAddress = address.split(",")[0];
+    return `${brandName} - ${shortAddress}`;
+  };
+
   const handleSelectBrand = () => {
     navigation.navigate("SelectStoreBrand", {
       onSelect: (brand: StoreBrand) => {
         setSelectedBrand(brand);
+        const defaultName = generateDefaultStoreName(
+          brand.name,
+          address || "New Store"
+        );
         setStoreName(brand.name);
+        setCustomStoreName(defaultName);
       },
     });
   };
@@ -114,22 +122,29 @@ const AddStoreScreen = () => {
       <ScrollView>
         <View style={styles.formContainer}>
           <View style={styles.headerSection}>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>Logo</Text>
-            </View>
+            <TouchableOpacity
+              style={styles.logoContainer}
+              onPress={handleSelectBrand}
+            >
+              {selectedBrand ? (
+                <StoreLogo brand={selectedBrand.logo} width={80} height={80} />
+              ) : (
+                <View style={styles.emptyLogoContainer}>
+                  <Text style={styles.logoText}>Select Brand</Text>
+                </View>
+              )}
+            </TouchableOpacity>
 
             <View style={styles.nameInputContainer}>
               <Text style={styles.inputLabel}>
-                Brand<Text style={styles.requiredStar}>*</Text>
+                Store Name<Text style={styles.requiredStar}>*</Text>
               </Text>
-              <TouchableOpacity
+              <TextInput
                 style={styles.nameInput}
-                onPress={handleSelectBrand}
-              >
-                <Text>
-                  {selectedBrand ? selectedBrand.name : "Select a store brand"}
-                </Text>
-              </TouchableOpacity>
+                value={customStoreName}
+                onChangeText={setCustomStoreName}
+                placeholder="Enter store name"
+              />
             </View>
           </View>
 
@@ -186,15 +201,26 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    borderWidth: 1,
-    borderColor: "#000",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 15,
     backgroundColor: "#fff",
   },
+  emptyLogoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#F5F5F5",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderStyle: "dashed",
+  },
   logoText: {
-    fontSize: 16,
+    fontSize: 12,
+    color: "#757575",
+    textAlign: "center",
   },
   nameInputContainer: {
     flex: 1,
@@ -207,8 +233,6 @@ const styles = StyleSheet.create({
     color: "red",
   },
   nameInput: {
-    borderWidth: 1,
-    borderColor: "#000",
     borderRadius: 5,
     padding: 10,
     backgroundColor: "#fff",
