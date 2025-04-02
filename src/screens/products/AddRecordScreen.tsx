@@ -327,7 +327,6 @@ const AddRecordScreen = () => {
         );
 
         if (success) {
-          Alert.alert("Success", "Record updated successfully");
           navigation.goBack();
         } else {
           Alert.alert("Error", "Failed to update record");

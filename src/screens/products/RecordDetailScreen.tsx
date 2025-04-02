@@ -59,7 +59,6 @@ const PriceRecordInformationScreen = () => {
           setRecord(recordData);
           setLoading(false);
         } else {
-          alert("Record not found");
           setLoading(false);
         }
       },
@@ -268,6 +267,7 @@ const PriceRecordInformationScreen = () => {
                 const success = await deleteOneDocFromDB(recordPath, recordId);
 
                 if (success) {
+                  Alert.alert("Success", "Record deleted successfully");
                   navigation.goBack();
                 } else {
                   Alert.alert(
