@@ -2,14 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import MapView, { Marker, Region, LatLng, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { Store } from '../types';
 
-interface Store {
-  name: string;
-  coordinate: LatLng;
-  address: string;
-  latitude: number;
-  longitude: number;
-}
 
 interface MapComponentProps {
   onStoreSelect: (store: Store) => void; 

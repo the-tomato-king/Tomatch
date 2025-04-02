@@ -20,6 +20,10 @@ import { useNavigation } from "@react-navigation/native";
 import { StoreStackParamList } from "../../types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import MainPageHeader from "../../components/MainPageHeader";
+import MapComponent from "../../components/Map";
+import { Store } from "../../types";
+import LocationSelector from "../../components/LocationSelector";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
 
@@ -29,6 +33,28 @@ const StoreScreen = () => {
   const { favoriteStores, allStores, loading, error } = useUserStores();
 
   const navigation = useNavigation<StoreScreenNavigationProp>();
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+    address: string;
+  } | null>(null);
+
+  const handleStoreSelect = (store: Store) => {
+    setSelectedStore(store);
+    setActiveTab("nearby");
+  };
+
+  const handleLocationSelect = (location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  }) => {
+    setUserLocation(location);
+    setAddress(location.address);
+    // TODO: trigger logic to get nearby stores
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -43,14 +69,15 @@ const StoreScreen = () => {
 
         {/* Map Section */}
         <View style={styles.mapSection}>
-          {/* Location Section */}
           <View style={styles.locationSection}>
-            <Text style={styles.locationText}>
-              Current Location: 7395 maple st
-            </Text>
+            <LocationSelector
+              address={userLocation?.address || null}
+              isLoading={isLoadingLocation}
+              onLocationSelect={handleLocationSelect}
+            />
           </View>
           <View style={styles.mapContainer}>
-            <Text>TODO: Implement google map api</Text>
+            <MapComponent onStoreSelect={handleStoreSelect} />
           </View>
         </View>
         <View style={styles.storesListSection}>
@@ -220,8 +247,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   locationSection: {
-    paddingHorizontal: 16,
     paddingBottom: 16,
+    width: "100%",
   },
   locationText: {
     fontSize: 16,
@@ -233,7 +260,8 @@ const styles = StyleSheet.create({
   mapContainer: {
     width: "100%",
     height: 300,
-    backgroundColor: "pink",
+    overflow: "hidden",
+    borderRadius: 10,
   },
   storesListSection: {
     flex: 1,

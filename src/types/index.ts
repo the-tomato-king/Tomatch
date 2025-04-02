@@ -1,5 +1,7 @@
 // User
 
+import { LatLng } from "react-native-maps";
+
 export interface BaseUser {
   name: string;
   email: string;
@@ -152,4 +154,12 @@ export interface BaseStoreBrand {
 
 export interface StoreBrand extends BaseStoreBrand {
   id: string;
+}
+
+export interface Store {
+  name: string;
+  coordinate: LatLng;
+  address: string;
+  latitude: number;
+  longitude: number;
 }
