@@ -155,11 +155,3 @@ export interface BaseStoreBrand {
 export interface StoreBrand extends BaseStoreBrand {
   id: string;
 }
-
-export interface Store {
-  name: string;
-  coordinate: LatLng;
-  address: string;
-  latitude: number;
-  longitude: number;
-}

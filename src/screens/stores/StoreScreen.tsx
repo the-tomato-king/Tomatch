@@ -21,7 +21,7 @@ import { StoreStackParamList } from "../../types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import MainPageHeader from "../../components/MainPageHeader";
 import MapComponent from "../../components/Map";
-import { Store } from "../../types";
+import { NearbyStore } from "../../types/location";
 import LocationSelector from "../../components/LocationSelector";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -33,27 +33,56 @@ const StoreScreen = () => {
   const { favoriteStores, allStores, loading, error } = useUserStores();
 
   const navigation = useNavigation<StoreScreenNavigationProp>();
-  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [selectedStore, setSelectedStore] = useState<NearbyStore | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
     address: string;
   } | null>(null);
+  const [nearbyStores, setNearbyStores] = useState<NearbyStore[]>([]);
 
-  const handleStoreSelect = (store: Store) => {
+  const handleStoreSelect = (store: NearbyStore) => {
     setSelectedStore(store);
     setActiveTab("nearby");
   };
 
-  const handleLocationSelect = (location: {
+  const fetchNearbyStores = async (latitude: number, longitude: number) => {
+    const radius = 5000; // 5km
+    const type = "supermarket";
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+
+    try {
+      let response = await fetch(url);
+      let data = await response.json();
+      if (data.results) {
+        const storeLocations = data.results.map((store: any) => ({
+          name: store.name,
+          coordinate: {
+            latitude: store.geometry.location.lat,
+            longitude: store.geometry.location.lng,
+          },
+          address: store.vicinity,
+          latitude: store.geometry.location.lat,
+          longitude: store.geometry.location.lng,
+        }));
+        setNearbyStores(storeLocations);
+      }
+    } catch (error) {
+      console.error("Error fetching stores:", error);
+    }
+  };
+
+  const handleLocationSelect = async (location: {
     latitude: number;
     longitude: number;
     address: string;
   }) => {
+    setIsLoadingLocation(true);
     setUserLocation(location);
     setAddress(location.address);
-    // TODO: trigger logic to get nearby stores
+    await fetchNearbyStores(location.latitude, location.longitude);
+    setIsLoadingLocation(false);
   };
 
   return (
@@ -77,7 +106,11 @@ const StoreScreen = () => {
             />
           </View>
           <View style={styles.mapContainer}>
-            <MapComponent onStoreSelect={handleStoreSelect} />
+            <MapComponent
+              onStoreSelect={handleStoreSelect}
+              userLocation={userLocation}
+              stores={nearbyStores}
+            />
           </View>
         </View>
         <View style={styles.storesListSection}>

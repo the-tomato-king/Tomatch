@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { colors } from "../theme/colors";
+import { useLocation } from "../contexts/LocationContext";
 
 interface LocationSelectorProps {
   address: string | null;
@@ -19,6 +20,8 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
   isLoading,
   onLocationSelect,
 }) => {
+  const { setUserLocationAndStores } = useLocation();
+
   const getCurrentLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -41,11 +44,14 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
 
       const formattedAddress = `${addressResult.street}, ${addressResult.city}`;
 
-      onLocationSelect({
+      const locationData = {
         latitude,
         longitude,
         address: formattedAddress,
-      });
+      };
+
+      await setUserLocationAndStores(locationData);
+      onLocationSelect(locationData);
     } catch (error) {
       console.error("Error getting location:", error);
       Alert.alert("Error", "Failed to get your location");
