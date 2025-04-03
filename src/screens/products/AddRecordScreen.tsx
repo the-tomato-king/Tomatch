@@ -54,6 +54,7 @@ import StoreSearchInput from "../../components/StoreSearchInput";
 import LoadingLogo from "../../components/LoadingLogo";
 import { uploadImage } from "../../services/firebase/storageHelper";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";
+import AILoadingScreen from "../../components/AILoadingScreen";
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
@@ -89,6 +90,8 @@ const AddRecordScreen = () => {
       value: unit,
     }))
   );
+
+  const [isAILoading, setIsAILoading] = useState(false);
 
   // fetch record data if in edit mode
   useEffect(() => {
@@ -181,9 +184,8 @@ const AddRecordScreen = () => {
       if (!result.canceled && result.assets[0]) {
         setImage(result.assets[0].uri);
 
-        // Test OpenAI API
         try {
-          setLoading(true);
+          setIsAILoading(true);
 
           const receiptData = await analyzeReceiptImage(
             result.assets[0].base64 || ""
@@ -216,7 +218,7 @@ const AddRecordScreen = () => {
             "Failed to analyze receipt image. Check console for details."
           );
         } finally {
-          setLoading(false);
+          setIsAILoading(false);
         }
       }
     } catch (error) {
@@ -471,6 +473,10 @@ const AddRecordScreen = () => {
 
   if (loading) {
     return <LoadingLogo />;
+  }
+
+  if (!isAILoading) {
+    return <AILoadingScreen />;
   }
 
   return (

@@ -269,15 +269,6 @@ Sub-Collections under users:
 </tr>
 </table>
 
-#### Stores and Settings
-
-<table>
-<tr>
-<td width="33%"><img src="https://github.com/user-attachments/assets/0b723089-569d-4f5c-bc7c-dbb0a82c879a" alt="Store List" width="100%"/><br><em>Store List</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/2e946bac-04f0-4aa8-b897-6d960fb5de1a" alt="Store Details" width="100%"/><br><em>Add Store</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/1d261652-40b9-4f01-aac9-f4a894537e87" alt="Product Library" width="100%"/><br><em>Store Details</em></td>
-</tr>
-</table>
 
 #### Setttings
 
@@ -290,34 +281,64 @@ Sub-Collections under users:
 
 ### Iteration 2
 
-#### Camera & OpenAI API
+#### Camera
+
+- Implemented using expo-image-picker
+- Users can snap a photo or choose from library
+- Photo preview and retake functionality
+
 
 <table>
 <tr>
 <td width="33%"><img src="https://github.com/user-attachments/assets/3f32d464-93d8-4b46-9857-182c303b15fe" width="100%"/><br><em>Click to take photo</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/9512e801-ffa4-4db6-a6c7-3c3d1e87e303" width="100%"/><br><em>Add Store</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/3d09a638-5b6b-4d97-87a7-7659cbd75b8c" width="100%"/><br><em>Store Details</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/9512e801-ffa4-4db6-a6c7-3c3d1e87e303" width="100%"/><br><em>Camera</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/e6bca368-34cc-4e08-bbc3-6a06e22b304d" width="100%"/><br><em>Library</em></td>
 </tr>
 </table>
 
-#### Notification
+#### OpenAI API
+
+- OpenAI API: Implemented for price tag text recognition
+
+<table>
+<tr>
+<td width="50%"><img src="https://github.com/user-attachments/assets/66f336f5-0cb5-4537-9cc5-d59a5788647c" width="100%"/><br><em>AI is Analyzing</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/3d09a638-5b6b-4d97-87a7-7659cbd75b8c" alt="Set Location" width="100%"/><br><em>AI Auto Fill</em></td>
+</tr>
+</table>
 
 #### Location
+
+- Integrated Google Maps API
+- Store location detection and mapping
+- User location-based store suggestions
+
+<table>
+<tr>
+<td width="50%"><img src="https://github.com/user-attachments/assets/16b1424f-77df-4355-8ff6-7ebea0f44bb3" alt="Set Notification" width="100%"/><br><em>Store Screen</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/0b095b5d-bf6d-465a-a498-7a1c28e8f5e8" width="100%"/><br><em>Select Store in Shopping List</em></td>
+</tr>
+</table>
+
+### Iteration 3
+
+#### Push Notifications
+
+- Shopping reminder notifications
+- Customizable notification timing
+- Platform-specific implementation (iOS/Android)
 
 <table>
 <tr>
 <td width="50%"><img src="https://github.com/user-attachments/assets/b85ff64e-865f-4318-a789-43fda78c4c2c" alt="Set Notification" width="100%"/><br><em>Set Notification (iOS)</em></td>
-<td width="50%"><img src="https://github.com/user-attachments/assets/0b095b5d-bf6d-465a-a498-7a1c28e8f5e8" alt="Set Location" width="100%"/><br><em>Set Location (iOS)</em></td>
+<td width="50%"><img src="" alt="Set Location" width="100%"/><br><em>Set Location (iOS)</em></td>
 </tr>
 </table>
-
-#### 
-
 
 ## Development Guide
 
 ### Setup
 1. Clone the repository
-2. Install dependencies: `npm install` or `yarn install`
+2. Install dependencies: `npm install`
 3. Create a `.env` file in the root directory with the required environment variables
-4. Start the development server: `npm start` or `yarn start`
+4. Start the development server: `npx expo start`
