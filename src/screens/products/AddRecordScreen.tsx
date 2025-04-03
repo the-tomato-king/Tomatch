@@ -475,7 +475,7 @@ const AddRecordScreen = () => {
     return <LoadingLogo />;
   }
 
-  if (!isAILoading) {
+  if (isAILoading) {
     return <AILoadingScreen />;
   }
 

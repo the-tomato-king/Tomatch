@@ -2,17 +2,20 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
 import { colors } from "../theme/colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import StoreLogo from "./StoreLogo";
+import { StoreBrand } from "../types";
 
 interface StoreCardProps {
   name: string;
-  distance: string;
+  distance: string | null;
   address: string;
   city: string;
   showAddButton?: boolean;
   onAdd?: () => void;
   onPress: () => void;
-  isFavorite?: boolean;
-  onToggleFavorite?: () => void;
+  isFavorite: boolean;
+  brand?: StoreBrand | null;
+  onToggleFavorite: () => void;
 }
 
 const StoreCard: React.FC<StoreCardProps> = ({
@@ -24,17 +27,22 @@ const StoreCard: React.FC<StoreCardProps> = ({
   onAdd,
   onPress,
   isFavorite,
+  brand,
   onToggleFavorite,
 }) => {
   return (
     <TouchableOpacity style={styles.storeItem} onPress={onPress}>
       <View style={styles.storeLogoContainer}>
-        <View style={styles.storeLogo}></View>
+        {brand ? (
+          <StoreLogo brand={brand.logo} width={80} height={80} />
+        ) : (
+          <View style={styles.storeLogo}></View>
+        )}
       </View>
       <View style={styles.storeInfo}>
         <View style={styles.storeHeader}>
           <Text style={styles.storeName}>{name}</Text>
-          <Text style={styles.storeDistance}>{distance}</Text>
+          {distance && <Text style={styles.storeDistance}>{distance}</Text>}
         </View>
         <View style={styles.storeUpperContainer}>
           <View style={styles.storeAddressContainer}>

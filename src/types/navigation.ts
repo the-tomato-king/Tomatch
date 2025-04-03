@@ -21,8 +21,8 @@ export type HomeStackParamList = {
 
 export type StoreStackParamList = {
   StoreScreen: undefined;
-  AddStore: undefined;
   StoreDetail: { storeId: string };
+  EditStore: { storeId: string };
   SelectStoreBrand: {
     onSelect: (brand: StoreBrand) => void;
   };

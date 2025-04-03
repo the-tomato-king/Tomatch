@@ -28,8 +28,12 @@ import { StoreStackParamList } from "../../types/navigation";
 import { readOneDoc } from "../../services/firebase/firebaseHelper";
 import { UserStore } from "../../hooks/useUserStores";
 import { UserProduct, Product } from "../../types";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import StoreLogo from "../../components/StoreLogo";
+import { StoreBrand } from "../../types";
 
 type StoreDetailRouteProp = RouteProp<StoreStackParamList, "StoreDetail">;
+type StoreDetailNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
 
 interface PriceRecord {
   id: string;
@@ -46,10 +50,11 @@ interface PriceRecord {
 
 const StoreDetailScreen = () => {
   const route = useRoute<StoreDetailRouteProp>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<StoreDetailNavigationProp>();
   const { storeId } = route.params;
 
   const [store, setStore] = useState<UserStore | null>(null);
+  const [brand, setBrand] = useState<StoreBrand | null>(null);
   const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,13 +62,23 @@ const StoreDetailScreen = () => {
   useEffect(() => {
     const fetchStoreDetails = async () => {
       try {
-        // TODO: get user id from auth
         const userId = "user123";
         const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
 
         const storeData = await readOneDoc<UserStore>(storeDocPath, storeId);
         if (storeData) {
           setStore(storeData);
+
+          if (storeData.brand_id) {
+            const brandPath = `${COLLECTIONS.STORE_BRANDS}`;
+            const brandData = await readOneDoc<StoreBrand>(
+              brandPath,
+              storeData.brand_id
+            );
+            if (brandData) {
+              setBrand(brandData);
+            }
+          }
         } else {
           setError("Store not found");
         }
@@ -182,13 +197,16 @@ const StoreDetailScreen = () => {
             try {
               const userId = "user123"; // TODO: get user id from auth
               const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${storeId}`;
-              
+
               await deleteDoc(doc(db, storeDocPath));
               Alert.alert("Success", "Store deleted successfully");
               navigation.goBack();
             } catch (error) {
               console.error("Error deleting store:", error);
-              Alert.alert("Error", "Failed to delete the store. Please try again.");
+              Alert.alert(
+                "Error",
+                "Failed to delete the store. Please try again."
+              );
             }
           },
         },
@@ -234,6 +252,18 @@ const StoreDetailScreen = () => {
             />
           </TouchableOpacity>
           <TouchableOpacity
+            style={styles.editButton}
+            onPress={() =>
+              navigation.navigate("EditStore", { storeId: storeId })
+            }
+          >
+            <MaterialCommunityIcons
+              name="pencil"
+              size={30}
+              color={colors.primary}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.deleteButton}
             onPress={handleDeleteStore}
           >
@@ -248,7 +278,11 @@ const StoreDetailScreen = () => {
 
       <View style={styles.storeInfoCard}>
         <View style={styles.storeLogoContainer}>
-          <View style={styles.storeLogo}></View>
+          {brand ? (
+            <StoreLogo brand={brand.logo} width={80} height={80} />
+          ) : (
+            <View style={styles.storeLogo}></View>
+          )}
         </View>
         <View style={styles.storeDetails}>
           <Text style={styles.storeName}>{store.name}</Text>
@@ -315,11 +349,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   favoriteButton: {
     padding: 8,
+  },
+  editButton: {
+    padding: 8,
+    marginLeft: 8,
   },
   deleteButton: {
     padding: 8,
@@ -332,15 +370,20 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.lightGray2,
   },
   storeLogoContainer: {
-    marginRight: 16,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+    backgroundColor: "#fff",
+    overflow: "hidden",
   },
   storeLogo: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#f0f0f0",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "#F5F5F5",
   },
   storeDetails: {
     flex: 1,

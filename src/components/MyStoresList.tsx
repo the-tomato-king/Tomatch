@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FlatList, Text } from "react-native";
 import { UserStore } from "../hooks/useUserStores";
 import StoreCard from "./StoreCard";
@@ -10,6 +10,12 @@ import { db } from "../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../constants/firebase";
 import { useLocation } from "../contexts/LocationContext";
 import { calculateDistance, formatDistance } from "../utils/distance";
+import { StoreBrand } from "../types";
+import { readOneDoc } from "../services/firebase/firebaseHelper";
+
+interface StoreWithBrand extends UserStore {
+  brand?: StoreBrand | null;
+}
 
 interface MyStoresListProps {
   stores: UserStore[];
@@ -19,6 +25,36 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
   const { userLocation } = useLocation();
+  const [storesWithBrands, setStoresWithBrands] = useState<StoreWithBrand[]>(
+    []
+  );
+
+  useEffect(() => {
+    const fetchBrandsForStores = async () => {
+      const storesWithBrandPromises = stores.map(async (store) => {
+        if (store.brand_id) {
+          const brandPath = `${COLLECTIONS.STORE_BRANDS}`;
+          const brandData = await readOneDoc<StoreBrand>(
+            brandPath,
+            store.brand_id
+          );
+          return {
+            ...store,
+            brand: brandData || null,
+          };
+        }
+        return {
+          ...store,
+          brand: null,
+        };
+      });
+
+      const results = await Promise.all(storesWithBrandPromises);
+      setStoresWithBrands(results);
+    };
+
+    fetchBrandsForStores();
+  }, [stores]);
 
   const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
     try {
@@ -34,8 +70,8 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
     }
   };
 
-  const getDistance = (store: UserStore): string => {
-    if (!userLocation || !store.location) return "Unknown";
+  const getDistance = (store: UserStore): string | null => {
+    if (!userLocation || !store.location) return null;
 
     const distance = calculateDistance(
       userLocation.latitude,
@@ -53,7 +89,7 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
     </Text>
   ) : (
     <FlatList
-      data={stores}
+      data={storesWithBrands}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <StoreCard
@@ -62,6 +98,7 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
           address={item.address}
           city={item.address.split(",").slice(1).join(",").trim()}
           isFavorite={item.is_favorite}
+          brand={item.brand}
           onToggleFavorite={() =>
             handleToggleFavorite(item.id, item.is_favorite)
           }

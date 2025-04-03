@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import StoreScreen from "../screens/stores/StoreScreen";
-import AddStoreScreen from "../screens/stores/AddStoreScreen";
+import AddStoreScreen from "../screens/stores/EditStoreScreen";
 import StoreDetailScreen from "../screens/stores/StoreDetailScreen";
 import SelectStoreBrandScreen from "../screens/stores/SelectStoreBrandScreen";
 import { StoreStackParamList } from "../types/navigation";
@@ -15,20 +15,17 @@ const StoreStack = () => {
       <Stack.Screen
         name="StoreScreen"
         component={StoreScreen}
-        options={({ navigation }) => ({
+        options={{
           headerShown: true,
           title: "Stores",
-          headerRight: () => (
-            <HeaderAddButton onPress={() => navigation.navigate("AddStore")} />
-          ),
-        })}
+        }}
       />
       <Stack.Screen
-        name="AddStore"
+        name="EditStore"
         component={AddStoreScreen}
         options={{
           headerShown: true,
-          title: "Add New Store",
+          title: "Edit Store",
           headerLeft: () => <BackButton />,
         }}
       />

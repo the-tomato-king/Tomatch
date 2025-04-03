@@ -26,8 +26,8 @@ const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
     );
   };
 
-  const getDistance = (store: NearbyStore): string => {
-    if (!userLocation) return "Unknown";
+  const getDistance = (store: NearbyStore): string | null => {
+    if (!userLocation) return null;
 
     const distance = calculateDistance(
       userLocation.latitude,
@@ -54,6 +54,8 @@ const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
             showAddButton={!added}
             onAdd={() => onFavorite(store)}
             onPress={() => {}}
+            isFavorite={false}
+            onToggleFavorite={() => {}}
           />
         );
       }}

@@ -8,30 +8,47 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { globalStyles } from "../../theme/styles";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StoreStackParamList } from "../../types/navigation";
-import { createDoc } from "../../services/firebase/firebaseHelper";
+import {
+  createDoc,
+  updateOneDocInDB,
+  readOneDoc,
+} from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
-import { BaseUserStore } from "../../types";
+import { BaseUserStore, UserStore } from "../../types";
 import SearchBar from "../../components/SearchBar";
 import { useBrands } from "../../hooks/useBrands";
 import { StoreBrand } from "../../types";
 import StoreLogo from "../../components/StoreLogo";
+import MapComponent from "../../components/Map";
+import { NearbyStore } from "../../types/location";
+import LocationSelector from "../../components/LocationSelector";
+import { colors } from "../../theme/colors";
 
 type AddStoreScreenNavigationProp =
   NativeStackNavigationProp<StoreStackParamList>;
 
-const AddStoreScreen = () => {
+type EditStoreScreenRouteProp = RouteProp<StoreStackParamList, "EditStore">;
+
+const EditStoreScreen = () => {
   const navigation = useNavigation<AddStoreScreenNavigationProp>();
-  const [storeName, setStoreName] = useState("");
+  const route = useRoute<EditStoreScreenRouteProp>();
+  const { storeId } = route.params;
+
+  const [loading, setLoading] = useState(true);
   const [customStoreName, setCustomStoreName] = useState("");
   const [address, setAddress] = useState("");
   const [addressSearch, setAddressSearch] = useState("");
-  const { brands, loading } = useBrands();
+  const { brands, loading: brandsLoading } = useBrands();
+  const [brandId, setBrandId] = useState<string | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<StoreBrand | null>(null);
+  const [selectedMapStore, setSelectedMapStore] = useState<NearbyStore | null>(
+    null
+  );
 
   // TODO: get location from user's device, now use a fixed location
   const [location, setLocation] = useState({
@@ -39,13 +56,48 @@ const AddStoreScreen = () => {
     longitude: -123.1207,
   });
 
+  // load existing store data
+  useEffect(() => {
+    const fetchStoreDetails = async () => {
+      try {
+        const userId = "user123"; // TODO: get from auth
+        const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
+
+        const storeData = await readOneDoc<UserStore>(storePath, storeId);
+        if (storeData) {
+          setBrandId(storeData.brand_id);
+          setCustomStoreName(storeData.name);
+          setAddress(storeData.address);
+          setLocation(storeData.location);
+
+          if (storeData.brand_id) {
+            const brandPath = COLLECTIONS.STORE_BRANDS;
+            const brandData = await readOneDoc<StoreBrand>(
+              brandPath,
+              storeData.brand_id
+            );
+            if (brandData) {
+              setSelectedBrand(brandData);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching store details:", error);
+        Alert.alert("Error", "Failed to load store details");
+      }
+    };
+
+    if (storeId) {
+      fetchStoreDetails();
+    }
+  }, [storeId]);
+
   const searchAddress = (query: string) => {
     // TODO: access google map api to search address, now treat it as a text input
     setAddress(query);
   };
 
   const handleSaveStore = async () => {
-    // validate input
     if (!selectedBrand) {
       Alert.alert("Error", "Please select a store brand");
       return;
@@ -62,35 +114,29 @@ const AddStoreScreen = () => {
     }
 
     try {
-      // create store data object
-      const storeData: BaseUserStore = {
-        brand_id: selectedBrand.id,
+      const userId = "user123"; // TODO: get from auth
+      const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
+
+      const updateData = {
+        brand_id: selectedBrand?.id || brandId,
         name: customStoreName.trim(),
         address: address.trim(),
         location: location,
-        is_favorite: false,
-        last_visited: new Date(),
-        created_at: new Date(),
         updated_at: new Date(),
-        is_inactive: false,
       };
 
-      // TODO: get current user id, now use a fixed user id
-      const userId = "user123";
-      const userStorePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
+      const success = await updateOneDocInDB(storePath, storeId, updateData);
 
-      const docId = await createDoc(userStorePath, storeData);
-
-      if (docId) {
-        Alert.alert("Success", "Store information saved", [
+      if (success) {
+        Alert.alert("Success", "Store information updated", [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
       } else {
-        Alert.alert("Error", "Failed to save, please try again");
+        Alert.alert("Error", "Failed to update, please try again");
       }
     } catch (error) {
-      console.error("Error saving store:", error);
-      Alert.alert("Error", "Failed to save, please try again");
+      console.error("Error updating store:", error);
+      Alert.alert("Error", "Failed to update, please try again");
     }
   };
 
@@ -107,14 +153,29 @@ const AddStoreScreen = () => {
     navigation.navigate("SelectStoreBrand", {
       onSelect: (brand: StoreBrand) => {
         setSelectedBrand(brand);
-        const defaultName = generateDefaultStoreName(
-          brand.name,
-          address || "New Store"
-        );
-        setStoreName(brand.name);
-        setCustomStoreName(defaultName);
       },
     });
+  };
+
+  const handleStoreSelect = (store: NearbyStore) => {
+    setSelectedMapStore(store);
+    setAddress(store.address);
+    setLocation({
+      latitude: store.coordinate.latitude,
+      longitude: store.coordinate.longitude,
+    });
+  };
+
+  const handleLocationSelect = async (location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  }) => {
+    setLocation({
+      latitude: location.latitude,
+      longitude: location.longitude,
+    });
+    setAddress(location.address);
   };
 
   return (
@@ -150,14 +211,19 @@ const AddStoreScreen = () => {
 
           <Text style={styles.sectionTitle}>Location</Text>
           <View style={styles.locationSection}>
-            <View style={styles.mapPlaceholder}>
-              <Text>Google Map (TODO)</Text>
+            <View style={styles.mapContainer}>
+              <MapComponent
+                onStoreSelect={handleStoreSelect}
+                userLocation={location}
+                lastSavedLocation={location}
+                stores={[]}
+              />
             </View>
 
             <View style={styles.searchAddressContainer}>
               <SearchBar
                 value={address}
-                onChangeText={setAddress} // TODO: search address
+                onChangeText={setAddress}
                 placeholder="Search for an address"
               />
             </View>
@@ -174,7 +240,7 @@ const AddStoreScreen = () => {
               style={[globalStyles.button, globalStyles.primaryButton]}
               onPress={handleSaveStore}
             >
-              <Text style={globalStyles.primaryButtonText}>Save</Text>
+              <Text style={globalStyles.primaryButtonText}>Update</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -183,7 +249,7 @@ const AddStoreScreen = () => {
   );
 };
 
-export default AddStoreScreen;
+export default EditStoreScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -239,19 +305,19 @@ const styles = StyleSheet.create({
   },
   locationSection: {
     marginBottom: 10,
-    backgroundColor: "pink",
     borderRadius: 10,
     padding: 10,
+    backgroundColor: colors.white, // 改为白色背景
   },
   sectionTitle: {
     fontSize: 18,
     marginBottom: 15,
   },
-  mapPlaceholder: {
-    height: 200,
-    justifyContent: "center",
-    alignItems: "center",
-    // backgroundColor: "teal"
+  mapContainer: {
+    height: 300, // 增加地图高度
+    borderRadius: 8,
+    overflow: "hidden",
+    marginVertical: 10,
   },
   addressInput: {
     borderWidth: 1,
