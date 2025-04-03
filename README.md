@@ -140,11 +140,11 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
         - latitude
         - longitude
     - userid
-    - shopping_list_item (subcollection)
-        - id
-        - name
-        - quantity
-        - checked
+	    - shopping_list_item (subcollection)
+	        - id
+	        - name
+	        - quantity
+	        - checked
 
 
 	  
