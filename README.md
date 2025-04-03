@@ -209,17 +209,23 @@ Sub-Collections under users:
  
 ## Contributors
 
-- [Shiyu Xu (Gina)](https://github.com/your-github)
+- [Shiyu Xu (Gina)](https://github.com/Gnblink0)
 	- UI Development
-		- Designed and implemented core screens: ProductDetail, StoreDetail, RecordDetail, AddRecord, AddStore, Setting, EditProfile, and Home screens
-		- Created reusable components including BackButton and MainPageHeader
-		- Set up navigation flows between screens
+		- Designed and implemented core screens in products, setting, stores folders
+		- Created reusable components including BackButton, MainPageHeader, AILoadingScreen, LoadingLogo, and ProductSearchInput
+		- Set up navigation flows between screens
 	- Data Architecture
 		- Designed the Firebase database schema and collection structure
 		- Created TypeScript type definitions for the entire application
 	- Firebase Integration
 		- Implemented CRUD operations for price records, user products, and user stores
 		- Set up real-time data synchronization between UI and Firebase
+	- Camera & AI Integration
+		- Implemented camera functionality using expo-image-picker
+		- Integrated OpenAI API for price tag text recognition
+	- Map Integration
+		- Integrated Google Maps into Store management system
+
 
 - [Yuxin Zhou (Renie)](https://github.com/Zhouyuxin4)
 	- Firebase Integration
@@ -228,6 +234,7 @@ Sub-Collections under users:
 	- UI Development
 		- Developed UI for Shopping List (ShoppingList, AddShoppingList, ShoppingListDetails)
 		- Implemented navigation between ShoppingList
+	- Map and Stores Select
 		- Designed and developed a reusable Map component for location-based features
 		- Integrated Google Maps API to enable user location detection and automatic search of nearby stores
 		- Implemented SupermarketMapScreen where users can view and select stores on the map
