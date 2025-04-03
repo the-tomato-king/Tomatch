@@ -191,16 +191,16 @@ Sub-Collections under users:
 - [x] Delete: Users can remove stores they no longer visit.
 
 2. products (collection): Global product database.
-- Create: Only Admins can add new product entries.
+- [ ]Create: Only Admins can add new product entries.
 - [x] Read: Users can browse/search for products by name, code, or category.
-- Update: Only Admins can update product names, categories, or images.
-- Delete: Only Admins can remove outdated or incorrect products.
+- [ ]Update: Only Admins can update product names, categories, or images.
+- [ ]Delete: Only Admins can remove outdated or incorrect products.
 
 1. store_brands (collection): Stores information about retail brands.
-- Create: Only Admins can add new store brands.
+- [ ]Create: Only Admins can add new store brands.
 - [x] Read: Users can view store brand information.
-- Update: Only Admins can update store brand details.
-- Delete: Only Admins can remove outdated or incorrect store brands.
+- [ ]Update: Only Admins can update store brand details.
+- [ ]Delete: Only Admins can remove outdated or incorrect store brands.
  
 ## Contributors
 
@@ -217,10 +217,19 @@ Sub-Collections under users:
 		- Set up real-time data synchronization between UI and Firebase
 
 - [Yuxin Zhou (Renie)](https://github.com/Zhouyuxin4)
-	- Implemented Firebase Helper (CRUD functions) 
-	- Developed UI for Shopping List (`ShoppingList`, `AddShoppingList`, `ShoppingListDetails`) 
-	- Implemented navigation between ShoppingList
-	- Integrated frontend with backend for Shopping List CRUD
+	- Firebase Integration
+		- Implemented Firebase Helper (CRUD functions)
+		- Integrated frontend with backend for Shopping List CRUD
+	- UI Development
+		- Developed UI for Shopping List (ShoppingList, AddShoppingList, ShoppingListDetails)
+		- Implemented navigation between ShoppingList
+		- Designed and developed a reusable Map component for location-based features
+		- Integrated Google Maps API to enable user location detection and automatic search of nearby stores
+		- Implemented SupermarketMapScreen where users can view and select stores on the map
+		- Enabled storing selected store data in the Firebase database for later use
+	- Notification System
+		- Set up a notification feature to remind users to shop on their chosen shopping date
+		- Allowed users to toggle notifications on or off within the app's settings
 
 
 ## Application Screenshots
