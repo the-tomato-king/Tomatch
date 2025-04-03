@@ -7,6 +7,7 @@ import { ShoppingStackParamList } from "../../types/navigation";
 import { useLocation } from "../../contexts/LocationContext";
 import LocationSelector from "../../components/LocationSelector";
 import { NearbyStore } from "../../types/location";
+import { useUserStores } from "../../hooks/useUserStores";
 
 const SupermarketMapScreen = () => {
   const navigation =
@@ -14,7 +15,8 @@ const SupermarketMapScreen = () => {
       NativeStackNavigationProp<ShoppingStackParamList, "SupermarketMap">
     >();
   const route = useRoute<RouteProp<ShoppingStackParamList, "SupermarketMap">>();
-  const { userLocation, nearbyStores, isLoadingLocation } = useLocation();
+  const { userLocation, nearbyStores, isLoadingLocation, lastSavedLocation } =
+    useLocation();
 
   const [selectedStore, setSelectedStore] = useState<NearbyStore | null>(null);
 
@@ -53,6 +55,7 @@ const SupermarketMapScreen = () => {
         <MapComponent
           onStoreSelect={handleSelectStore}
           userLocation={userLocation}
+          lastSavedLocation={lastSavedLocation}
           stores={nearbyStores}
         />
       </View>

@@ -44,6 +44,8 @@ const StoreScreen = () => {
     nearbyStores,
     isLoadingLocation,
     setUserLocationAndStores,
+    lastSavedLocation,
+    lastSavedStores,
   } = useLocation();
 
   const handleStoreSelect = (store: NearbyStore) => {
@@ -95,7 +97,9 @@ const StoreScreen = () => {
         <View style={styles.mapSection}>
           <View style={styles.locationSection}>
             <LocationSelector
-              address={userLocation?.address || null}
+              address={
+                userLocation?.address || lastSavedLocation?.address || null
+              }
               isLoading={isLoadingLocation}
               onLocationSelect={handleLocationSelect}
             />
@@ -103,8 +107,9 @@ const StoreScreen = () => {
           <View style={styles.mapContainer}>
             <MapComponent
               onStoreSelect={handleStoreSelect}
-              userLocation={userLocation}
-              stores={nearbyStores}
+              userLocation={userLocation || lastSavedLocation}
+              lastSavedLocation={lastSavedLocation}
+              stores={nearbyStores.length > 0 ? nearbyStores : lastSavedStores}
             />
           </View>
         </View>
@@ -155,7 +160,9 @@ const StoreScreen = () => {
               <MyStoresList stores={allStores} />
             ) : (
               <NearbyStoresList
-                stores={nearbyStores}
+                stores={
+                  nearbyStores.length > 0 ? nearbyStores : lastSavedStores
+                }
                 onFavorite={handleFavoriteStore}
                 favoriteStores={favoriteStores}
               />

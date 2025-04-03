@@ -32,8 +32,8 @@ const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
     const distance = calculateDistance(
       userLocation.latitude,
       userLocation.longitude,
-      store.latitude,
-      store.longitude
+      store.coordinate.latitude,
+      store.coordinate.longitude
     );
 
     return formatDistance(distance);
