@@ -245,7 +245,13 @@ Sub-Collections under users:
 <tr>
 <td width="33%"><img src="https://github.com/user-attachments/assets/97ff3563-a1cd-4ee8-9a29-5d2604880893" alt="Shopping Lists Screen" width="100%"/><br><em>Shopping Lists (Android)</em></td>
 <td width="33%"><img src="https://github.com/user-attachments/assets/c12b108f-9c1e-402d-87c4-50809107de42" alt="Shopping List Details" width="100%"/><br><em>Shopping List Details (Android)</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/e9cf584b-cf59-43cf-8c14-0822ecf57b8b" alt="Add Shopping List" width="100%"/><br><em>Add Shopping List (iOS)</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/d57fdc59-d2de-491d-a5f9-64456c578055" alt="Add Shopping List" width="100%"/><br><em>Add Shopping List (iOS)</em></td>
+</tr>
+</table>
+<table>
+<tr>
+<td width="50%"><img src="https://github.com/user-attachments/assets/c9c7447e-e755-4cbc-a789-02a8a0a09bb4" alt="Set Notification" width="100%"/><br><em>Set Notification (iOS)</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/0b095b5d-bf6d-465a-a498-7a1c28e8f5e8" alt="Set Location" width="100%"/><br><em>Set Location (iOS)</em></td>
 </tr>
 </table>
 
