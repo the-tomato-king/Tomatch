@@ -237,9 +237,11 @@ Sub-Collections under users:
 		- Allowed users to toggle notifications on or off within the app's settings
 
 
-## Application Screenshots
+## Update
 
-### Shopping List Features
+### Iteration 1
+
+#### Shopping List Features
 
 <table>
 <tr>
@@ -248,14 +250,9 @@ Sub-Collections under users:
 <td width="33%"><img src="https://github.com/user-attachments/assets/d57fdc59-d2de-491d-a5f9-64456c578055" alt="Add Shopping List" width="100%"/><br><em>Add Shopping List (iOS)</em></td>
 </tr>
 </table>
-<table>
-<tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/b85ff64e-865f-4318-a789-43fda78c4c2c" alt="Set Notification" width="100%"/><br><em>Set Notification (iOS)</em></td>
-<td width="50%"><img src="https://github.com/user-attachments/assets/0b095b5d-bf6d-465a-a498-7a1c28e8f5e8" alt="Set Location" width="100%"/><br><em>Set Location (iOS)</em></td>
-</tr>
-</table>
 
-### Products and Price Records
+
+#### Products and Price Records
 
 <table>
 <tr>
@@ -272,7 +269,7 @@ Sub-Collections under users:
 </tr>
 </table>
 
-### Stores and Settings
+#### Stores and Settings
 
 <table>
 <tr>
@@ -282,7 +279,7 @@ Sub-Collections under users:
 </tr>
 </table>
 
-### Setttings
+#### Setttings
 
 <table>
 <tr>
@@ -290,6 +287,24 @@ Sub-Collections under users:
 <td width="50%"><img src="https://github.com/user-attachments/assets/2dc4b062-9425-4cf4-b2a7-0b8d9fa433b1" alt="Home Screen" width="100%"/><br><em>Edit Profile</em></td>
 </tr>
 </table>
+
+### Iteration 2
+
+#### Camera
+
+#### Notification
+
+#### Location
+
+<table>
+<tr>
+<td width="50%"><img src="https://github.com/user-attachments/assets/b85ff64e-865f-4318-a789-43fda78c4c2c" alt="Set Notification" width="100%"/><br><em>Set Notification (iOS)</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/0b095b5d-bf6d-465a-a498-7a1c28e8f5e8" alt="Set Location" width="100%"/><br><em>Set Location (iOS)</em></td>
+</tr>
+</table>
+
+#### OpenAI API
+
 
 ## Development Guide
 
