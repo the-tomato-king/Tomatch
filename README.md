@@ -191,16 +191,16 @@ Sub-Collections under users:
 - [x] Delete: Users can remove stores they no longer visit.
 
 2. products (collection): Global product database.
-- [ ]Create: Only Admins can add new product entries.
+- Create: Only Admins can add new product entries.
 - [x] Read: Users can browse/search for products by name, code, or category.
-- [ ]Update: Only Admins can update product names, categories, or images.
-- [ ]Delete: Only Admins can remove outdated or incorrect products.
+- Update: Only Admins can update product names, categories, or images.
+- Delete: Only Admins can remove outdated or incorrect products.
 
 1. store_brands (collection): Stores information about retail brands.
-- [ ]Create: Only Admins can add new store brands.
+- Create: Only Admins can add new store brands.
 - [x] Read: Users can view store brand information.
-- [ ]Update: Only Admins can update store brand details.
-- [ ]Delete: Only Admins can remove outdated or incorrect store brands.
+- Update: Only Admins can update store brand details.
+- Delete: Only Admins can remove outdated or incorrect store brands.
  
 ## Contributors
 
