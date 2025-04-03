@@ -14,7 +14,7 @@ export const convertNearbyStoreToUserStore = (
     },
     created_at: new Date(),
     updated_at: new Date(),
-    is_favorite: true,
+    is_favorite: false,
     last_visited: new Date(),
     is_inactive: false,
   };

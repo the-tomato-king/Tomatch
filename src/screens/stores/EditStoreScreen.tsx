@@ -307,14 +307,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 10,
     padding: 10,
-    backgroundColor: colors.white, // 改为白色背景
+    backgroundColor: colors.white,
   },
   sectionTitle: {
     fontSize: 18,
     marginBottom: 15,
   },
   mapContainer: {
-    height: 300, // 增加地图高度
+    height: 300,
     borderRadius: 8,
     overflow: "hidden",
     marginVertical: 10,

@@ -153,22 +153,19 @@ const StoreDetailScreen = () => {
     fetchPriceRecords();
   }, [store, storeId]);
 
-  // 切换收藏状态
   const handleToggleFavorite = async () => {
     if (!store) return;
 
     try {
-      // 暂时使用固定的用户ID
+      // TODO: get user id from auth
       const userId = "user123";
       const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${storeId}`;
 
-      // 更新收藏状态
       await updateDoc(doc(db, storeDocPath), {
         is_favorite: !store.is_favorite,
         updated_at: new Date(),
       });
 
-      // 更新本地状态
       setStore({
         ...store,
         is_favorite: !store.is_favorite,

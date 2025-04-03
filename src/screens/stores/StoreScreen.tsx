@@ -61,12 +61,9 @@ const StoreScreen = () => {
     await setUserLocationAndStores(location);
   };
 
-  const handleFavoriteStore = async (store: NearbyStore) => {
-    const userStore = convertNearbyStoreToUserStore(store);
+  const handleAddStore = async (store: NearbyStore) => {
     try {
-      // TODO: get current user id
       const userId = "user123";
-      // Create a new document reference with a unique ID
       const userStoresRef = collection(
         db,
         COLLECTIONS.USERS,
@@ -74,11 +71,11 @@ const StoreScreen = () => {
         COLLECTIONS.SUB_COLLECTIONS.USER_STORES
       );
 
-      await addDoc(userStoresRef, userStore);
-      // TODO: add success message
+      await addDoc(userStoresRef, convertNearbyStoreToUserStore(store));
+      Alert.alert("Success", "Store added to your list");
     } catch (error) {
-      console.error("Error adding store to favorites:", error);
-      Alert.alert("Error", "Failed to add store to favorites");
+      console.error("Error adding store:", error);
+      Alert.alert("Error", "Failed to add store to your list");
     }
   };
 
@@ -129,7 +126,7 @@ const StoreScreen = () => {
                   activeTab === "favorites" ? styles.activeTabText : {},
                 ]}
               >
-                Favorites
+                My Stores
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -163,8 +160,8 @@ const StoreScreen = () => {
                 stores={
                   nearbyStores.length > 0 ? nearbyStores : lastSavedStores
                 }
-                onFavorite={handleFavoriteStore}
-                favoriteStores={favoriteStores}
+                onFavorite={handleAddStore}
+                favoriteStores={allStores}
               />
             )}
           </View>

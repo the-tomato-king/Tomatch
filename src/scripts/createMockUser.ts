@@ -43,7 +43,6 @@ async function createMockUser() {
       updated_at: new Date(),
     };
 
-    // 将用户数据写入Firestore
     await setDoc(doc(db, COLLECTIONS.USERS, userId), userData);
 
     console.log(`Mock user created with ID: ${userId}`);

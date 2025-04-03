@@ -18,5 +18,4 @@ export interface Store {
   longitude: number;
 }
 
-// NearbyStore 现在就是 Store 的别名
 export type NearbyStore = Store;
