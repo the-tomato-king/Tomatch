@@ -21,19 +21,19 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 
 ### Device Features & Maps
 
-- Camera:
-- Location & Maps:
-- Notifications:
+- Camera: expo-image-picker
+- Location & Maps: react-native-maps && Google Map API
+- Notifications: expo-notifications
 
 ### Backend & Database
 - Authentication: Firebase Authentication
 - Database: Firebase Cloud Firestore
-- Storage: Amzon AWS S3
+- Storage: Firebase Storage
 
 ### External APIs
 
 - OCR API:
-- AI Recognization API:
+- AI Recognization API: Open AI API
 
 ## Data Model 
 
