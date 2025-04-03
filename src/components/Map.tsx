@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, StyleSheet, Text } from "react-native";
-import MapView, { Marker, Region, LatLng, Callout } from "react-native-maps";
+import MapView, { Marker, Callout } from "react-native-maps";
 import { NearbyStore } from "../types/location";
 
 interface MapComponentProps {
   onStoreSelect: (store: NearbyStore) => void;
   userLocation: {
+    latitude: number;
+    longitude: number;
+  } | null;
+  lastSavedLocation: {
     latitude: number;
     longitude: number;
   } | null;
@@ -15,37 +19,40 @@ interface MapComponentProps {
 const MapComponent: React.FC<MapComponentProps> = ({
   onStoreSelect,
   userLocation,
+  lastSavedLocation,
   stores,
 }) => {
-  const [pins, setPins] = useState<LatLng[]>([]);
-  const [errorMsg, setErrorMsg] = useState<string>("");
-
-  const handleMapPress = (e: any): void => {
-    const coordinate = e.nativeEvent.coordinate;
-    setPins((prevPins) => [...prevPins, coordinate]);
-  };
-
   const handleStorePress = (store: NearbyStore) => {
     onStoreSelect(store);
   };
 
+  const displayLocation = userLocation || lastSavedLocation;
+
   return (
     <View style={styles.container}>
-      {userLocation ? (
+      {displayLocation ? (
         <MapView
           style={styles.map}
           region={{
-            latitude: userLocation.latitude,
-            longitude: userLocation.longitude,
+            latitude: displayLocation.latitude,
+            longitude: displayLocation.longitude,
             latitudeDelta: 0.05,
             longitudeDelta: 0.05,
           }}
-          onPress={handleMapPress}
         >
-          {pins.map((pin, index) => (
-            <Marker key={index} coordinate={pin} />
-          ))}
+          {/* User Location Marker */}
+          <Marker
+            coordinate={{
+              latitude: displayLocation.latitude,
+              longitude: displayLocation.longitude,
+            }}
+          >
+            <View style={styles.userLocationOuter}>
+              <View style={styles.userLocationInner} />
+            </View>
+          </Marker>
 
+          {/* Store Markers */}
           {stores.map((store, index) => (
             <Marker
               key={`store-${index}`}
@@ -70,15 +77,32 @@ const MapComponent: React.FC<MapComponentProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "flex-end",
-    alignItems: "center",
   },
   map: {
     width: "100%",
     height: "100%",
   },
+  userLocationOuter: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "rgba(56, 128, 255, 0.3)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  userLocationInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#3880ff",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
   storeName: {
     fontWeight: "bold",
+    fontSize: 16,
+    marginBottom: 5,
   },
 });
 
