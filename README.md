@@ -283,14 +283,22 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/9506f5fd-d455-4d61-b76b-48769e9010f0" alt="Add Store" width="100%"/><br><em>Settings</em></td>
-<td width="50%"><img src="https://github.com/user-attachments/assets/2dc4b062-9425-4cf4-b2a7-0b8d9fa433b1" alt="Home Screen" width="100%"/><br><em>Edit Profile</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/9506f5fd-d455-4d61-b76b-48769e9010f0" width="100%"/><br><em>Settings</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/2dc4b062-9425-4cf4-b2a7-0b8d9fa433b1" width="100%"/><br><em>Edit Profile</em></td>
 </tr>
 </table>
 
 ### Iteration 2
 
-#### Camera
+#### Camera & OpenAI API
+
+<table>
+<tr>
+<td width="33%"><img src="https://github.com/user-attachments/assets/3f32d464-93d8-4b46-9857-182c303b15fe" width="100%"/><br><em>Click to take photo</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/9512e801-ffa4-4db6-a6c7-3c3d1e87e303" width="100%"/><br><em>Add Store</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/3d09a638-5b6b-4d97-87a7-7659cbd75b8c" width="100%"/><br><em>Store Details</em></td>
+</tr>
+</table>
 
 #### Notification
 
@@ -303,7 +311,7 @@ Sub-Collections under users:
 </tr>
 </table>
 
-#### OpenAI API
+#### 
 
 
 ## Development Guide
