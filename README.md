@@ -250,7 +250,7 @@ Sub-Collections under users:
 </table>
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/c9c7447e-e755-4cbc-a789-02a8a0a09bb4" alt="Set Notification" width="100%"/><br><em>Set Notification (iOS)</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/b85ff64e-865f-4318-a789-43fda78c4c2c" alt="Set Notification" width="100%"/><br><em>Set Notification (iOS)</em></td>
 <td width="50%"><img src="https://github.com/user-attachments/assets/0b095b5d-bf6d-465a-a498-7a1c28e8f5e8" alt="Set Location" width="100%"/><br><em>Set Location (iOS)</em></td>
 </tr>
 </table>
