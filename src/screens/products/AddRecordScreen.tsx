@@ -523,6 +523,7 @@ const AddRecordScreen = () => {
               }}
             />
           )}
+          {/* TODO: replace with general search dropdown */}
           <StoreSearchInput
             inputValue={storeName}
             onChangeInputValue={setStoreName}
