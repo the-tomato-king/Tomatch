@@ -6,17 +6,22 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useLayoutEffect } from "react";
 import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
 import { PRODUCT_CATEGORIES } from "../../data/Product";
-import CategorySearchInput from "../../components/CategorySearchInput";
 import SearchDropdown from "../../components/SearchDropdown";
+import { useNavigation } from "@react-navigation/native";
+import { createDoc } from "../../services/firebase/firebaseHelper";
+import { COLLECTIONS } from "../../constants/firebase";
 
 const AddProductScreen = () => {
+  const navigation = useNavigation<any>();
+
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState("");
   const [items] = useState(
@@ -25,6 +30,53 @@ const AddProductScreen = () => {
       value: category,
     }))
   );
+
+  const [name, setName] = useState("");
+  const [pluCode, setPluCode] = useState("");
+
+  const handleSave = async () => {
+    try {
+      // Validation
+      if (!name || !category) {
+        Alert.alert("Error", "Please fill in all required fields");
+        return;
+      }
+
+      // TODO: Link to real user, now hardcoded to user123
+      const userId = "user123";
+
+      const newProduct = {
+        name,
+        category,
+        plu_code: pluCode,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      const productPath = COLLECTIONS.PRODUCTS;
+      const productId = await createDoc(productPath, newProduct);
+
+      if (productId) {
+        Alert.alert("Success", "Product saved successfully!");
+        navigation.goBack();
+      } else {
+        Alert.alert("Error", "Failed to save product");
+      }
+    } catch (error) {
+      console.error("Error saving product:", error);
+      Alert.alert("Error", "Failed to save product");
+    }
+  };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Text style={globalStyles.headerButton} onPress={handleSave}>
+          Save
+        </Text>
+      ),
+    });
+  }, [navigation, handleSave]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -53,6 +105,8 @@ const AddProductScreen = () => {
             <TextInput
               style={globalStyles.input}
               placeholder="Enter product name"
+              value={name}
+              onChangeText={setName}
             />
           </View>
 
@@ -77,6 +131,8 @@ const AddProductScreen = () => {
               style={globalStyles.input}
               placeholder="Enter PLU code"
               keyboardType="numeric"
+              value={pluCode}
+              onChangeText={setPluCode}
             />
           </View>
         </View>

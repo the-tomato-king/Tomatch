@@ -4,8 +4,9 @@ import {
   View,
   FlatList,
   TouchableOpacity,
+  Alert,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PRODUCTS, PRODUCT_CATEGORIES } from "../../data/Product";
 import { colors } from "../../theme/colors";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -15,6 +16,11 @@ import SearchBar from "../../components/SearchBar";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
+import { collection, onSnapshot, query } from "firebase/firestore";
+import { db } from "../../services/firebase/firebaseConfig";
+import { Product } from "../../types";
+import LoadingLogo from "../../components/LoadingLogo";
+import { COLLECTIONS } from "../../constants/firebase";
 
 type ProductLibraryRouteProp = NativeStackScreenProps<
   RootStackParamList,
@@ -25,19 +31,49 @@ const ProductLibraryScreen = () => {
   const navigation = useNavigation();
   const route = useRoute<ProductLibraryRouteProp>();
   const initialSearchText = route.params?.initialSearchText || "";
+
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState(initialSearchText);
+
+  useEffect(() => {
+    setLoading(true);
+    const productsRef = collection(db, COLLECTIONS.PRODUCTS);
+    const q = query(productsRef);
+
+    const unsubscribe = onSnapshot(
+      q,
+      (querySnapshot) => {
+        const productsData: Product[] = [];
+        querySnapshot.forEach((doc) => {
+          productsData.push({ id: doc.id, ...doc.data() } as Product);
+        });
+        setProducts(productsData);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching products:", error);
+        Alert.alert("Error", "Failed to load products");
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
   };
 
-  const filteredProducts = PRODUCTS.filter(
-    (product) =>
-      selectedCategory === "all" || product.category === selectedCategory
-  ).filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products
+    .filter(
+      (product) =>
+        selectedCategory === "all" || product.category === selectedCategory
+    )
+    .filter((product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   const handleProductSelect = (product: (typeof PRODUCTS)[0]) => {
     if (route.params?.onSelectProduct) {
@@ -45,6 +81,10 @@ const ProductLibraryScreen = () => {
     }
     navigation.goBack();
   };
+
+  if (loading) {
+    return <LoadingLogo />;
+  }
 
   return (
     <View style={styles.container}>
@@ -73,7 +113,7 @@ const ProductLibraryScreen = () => {
         <View style={styles.productListContainer}>
           <FlatList
             data={filteredProducts}
-            keyExtractor={(item) => item.name}
+            keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity onPress={() => handleProductSelect(item)}>
                 <View style={styles.productItem}>

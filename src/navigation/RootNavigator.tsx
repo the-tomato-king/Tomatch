@@ -59,7 +59,18 @@ const RootNavigator = () => {
       <Stack.Screen
         name="AddProduct"
         component={AddProductScreen}
-        options={{ headerShown: true, headerTitle: "Add Product" }}
+        options={({ navigation }) => ({
+          headerShown: true,
+          headerTitle: "Add Product",
+          headerLeft: () => (
+            <Text
+              style={globalStyles.headerButton}
+              onPress={() => navigation.goBack()}
+            >
+              Cancel
+            </Text>
+          ),
+        })}
       />
     </Stack.Navigator>
   );
