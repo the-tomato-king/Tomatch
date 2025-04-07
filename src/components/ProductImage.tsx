@@ -1,18 +1,69 @@
 import { StyleSheet, Text, View, Image } from "react-native";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { colors } from "../theme/colors";
+import {
+  getProductImage,
+  uploadProductImage,
+} from "../services/firebase/storageHelper";
+import { ImageType } from "../types";
 
 interface ProductImageProps {
-  imageType?: string;
-  imageSource?: string;
+  imageType: ImageType;
+  imageSource: string;
   size?: number;
 }
 
 const ProductImage = ({
   imageType,
   imageSource,
-  size = 70, // 默认尺寸
+  size = 70,
 }: ProductImageProps) => {
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // 重置错误状态
+    setError(null);
+
+    // 调试日志
+    console.log("ProductImage props:", {
+      imageType,
+      imageSource,
+      size,
+    });
+
+    if (imageType === "emoji") {
+      console.log("Using emoji type, skipping image load");
+      return;
+    }
+
+    const defaultUserId = "user123"; // TODO: get from auth
+
+    // 调试日志
+    console.log("Attempting to load image with:", {
+      imageSource,
+      imageType,
+      defaultUserId,
+    });
+
+    getProductImage(imageSource, imageType, defaultUserId)
+      .then((url) => {
+        console.log("Successfully loaded image URL:", url);
+        setImageUrl(url);
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.error("Detailed image loading error:", {
+          error: errorMessage,
+          imageType,
+          imageSource,
+          defaultUserId,
+        });
+        setError(errorMessage);
+      });
+  }, [imageSource, imageType]);
+
   const styles = StyleSheet.create({
     container: {
       width: size,
@@ -30,19 +81,41 @@ const ProductImage = ({
       borderRadius: size / 2,
     },
     emojiText: {
-      fontSize: size * 0.64, // 根据容器大小调整emoji大小
+      fontSize: size * 0.64,
+    },
+    errorContainer: {
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    errorText: {
+      fontSize: 10,
+      color: colors.negative,
+      textAlign: "center",
     },
   });
 
-  return (
-    <View style={styles.container}>
-      {imageType === "emoji" ? (
-        <Text style={styles.emojiText}>{imageSource}</Text>
-      ) : imageSource ? (
-        <Image source={{ uri: imageSource }} style={styles.image} />
-      ) : null}
-    </View>
-  );
+  // 根据不同状态显示不同内容
+  const renderContent = () => {
+    if (imageType === "emoji") {
+      return <Text style={styles.emojiText}>{imageSource}</Text>;
+    }
+
+    if (error) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>!</Text>
+        </View>
+      );
+    }
+
+    if (imageUrl) {
+      return <Image source={{ uri: imageUrl }} style={styles.image} />;
+    }
+
+    return null;
+  };
+
+  return <View style={styles.container}>{renderContent()}</View>;
 };
 
 export default ProductImage;

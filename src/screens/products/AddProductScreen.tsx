@@ -24,7 +24,7 @@ import {
   deleteOneDocFromDB,
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
-import { Product } from "../../types";
+import { ImageType, Product } from "../../types";
 import LoadingLogo from "../../components/LoadingLogo";
 import ProductImage from "../../components/ProductImage";
 import EditProductImage from "../../components/EditProductImage";
@@ -38,6 +38,7 @@ import {
 } from "expo-image-picker";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
+import { uploadProductImage } from "../../services/firebase/storageHelper";
 
 const AddProductScreen = () => {
   const route = useRoute<any>();
@@ -58,7 +59,7 @@ const AddProductScreen = () => {
 
   const [name, setName] = useState("");
   const [pluCode, setPluCode] = useState("");
-  const [imageType, setImageType] = useState<string>("");
+  const [imageType, setImageType] = useState<ImageType | "">("");
   const [imageSource, setImageSource] = useState<string>("");
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
 
@@ -101,7 +102,7 @@ const AddProductScreen = () => {
         name,
         category,
         plu_code: pluCode,
-        image_type: imageType,
+        image_type: imageType as ImageType,
         image_source: imageSource,
         updated_at: new Date(),
       };
@@ -229,8 +230,18 @@ const AddProductScreen = () => {
     });
 
     if (!result.canceled) {
-      setImageType("image");
-      setImageSource(result.assets[0].uri);
+      try {
+        const userId = "user123"; // TODO: get from auth
+        const imageName = await uploadProductImage(
+          result.assets[0].uri,
+          userId
+        );
+        setImageType("user_image" as ImageType);
+        setImageSource(imageName);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        Alert.alert("Error", "Failed to upload image");
+      }
     }
   };
 
@@ -252,8 +263,18 @@ const AddProductScreen = () => {
     });
 
     if (!result.canceled) {
-      setImageType("image");
-      setImageSource(result.assets[0].uri);
+      try {
+        const userId = "user123"; // TODO: get from auth
+        const imageName = await uploadProductImage(
+          result.assets[0].uri,
+          userId
+        );
+        setImageType("user_image" as ImageType);
+        setImageSource(imageName);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        Alert.alert("Error", "Failed to upload image");
+      }
     }
   };
 
@@ -266,7 +287,8 @@ const AddProductScreen = () => {
       <View style={styles.cardContainer}>
         {/* Picture */}
         <EditProductImage
-          imageType={imageType}
+          userId="user123" // TODO: get from auth
+          imageType={imageType as ImageType}
           imageSource={imageSource}
           onPress={pickImage}
         />

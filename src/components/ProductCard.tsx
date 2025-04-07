@@ -9,7 +9,7 @@ import { colors } from "../theme/colors";
 import { readOneDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
 import ProductImage from "./ProductImage";
-
+import { ImageType } from "../types";
 type ProductNavigationProp = NativeStackNavigationProp<
   HomeStackParamList,
   "HomeScreen"
@@ -67,8 +67,8 @@ const ProductCard = ({ product, productDetails }: ProductCardProps) => {
     <TouchableOpacity onPress={handlePress}>
       <View style={styles.productItem}>
         <ProductImage
-          imageType={productDetails?.image_type}
-          imageSource={productDetails?.image_source}
+          imageType={productDetails?.image_type as ImageType}
+          imageSource={productDetails?.image_source as string}
         />
         <View style={styles.productInfo}>
           <Text style={styles.productName}>{productDetails?.name}</Text>

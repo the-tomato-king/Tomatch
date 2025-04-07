@@ -127,7 +127,7 @@ export interface UserProductStats extends BaseUserProductStats {
   id: string;
 }
 
-type ImageType = "emoji" | "image";
+export type ImageType = "emoji" | "preset_image" | "user_image";
 
 // Product
 export interface BaseProduct {

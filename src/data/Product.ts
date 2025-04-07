@@ -39,6 +39,11 @@ export const PRODUCT_CATEGORIES = {
   BAKERY: "Bakery",
 } as const;
 
+const IMAGE_URL = {
+  SALMON_FILLET: "SalmonFillet",
+  RASPBERRIES: "Raspberry",
+};
+
 export type ProductCategory =
   (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES];
 
@@ -145,8 +150,8 @@ export const PRODUCTS: Omit<Product, "id">[] = [
   {
     name: "Raspberries",
     category: PRODUCT_CATEGORIES.FRUITS,
-    image_type: "emoji",
-    image_source: "",
+    image_type: "preset_image",
+    image_source: IMAGE_URL.RASPBERRIES,
     plu_code: "",
     barcode: "",
   },
@@ -363,39 +368,7 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     barcode: "",
   },
   {
-    name: "Half & Half",
-    category: PRODUCT_CATEGORIES.DAIRY,
-    image_type: "emoji",
-    image_source: "",
-    plu_code: "",
-    barcode: "",
-  },
-  {
     name: "Greek Yogurt",
-    category: PRODUCT_CATEGORIES.DAIRY,
-    image_type: "emoji",
-    image_source: "",
-    plu_code: "",
-    barcode: "",
-  },
-  {
-    name: "Mozzarella",
-    category: PRODUCT_CATEGORIES.DAIRY,
-    image_type: "emoji",
-    image_source: "🧀",
-    plu_code: "",
-    barcode: "",
-  },
-  {
-    name: "Swiss Cheese",
-    category: PRODUCT_CATEGORIES.DAIRY,
-    image_type: "emoji",
-    image_source: "🧀",
-    plu_code: "",
-    barcode: "",
-  },
-  {
-    name: "Cottage Cheese",
     category: PRODUCT_CATEGORIES.DAIRY,
     image_type: "emoji",
     image_source: "",
@@ -423,21 +396,13 @@ export const PRODUCTS: Omit<Product, "id">[] = [
   {
     name: "Salmon Fillet",
     category: PRODUCT_CATEGORIES.MEAT,
-    image_type: "emoji",
-    image_source: "🐟",
+    image_type: "preset_image",
+    image_source: IMAGE_URL.SALMON_FILLET,
     plu_code: "",
     barcode: "",
   },
   {
     name: "Pork Chops",
-    category: PRODUCT_CATEGORIES.MEAT,
-    image_type: "emoji",
-    image_source: "",
-    plu_code: "",
-    barcode: "",
-  },
-  {
-    name: "Turkey Breast",
     category: PRODUCT_CATEGORIES.MEAT,
     image_type: "emoji",
     image_source: "",

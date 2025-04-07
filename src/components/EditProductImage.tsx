@@ -2,16 +2,19 @@ import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { colors } from "../theme/colors";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { ImageType } from "../types/index";
 
 interface EditProductImageProps {
-  imageType?: string;
+  imageType?: ImageType;
   imageSource?: string;
+  userId: string;
   onPress?: () => void;
 }
 
 const EditProductImage = ({
   imageType,
   imageSource,
+  userId,
   onPress,
 }: EditProductImageProps) => {
   return (
