@@ -1,7 +1,4 @@
 // User
-
-import { LatLng } from "react-native-maps";
-
 export interface BaseUser {
   name: string;
   email: string;

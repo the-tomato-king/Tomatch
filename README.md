@@ -162,14 +162,14 @@ Sub-Collections under users:
 1.1 user_products (Sub-collection): Stores references to products that users have tracked.
 - [x] Create: Automatically created when users add a price record for a product.
 - [x] Read: Used internally to link users with products they track.
-- [ ] Update: Updated when users interact with the product.
-- [ ] Delete: Users can remove products they no longer want to track.
+- [x] Update: Updated when users interact with the product.
+- [x] Delete: Users can remove products they no longer want to track.
 
 1.2 customized_products (Sub-collection): Stores user-defined products not present in the main product database.
 - [x] Create: Users manually add new custom products.
 - [x] Read: Users retrieve a list of their customized products.
-- [ ] Update: Users can modify product details such as name, category, and image.
-- [ ] Delete: Users can remove unwanted customized products.
+- [x] Update: Users can modify product details such as name, category, and image.
+- [x] Delete: Users can remove unwanted customized products.
 
 1.3 shopping_lists (sub-collection)
 - [x] Create: Users create new shopping lists and add products.

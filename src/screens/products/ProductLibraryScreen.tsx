@@ -140,6 +140,7 @@ export default ProductLibraryScreen;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     marginHorizontal: 20,
   },
   separator: {
@@ -167,16 +168,15 @@ const styles = StyleSheet.create({
   },
   // product library
   productLibraryContainer: {
+    flex: 1,
     marginTop: 20,
     width: "100%",
-    height: "100%",
     backgroundColor: colors.white,
     borderRadius: 10,
   },
   // product list
   productListContainer: {
-    width: "100%",
-    height: "100%",
+    flex: 1,
   },
   productItem: {
     flexDirection: "row",

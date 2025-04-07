@@ -21,6 +21,7 @@ import {
   createDoc,
   readOneDoc,
   updateOneDocInDB,
+  deleteOneDocFromDB,
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
 import { Product } from "../../types";
@@ -35,6 +36,8 @@ import {
   launchCameraAsync,
   MediaTypeOptions,
 } from "expo-image-picker";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../../services/firebase/firebaseConfig";
 
 const AddProductScreen = () => {
   const route = useRoute<any>();
@@ -124,15 +127,63 @@ const AddProductScreen = () => {
     }
   };
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Text style={globalStyles.headerButton} onPress={handleSave}>
-          Save
-        </Text>
-      ),
-    });
-  }, [navigation, handleSave]);
+  const handleDelete = async () => {
+    if (!isEditMode || !productId) return;
+
+    Alert.alert(
+      "Delete Product",
+      "Are you sure you want to delete this product? All related price records will also be deleted.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const userId = "user123"; // TODO: get from auth
+
+              // 1. Delete all related price records
+              const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+              const recordsQuery = query(
+                collection(db, recordsPath),
+                where("user_product_id", "==", productId)
+              );
+              const recordsSnapshot = await getDocs(recordsQuery);
+
+              // Delete each record
+              const recordDeletePromises = recordsSnapshot.docs.map((doc) =>
+                deleteOneDocFromDB(recordsPath, doc.id)
+              );
+              await Promise.all(recordDeletePromises);
+
+              // 2. Delete product stats
+              const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
+              await deleteOneDocFromDB(statsPath, productId);
+
+              // 3. Delete the product
+              await deleteOneDocFromDB(COLLECTIONS.PRODUCTS, productId);
+
+              Alert.alert(
+                "Success",
+                "Product and related records deleted successfully",
+                [
+                  {
+                    text: "OK",
+                    onPress: () => {
+                      navigation.navigate("HomeScreen");
+                    },
+                  },
+                ]
+              );
+            } catch (error) {
+              console.error("Error deleting product:", error);
+              Alert.alert("Error", "Failed to delete the product");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const pickImage = () => {
     Alert.alert(
@@ -261,6 +312,45 @@ const AddProductScreen = () => {
               onChangeText={setPluCode}
             />
           </View>
+          {/* Add buttons container at the bottom */}
+          {isEditMode ? (
+            <View style={styles.buttonsContainer}>
+              <View
+                style={[globalStyles.buttonsContainer, { marginBottom: 20 }]}
+              >
+                <TouchableOpacity
+                  style={[globalStyles.button, globalStyles.primaryButton]}
+                  onPress={handleDelete}
+                >
+                  <Text style={globalStyles.primaryButtonText}>Delete</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[globalStyles.button, globalStyles.primaryButton]}
+                  onPress={handleSave}
+                >
+                  <Text style={globalStyles.primaryButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            // Add mode - show single save button
+            <View style={styles.buttonsContainer}>
+              <View
+                style={[globalStyles.buttonsContainer, { marginBottom: 20 }]}
+              >
+                <TouchableOpacity
+                  style={[
+                    globalStyles.button,
+                    globalStyles.primaryButton,
+                    { flex: 1 },
+                  ]}
+                  onPress={handleSave}
+                >
+                  <Text style={globalStyles.primaryButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
 
         <Modal
@@ -353,5 +443,8 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: colors.primary,
     fontSize: 16,
+  },
+  buttonsContainer: {
+    // marginHorizontal: 16,
   },
 });
