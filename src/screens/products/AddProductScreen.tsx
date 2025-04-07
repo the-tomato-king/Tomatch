@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Modal,
 } from "react-native";
 import React, { useState, useLayoutEffect, useEffect } from "react";
 import { globalStyles } from "../../theme/styles";
@@ -24,6 +25,16 @@ import {
 import { COLLECTIONS } from "../../constants/firebase";
 import { Product } from "../../types";
 import LoadingLogo from "../../components/LoadingLogo";
+import ProductImage from "../../components/ProductImage";
+import EditProductImage from "../../components/EditProductImage";
+import EmojiSelector from "react-native-emoji-selector";
+import {
+  requestMediaLibraryPermissionsAsync,
+  requestCameraPermissionsAsync,
+  launchImageLibraryAsync,
+  launchCameraAsync,
+  MediaTypeOptions,
+} from "expo-image-picker";
 
 const AddProductScreen = () => {
   const route = useRoute<any>();
@@ -44,8 +55,11 @@ const AddProductScreen = () => {
 
   const [name, setName] = useState("");
   const [pluCode, setPluCode] = useState("");
+  const [imageType, setImageType] = useState<string>("");
+  const [imageSource, setImageSource] = useState<string>("");
+  const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
 
-  // 获取产品数据
+  // get product data
   useEffect(() => {
     if (isEditMode && productId) {
       const fetchProductData = async () => {
@@ -59,6 +73,8 @@ const AddProductScreen = () => {
             setName(productData.name);
             setCategory(productData.category);
             setPluCode(productData.plu_code || "");
+            setImageType(productData.image_type || "");
+            setImageSource(productData.image_source || "");
           }
         } catch (error) {
           console.error("Error fetching product:", error);
@@ -82,6 +98,8 @@ const AddProductScreen = () => {
         name,
         category,
         plu_code: pluCode,
+        image_type: imageType,
+        image_source: imageSource,
         updated_at: new Date(),
       };
 
@@ -116,6 +134,78 @@ const AddProductScreen = () => {
     });
   }, [navigation, handleSave]);
 
+  const pickImage = () => {
+    Alert.alert(
+      "Select Image",
+      "Please select image source",
+      [
+        {
+          text: "Choose Emoji",
+          onPress: () => setIsEmojiPickerVisible(true),
+        },
+        {
+          text: "Take Photo",
+          onPress: handleTakePhoto,
+        },
+        {
+          text: "Select from Library",
+          onPress: handleSelectFromLib,
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const handleTakePhoto = async () => {
+    const { status } = await requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "Camera permission is required to take photos"
+      );
+      return;
+    }
+
+    const result = await launchCameraAsync({
+      mediaTypes: MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setImageType("image");
+      setImageSource(result.assets[0].uri);
+    }
+  };
+
+  const handleSelectFromLib = async () => {
+    const { status } = await requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "Library permission is required to select photos"
+      );
+      return;
+    }
+
+    const result = await launchImageLibraryAsync({
+      mediaTypes: MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setImageType("image");
+      setImageSource(result.assets[0].uri);
+    }
+  };
+
   if (loading) {
     return <LoadingLogo />;
   }
@@ -124,18 +214,11 @@ const AddProductScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.cardContainer}>
         {/* Picture */}
-        <TouchableOpacity style={styles.imageContainer}>
-          <View style={styles.imageContent}>
-            <View style={styles.cameraIconContainer}>
-              <MaterialCommunityIcons
-                name="camera-plus-outline"
-                size={80}
-                color={colors.mediumGray}
-              />
-            </View>
-            <Text style={styles.uploadText}>Click to take photo</Text>
-          </View>
-        </TouchableOpacity>
+        <EditProductImage
+          imageType={imageType}
+          imageSource={imageSource}
+          onPress={pickImage}
+        />
 
         {/* Inputs */}
         <View style={globalStyles.inputsContainer}>
@@ -143,6 +226,7 @@ const AddProductScreen = () => {
           <View style={globalStyles.inputContainer}>
             <View style={globalStyles.labelContainer}>
               <Text style={globalStyles.inputLabel}>Name</Text>
+              <Text style={styles.requiredMark}>*</Text>
             </View>
             <TextInput
               style={globalStyles.input}
@@ -178,6 +262,34 @@ const AddProductScreen = () => {
             />
           </View>
         </View>
+
+        <Modal
+          visible={isEmojiPickerVisible}
+          animationType="slide"
+          onRequestClose={() => setIsEmojiPickerVisible(false)}
+        >
+          <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.emojiHeader}>
+              <TouchableOpacity
+                onPress={() => setIsEmojiPickerVisible(false)}
+                style={styles.closeButton}
+              >
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+            <EmojiSelector
+              onEmojiSelected={(emoji) => {
+                setImageType("emoji");
+                setImageSource(emoji);
+                setIsEmojiPickerVisible(false);
+              }}
+              showSearchBar={true}
+              showHistory={true}
+              showSectionTitles={true}
+              columns={8}
+            />
+          </SafeAreaView>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -192,6 +304,10 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     paddingHorizontal: 30,
+  },
+  requiredMark: {
+    color: colors.negative,
+    marginLeft: 4,
   },
   imageContainer: {
     width: "100%",
@@ -225,5 +341,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.lightGray2,
     borderRadius: 8,
+  },
+  emojiHeader: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.lightGray2,
+  },
+  closeButton: {
+    alignSelf: "flex-end",
+  },
+  closeButtonText: {
+    color: colors.primary,
+    fontSize: 16,
   },
 });
