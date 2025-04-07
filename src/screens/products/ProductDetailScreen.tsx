@@ -15,7 +15,7 @@ import {
   readOneDoc,
   readAllDocs,
 } from "../../services/firebase/firebaseHelper";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query, where, doc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { Product, PriceRecord, UserProductStats, UserStore } from "../../types";
 import LoadingLogo from "../../components/LoadingLogo";
@@ -43,24 +43,44 @@ const ProductDetailScreen = () => {
     const fetchProductData = async () => {
       try {
         setLoading(true);
-
-        // get product details
-        const productData = await readOneDoc<Product>(
-          COLLECTIONS.PRODUCTS,
-          productId
-        );
-        setProduct(productData);
-
-        // get user product stats
         const userId = "user123"; // TODO: get user id from auth
-        const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
-        const statsData = await readOneDoc<UserProductStats>(
-          statsPath,
-          productId
+
+        // monitor product change
+        const productUnsubscribe = onSnapshot(
+          doc(db, COLLECTIONS.PRODUCTS, productId),
+          (doc) => {
+            if (doc.exists()) {
+              setProduct({ id: doc.id, ...doc.data() } as Product);
+            }
+          },
+          (error) => {
+            console.error("Error listening to product:", error);
+          }
         );
-        setProductStats(statsData);
+
+        // monitor user product stats
+        const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
+        const statsUnsubscribe = onSnapshot(
+          doc(db, statsPath, productId),
+          (doc) => {
+            if (doc.exists()) {
+              setProductStats({
+                id: doc.id,
+                ...doc.data(),
+              } as UserProductStats);
+            }
+          },
+          (error) => {
+            console.error("Error listening to product stats:", error);
+          }
+        );
+
+        return () => {
+          productUnsubscribe();
+          statsUnsubscribe();
+        };
       } catch (error) {
-        console.error("Error fetching product data:", error);
+        console.error("Error setting up listeners:", error);
       } finally {
         setLoading(false);
       }
@@ -172,7 +192,12 @@ const ProductDetailScreen = () => {
   return (
     <View style={styles.container}>
       {/* Product Information */}
-      <View style={[styles.section]}>
+      <TouchableOpacity
+        style={[styles.section]}
+        onPress={() =>
+          navigation.navigate("EditProduct", { productId: productId })
+        }
+      >
         <View style={styles.basicInfoContainer}>
           <ProductImage
             imageType={product?.image_type}
@@ -214,7 +239,7 @@ const ProductDetailScreen = () => {
             </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Price Records */}
       <View style={styles.section}>

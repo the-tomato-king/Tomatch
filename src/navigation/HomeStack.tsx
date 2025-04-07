@@ -42,6 +42,15 @@ const HomeStack = () => {
           headerLeft: () => <BackButton />,
         }}
       />
+      <Stack.Screen
+        name="EditProduct"
+        component={AddProductScreen}
+        options={{
+          headerShown: true,
+          headerTitle: "Edit Product",
+          headerLeft: () => <BackButton />,
+        }}
+      />
     </Stack.Navigator>
   );
 };

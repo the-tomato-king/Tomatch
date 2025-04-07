@@ -8,20 +8,31 @@ import {
   Image,
   Alert,
 } from "react-native";
-import React, { useState, useLayoutEffect } from "react";
+import React, { useState, useLayoutEffect, useEffect } from "react";
 import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
 import { PRODUCT_CATEGORIES } from "../../data/Product";
 import SearchDropdown from "../../components/SearchDropdown";
-import { useNavigation } from "@react-navigation/native";
-import { createDoc } from "../../services/firebase/firebaseHelper";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import {
+  createDoc,
+  readOneDoc,
+  updateOneDocInDB,
+} from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
+import { Product } from "../../types";
+import LoadingLogo from "../../components/LoadingLogo";
 
 const AddProductScreen = () => {
+  const route = useRoute<any>();
   const navigation = useNavigation<any>();
 
+  const isEditMode = route.name === "EditProduct";
+  const productId = isEditMode ? route.params?.productId : null;
+
+  const [loading, setLoading] = useState(isEditMode);
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState("");
   const [items] = useState(
@@ -34,37 +45,64 @@ const AddProductScreen = () => {
   const [name, setName] = useState("");
   const [pluCode, setPluCode] = useState("");
 
+  // 获取产品数据
+  useEffect(() => {
+    if (isEditMode && productId) {
+      const fetchProductData = async () => {
+        try {
+          setLoading(true);
+          const productData = await readOneDoc<Product>(
+            COLLECTIONS.PRODUCTS,
+            productId
+          );
+          if (productData) {
+            setName(productData.name);
+            setCategory(productData.category);
+            setPluCode(productData.plu_code || "");
+          }
+        } catch (error) {
+          console.error("Error fetching product:", error);
+          Alert.alert("Error", "Failed to load product data");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchProductData();
+    }
+  }, [isEditMode, productId]);
+
   const handleSave = async () => {
     try {
-      // Validation
       if (!name || !category) {
         Alert.alert("Error", "Please fill in all required fields");
         return;
       }
 
-      // TODO: Link to real user, now hardcoded to user123
-      const userId = "user123";
-
-      const newProduct = {
+      const productData = {
         name,
         category,
         plu_code: pluCode,
-        created_at: new Date(),
         updated_at: new Date(),
       };
 
-      const productPath = COLLECTIONS.PRODUCTS;
-      const productId = await createDoc(productPath, newProduct);
-
-      if (productId) {
-        Alert.alert("Success", "Product saved successfully!");
-        navigation.goBack();
+      if (isEditMode) {
+        await updateOneDocInDB(COLLECTIONS.PRODUCTS, productId, productData);
+        Alert.alert("Success", "Product updated successfully!");
       } else {
-        Alert.alert("Error", "Failed to save product");
+        productData.updated_at = new Date();
+        const newProductId = await createDoc(COLLECTIONS.PRODUCTS, productData);
+        if (!newProductId) {
+          throw new Error("Failed to create product");
+        }
+        Alert.alert("Success", "Product created successfully!");
       }
+      navigation.goBack();
     } catch (error) {
       console.error("Error saving product:", error);
-      Alert.alert("Error", "Failed to save product");
+      Alert.alert(
+        "Error",
+        `Failed to ${isEditMode ? "update" : "create"} product`
+      );
     }
   };
 
@@ -77,6 +115,10 @@ const AddProductScreen = () => {
       ),
     });
   }, [navigation, handleSave]);
+
+  if (loading) {
+    return <LoadingLogo />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>

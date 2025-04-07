@@ -17,6 +17,9 @@ export type HomeStackParamList = {
   };
   PriceRecordInformation: { recordId: string };
   EditPriceRecord: { recordId: string };
+  EditProduct: {
+    productId: string;
+  };
 };
 
 export type StoreStackParamList = {

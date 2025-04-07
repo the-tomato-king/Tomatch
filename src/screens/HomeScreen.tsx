@@ -27,32 +27,44 @@ const HomeScreen = () => {
     [key: string]: Product;
   }>({});
 
-  useFocusEffect(
-    useCallback(() => {
-      const currentUser = "user123";
-      const collectionPath = `${COLLECTIONS.USERS}/${currentUser}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+  useEffect(() => {
+    const userId = "user123"; // TODO: get user id from auth
+    const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
-      // Create subscription to real-time updates
-      const unsubscribe = onSnapshot(
-        collection(db, collectionPath),
-        (snapshot) => {
-          const products = snapshot.docs.map((doc) => ({
-            ...doc.data(),
-            id: doc.id,
-          })) as UserProduct[];
+    // monitor user product list change
+    const unsubscribe = onSnapshot(
+      collection(db, userProductsPath),
+      async (snapshot) => {
+        try {
+          const products = await Promise.all(
+            snapshot.docs.map(async (doc) => {
+              const userProduct = { id: doc.id, ...doc.data() } as UserProduct;
+              // get product details
+              const productData = await readOneDoc<Product>(
+                COLLECTIONS.PRODUCTS,
+                userProduct.product_id
+              );
+              return {
+                ...userProduct,
+                product: productData,
+              };
+            })
+          );
           setUserProducts(products);
-          setLoading(false);
-        },
-        (error) => {
-          console.error("Error listening to user products:", error);
+        } catch (error) {
+          console.error("Error processing user products:", error);
+        } finally {
           setLoading(false);
         }
-      );
+      },
+      (error) => {
+        console.error("Error listening to user products:", error);
+        setLoading(false);
+      }
+    );
 
-      // Cleanup subscription on unmount
-      return () => unsubscribe();
-    }, [])
-  );
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const fetchProductsDetails = async () => {

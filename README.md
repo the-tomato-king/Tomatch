@@ -166,8 +166,8 @@ Sub-Collections under users:
 - [ ] Delete: Users can remove products they no longer want to track.
 
 1.2 customized_products (Sub-collection): Stores user-defined products not present in the main product database.
-- [ ] Create: Users manually add new custom products.
-- [ ] Read: Users retrieve a list of their customized products.
+- [x] Create: Users manually add new custom products.
+- [x] Read: Users retrieve a list of their customized products.
 - [ ] Update: Users can modify product details such as name, category, and image.
 - [ ] Delete: Users can remove unwanted customized products.
 
