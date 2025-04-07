@@ -32,63 +32,43 @@ const HomeScreen = () => {
     const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
     // monitor user product list change
-    const unsubscribe = onSnapshot(
+    const unsubscribeUserProducts = onSnapshot(
       collection(db, userProductsPath),
-      async (snapshot) => {
-        try {
-          const products = await Promise.all(
-            snapshot.docs.map(async (doc) => {
-              const userProduct = { id: doc.id, ...doc.data() } as UserProduct;
-              // get product details
-              const productData = await readOneDoc<Product>(
-                COLLECTIONS.PRODUCTS,
-                userProduct.product_id
-              );
-              return {
-                ...userProduct,
-                product: productData,
-              };
-            })
-          );
-          setUserProducts(products);
-        } catch (error) {
-          console.error("Error processing user products:", error);
-        } finally {
-          setLoading(false);
-        }
+      (snapshot) => {
+        const products = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as UserProduct[];
+        setUserProducts(products);
       },
       (error) => {
         console.error("Error listening to user products:", error);
+      }
+    );
+
+    // monitor products collection change
+    const unsubscribeProducts = onSnapshot(
+      collection(db, COLLECTIONS.PRODUCTS),
+      (snapshot) => {
+        const details: { [key: string]: Product } = {};
+        snapshot.docs.forEach((doc) => {
+          details[doc.id] = { id: doc.id, ...doc.data() } as Product;
+        });
+        setProductsDetails(details);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error listening to products:", error);
         setLoading(false);
       }
     );
 
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const fetchProductsDetails = async () => {
-      const details: { [key: string]: Product } = {};
-      for (const product of userProducts) {
-        try {
-          const productDetail = await readOneDoc<Product>(
-            COLLECTIONS.PRODUCTS,
-            product.product_id
-          );
-          if (productDetail) {
-            details[product.product_id] = productDetail;
-          }
-        } catch (error) {
-          console.error("Error fetching product details:", error);
-        }
-      }
-      setProductsDetails(details);
+    // cleanup function
+    return () => {
+      unsubscribeUserProducts();
+      unsubscribeProducts();
     };
-
-    if (userProducts.length > 0) {
-      fetchProductsDetails();
-    }
-  }, [userProducts]);
+  }, []);
 
   const filteredProducts = userProducts.filter((product) => {
     const productDetail = productsDetails[product.product_id];
@@ -115,7 +95,12 @@ const HomeScreen = () => {
         style={styles.list}
         data={filteredProducts}
         keyExtractor={(item) => item.product_id}
-        renderItem={({ item }) => <ProductCard product={item} />}
+        renderItem={({ item }) => (
+          <ProductCard
+            product={item}
+            productDetails={productsDetails[item.product_id]}
+          />
+        )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No products found</Text>

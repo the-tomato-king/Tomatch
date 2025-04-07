@@ -17,41 +17,24 @@ type ProductNavigationProp = NativeStackNavigationProp<
 
 interface ProductCardProps {
   product: UserProduct;
+  productDetails: Product | null;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product, productDetails }: ProductCardProps) => {
   const navigation = useNavigation<ProductNavigationProp>();
-  const [productDetails, setProductDetails] = useState<Product | null>(null);
   const [productStats, setProductStats] = useState<UserProductStats | null>(
     null
   );
 
   useEffect(() => {
-    const fetchProductDetails = async () => {
-      try {
-        const details = await readOneDoc<Product>(
-          COLLECTIONS.PRODUCTS,
-          product.product_id
-        );
-        if (details) {
-          setProductDetails(details);
-        }
-      } catch (error) {
-        console.error("Error fetching product details:", error);
-      }
-    };
-
     const fetchProductStats = async () => {
       try {
-        // TODO:
         const userId = "user123";
         const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
-
         const stats = await readOneDoc<UserProductStats>(
           statsPath,
           product.product_id
         );
-
         if (stats) {
           setProductStats(stats);
         }
@@ -60,7 +43,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
       }
     };
 
-    fetchProductDetails();
     fetchProductStats();
   }, [product.product_id]);
 
