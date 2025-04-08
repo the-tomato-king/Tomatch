@@ -58,6 +58,9 @@ export type RootStackParamList = {
     initialSearchText?: string;
   };
   AddProduct: undefined;
+  EditProduct: {
+    productId: string;
+  };
 };
 
 export type SettingStackParamList = {

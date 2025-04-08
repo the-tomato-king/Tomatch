@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Product, UserProduct, UserProductStats } from "../types";
+import { UserProduct } from "../types";
 import { globalStyles } from "../theme/styles";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -17,31 +17,10 @@ type ProductNavigationProp = NativeStackNavigationProp<
 
 interface ProductCardProps {
   product: UserProduct;
-  productDetails: Product | null;
 }
 
-const ProductCard = ({ product, productDetails }: ProductCardProps) => {
+const ProductCard = ({ product }: ProductCardProps) => {
   const navigation = useNavigation<ProductNavigationProp>();
-  const [productStats, setProductStats] = useState<UserProductStats | null>(
-    null
-  );
-
-  useEffect(() => {
-    const fetchProductStats = async () => {
-      try {
-        const userId = "user123";
-        const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
-        const stats = await readOneDoc<UserProductStats>(statsPath, product.id);
-        if (stats) {
-          setProductStats(stats);
-        }
-      } catch (error) {
-        console.error("Error fetching product stats:", error);
-      }
-    };
-
-    fetchProductStats();
-  }, [product.product_id]);
 
   const handlePress = () => {
     navigation.navigate("ProductDetail", {
@@ -64,21 +43,20 @@ const ProductCard = ({ product, productDetails }: ProductCardProps) => {
     <TouchableOpacity onPress={handlePress}>
       <View style={styles.productItem}>
         <ProductImage
-          imageType={productDetails?.image_type as ImageType}
-          imageSource={productDetails?.image_source as string}
+          imageType={product.image_type as ImageType}
+          imageSource={product.image_source as string}
         />
         <View style={styles.productInfo}>
-          <Text style={styles.productName}>{productDetails?.name}</Text>
-          <Text style={styles.productCategory}>{productDetails?.category}</Text>
+          <Text style={styles.productName}>{product.name}</Text>
+          <Text style={styles.productCategory}>{product.category}</Text>
         </View>
-        {productStats && (
-          <View style={styles.priceContainer}>
-            <Text style={styles.priceText}>
-              {formatPrice(productStats.average_price)}
+        <View style={styles.priceContainer}>
+          <Text style={styles.priceText}>
+            {formatPrice(product.average_price)}
               <Text style={styles.unitText}>/lb</Text>
+              {/* TODO: use user preferred unit */}
             </Text>
-          </View>
-        )}
+        </View>
       </View>
     </TouchableOpacity>
   );

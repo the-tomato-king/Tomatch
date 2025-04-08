@@ -24,12 +24,7 @@ import {
   deleteOneDocFromDB,
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
-import {
-  ImageType,
-  Product,
-  BaseCustomizedProduct,
-  CustomizedProduct,
-} from "../../types";
+import { ImageType, Product, BaseUserProduct, UserProduct } from "../../types";
 import LoadingLogo from "../../components/LoadingLogo";
 import ProductImage from "../../components/ProductImage";
 import EditProductImage from "../../components/EditProductImage";
@@ -59,6 +54,7 @@ const AddProductScreen = () => {
   const [pluCode, setPluCode] = useState("");
   const [imageSource, setImageSource] = useState<string>("");
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
+  const [localImageUri, setLocalImageUri] = useState<string>("");
 
   // get product data
   useEffect(() => {
@@ -67,10 +63,10 @@ const AddProductScreen = () => {
         try {
           setLoading(true);
           const userId = "user123"; // TODO: get user id from auth
-          const customizedProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.CUSTOMIZED_PRODUCTS}`;
+          const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
-          const productData = await readOneDoc<CustomizedProduct>(
-            customizedProductPath,
+          const productData = await readOneDoc<UserProduct>(
+            userProductPath,
             productId
           );
 
@@ -100,37 +96,52 @@ const AddProductScreen = () => {
       }
 
       const userId = "user123"; // TODO: get from auth
-      const customizedProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.CUSTOMIZED_PRODUCTS}`;
+      const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
-      const customizedProductData: BaseCustomizedProduct = {
+      let finalImageSource = imageSource;
+      if (localImageUri && imageType === "user_image") {
+        try {
+          finalImageSource = await uploadProductImage(localImageUri, userId);
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          Alert.alert(
+            "Warning",
+            "Failed to upload image, but product will be saved"
+          );
+        }
+      }
+
+      const userProductData: BaseUserProduct = {
         name,
         category,
         image_type: imageType as ImageType,
         plu_code: pluCode,
-        image_source: imageSource,
+        image_source: finalImageSource,
         barcode: "", // Adding empty barcode as it's in the interface
+        total_price: 0,
+        average_price: 0,
+        lowest_price: 0,
+        highest_price: 0,
+        lowest_price_store: {
+          store_id: "",
+          store_name: "",
+        },
+        total_price_records: 0,
         created_at: new Date(),
         updated_at: new Date(),
       };
 
       if (isEditMode) {
-        // Update existing customized product
-        await updateOneDocInDB(
-          customizedProductPath,
-          productId,
-          customizedProductData
-        );
+        // Update existing user product
+        await updateOneDocInDB(userProductPath, productId, userProductData);
         Alert.alert("Success", "Custom product updated successfully!");
       } else {
-        // Create new customized product
-        const newProductId = await createDoc(
-          customizedProductPath,
-          customizedProductData
-        );
+        // Create new user customized product
+        const newProductId = await createDoc(userProductPath, userProductData);
         if (!newProductId) {
-          throw new Error("Failed to create custom product");
+          throw new Error("Failed to create user product");
         }
-        Alert.alert("Success", "Custom product created successfully!");
+        Alert.alert("Success", "User product created successfully!");
       }
       navigation.goBack();
     } catch (error) {
@@ -156,7 +167,7 @@ const AddProductScreen = () => {
           onPress: async () => {
             try {
               const userId = "user123"; // TODO: get from auth
-              const customizedProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.CUSTOMIZED_PRODUCTS}`;
+              const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
               // 1. Delete all related price records
               const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
@@ -172,28 +183,24 @@ const AddProductScreen = () => {
               );
               await Promise.all(recordDeletePromises);
 
-              // 2. Delete product stats
-              const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
-              await deleteOneDocFromDB(statsPath, productId);
-
-              // 3. Delete the customized product
-              await deleteOneDocFromDB(customizedProductPath, productId);
+              // 2. Delete the user product
+              await deleteOneDocFromDB(userProductPath, productId);
 
               Alert.alert(
                 "Success",
-                "Custom product and related records deleted successfully",
+                "User product and related records deleted successfully",
                 [
                   {
                     text: "OK",
                     onPress: () => {
-                      navigation.navigate("HomeScreen");
+                      navigation.goBack();
                     },
                   },
                 ]
               );
             } catch (error) {
-              console.error("Error deleting custom product:", error);
-              Alert.alert("Error", "Failed to delete the custom product");
+              console.error("Error deleting user product:", error);
+              Alert.alert("Error", "Failed to delete the user product");
             }
           },
         },
@@ -245,18 +252,8 @@ const AddProductScreen = () => {
     });
 
     if (!result.canceled) {
-      try {
-        const userId = "user123"; // TODO: get from auth
-        const imageName = await uploadProductImage(
-          result.assets[0].uri,
-          userId
-        );
-        setImageType("user_image");
-        setImageSource(imageName);
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        Alert.alert("Error", "Failed to upload image");
-      }
+      setLocalImageUri(result.assets[0].uri);
+      setImageType("user_image");
     }
   };
 
@@ -278,18 +275,8 @@ const AddProductScreen = () => {
     });
 
     if (!result.canceled) {
-      try {
-        const userId = "user123"; // TODO: get from auth
-        const imageName = await uploadProductImage(
-          result.assets[0].uri,
-          userId
-        );
-        setImageType("user_image");
-        setImageSource(imageName);
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        Alert.alert("Error", "Failed to upload image");
-      }
+      setLocalImageUri(result.assets[0].uri);
+      setImageType("user_image");
     }
   };
 
@@ -305,6 +292,7 @@ const AddProductScreen = () => {
           userId="user123" // TODO: get from auth
           imageType={imageType as ImageType}
           imageSource={imageSource}
+          localImageUri={localImageUri}
           onPress={pickImage}
         />
 

@@ -10,7 +10,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import ProductCard from "../components/ProductCard";
 import { UserProduct, Product } from "../types";
 import { COLLECTIONS } from "../constants/firebase";
-import { readAllDocs, readOneDoc } from "../services/firebase/firebaseHelper";
 import LoadingLogo from "../components/LoadingLogo";
 import { colors } from "../theme/colors";
 import { useFocusEffect } from "@react-navigation/native";
@@ -47,7 +46,6 @@ const HomeScreen = () => {
       }
     );
 
-    // 替换为本地产品数据
     const allProducts = getAllProducts();
     const details: { [key: string]: Product } = {};
     allProducts.forEach((product) => {
@@ -62,7 +60,14 @@ const HomeScreen = () => {
     };
   }, []);
 
-  const filteredProducts = userProducts.filter((product) => {
+  // Filter products with price records
+  const productsWithStats = userProducts.filter((product) => {
+    // Only keep products that have price records (total_price_records > 0)
+    return product.total_price_records > 0;
+  });
+
+  // Then apply search filter
+  const filteredProducts = productsWithStats.filter((product) => {
     const productDetail = productsDetails[product.product_id || ""];
     if (!productDetail) {
       // Make sure product.name exists before calling toLowerCase
@@ -89,12 +94,7 @@ const HomeScreen = () => {
         style={styles.list}
         data={filteredProducts}
         keyExtractor={(item) => item.product_id || item.id}
-        renderItem={({ item }) => (
-          <ProductCard
-            product={item}
-            productDetails={productsDetails[item.product_id || ""]}
-          />
-        )}
+        renderItem={({ item }) => <ProductCard product={item} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No products found</Text>

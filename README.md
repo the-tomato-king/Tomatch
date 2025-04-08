@@ -103,19 +103,6 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 - photo_url
 - recorded_at
 
-#### 1.5 user_product_stats (sub-collection)
-- id
-- product_id (reference to products of user)
-- currency
-- total_price
-- average_price
-- lowest_price
-- highest_price
-- lowest_price_store
-	- store_id
-	- store_name
-- total_price_records
-- last_updated
 
 ### 2. store_brands (collection)
 	- id
@@ -143,10 +130,10 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 Sub-Collections under users: 
 
 1.1 user_products (Sub-collection): Stores products that users have tracked, including both local product references and custom products.
-- [ ] Create: Users add products from the local library or create custom products.
+- [x] Create: Users add products from the local library or create custom products.
 - [x] Read: Users retrieve their tracked products.
-- [ ] Update: Users can modify product details or update tracking information.
-- [ ] Delete: Users can remove products they no longer want to track.
+- [x] Update: Users can modify product details or update tracking information.
+- [x] Delete: Users can remove products they no longer want to track.
 
 1.2 shopping_lists (sub-collection): Manages user's shopping list items.
 - [x] Create: Users create new shopping lists and add products.
@@ -155,7 +142,7 @@ Sub-Collections under users:
 - [x] Delete: Users can delete entire shopping lists or individual items.
 
 1.3 price_records (Sub-collection): Stores individual price entries for products.
-- [x] Create: Users add price records manually or via OCR from price tags.
+- [ ] Create: Users add price records manually or via OCR from price tags.
 - [x] Read: Users retrieve product price history and price trends.
 - [ ] Update: Users can edit incorrect prices or store information.
 - [x] Delete: Users can remove outdated or incorrect price records.

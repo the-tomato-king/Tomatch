@@ -8,6 +8,7 @@ import { Text } from "react-native";
 import { globalStyles } from "../theme/styles";
 import AddProductScreen from "../screens/products/AddProductScreen";
 import HeaderAddButton from "../components/HeaderAddButton";
+import BackButton from "../components/BackButton";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -60,7 +61,6 @@ const RootNavigator = () => {
         name="AddProduct"
         component={AddProductScreen}
         options={({ navigation }) => ({
-          headerShown: true,
           headerTitle: "Add Product",
           headerLeft: () => (
             <Text
@@ -71,6 +71,14 @@ const RootNavigator = () => {
             </Text>
           ),
         })}
+      />
+      <Stack.Screen
+        name="EditProduct"
+        component={AddProductScreen}
+        options={{
+          headerTitle: "Edit Product",
+          headerLeft: () => <BackButton />,
+        }}
       />
     </Stack.Navigator>
   );

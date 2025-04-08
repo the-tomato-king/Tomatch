@@ -7,6 +7,7 @@ import { ImageType } from "../types/index";
 interface EditProductImageProps {
   imageType?: ImageType;
   imageSource?: string;
+  localImageUri?: string;
   userId: string;
   onPress?: () => void;
 }
@@ -14,6 +15,7 @@ interface EditProductImageProps {
 const EditProductImage = ({
   imageType,
   imageSource,
+  localImageUri,
   userId,
   onPress,
 }: EditProductImageProps) => {
@@ -22,7 +24,9 @@ const EditProductImage = ({
       <View style={styles.imageWrapper}>
         {imageType === "emoji" ? (
           <Text style={styles.emojiText}>{imageSource}</Text>
-        ) : imageSource ? (
+        ) : localImageUri ? (
+          <Image source={{ uri: localImageUri }} style={styles.image} />
+        ) : imageSource && imageType === "user_image" ? (
           <Image source={{ uri: imageSource }} style={styles.image} />
         ) : (
           <View style={styles.placeholderContainer}>

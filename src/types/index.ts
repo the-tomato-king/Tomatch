@@ -61,6 +61,15 @@ export interface BaseUserProduct {
   barcode: string; // barcode
   created_at: Date;
   updated_at: Date;
+  total_price: number;
+  average_price: number;
+  lowest_price: number;
+  highest_price: number;
+  lowest_price_store: {
+    store_id: string;
+    store_name: string;
+  };
+  total_price_records: number;
 }
 
 export interface UserProduct extends BaseUserProduct {
@@ -85,6 +94,7 @@ export interface BasePriceRecord {
   user_product_id: string; // references user_products
   store_id: string; // references stores
   price: number;
+  currency: string;
   unit_type: string;
   unit_price: number;
   photo_url: string;
@@ -95,27 +105,6 @@ export interface PriceRecord extends BasePriceRecord {
   id: string;
   store?: UserStore;
 }
-
-// User Product Stats(sub-collection of User)
-export interface BaseUserProductStats {
-  product_id: string; // reference to products collection
-  currency: string;
-  total_price: number;
-  average_price: number;
-  lowest_price: number;
-  highest_price: number;
-  lowest_price_store: {
-    store_id: string;
-    store_name: string;
-  };
-  total_price_records: number;
-  last_updated: Date;
-}
-
-export interface UserProductStats extends BaseUserProductStats {
-  id: string;
-}
-
 export type ImageType = "emoji" | "preset_image" | "user_image";
 
 // Product
