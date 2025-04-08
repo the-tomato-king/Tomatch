@@ -3,8 +3,8 @@ export interface BaseUser {
   name: string;
   email: string;
   phone_number: string;
-  location: Location;
-  preferred_unit: PreferredUnit;
+  location: UserLocation;
+  preferred_unit: string;
   preferred_currency: string;
   created_at: Date;
   updated_at: Date;
@@ -14,23 +14,15 @@ export interface User extends BaseUser {
   id: string;
 }
 
-interface Location {
+export interface UserLocation {
   country: string;
   province: string;
   city: string;
-  street_address: string;
-  postcode: string;
-  coordinates: Coordinates;
 }
 
 interface Coordinates {
   latitude: number;
   longitude: number;
-}
-
-interface PreferredUnit {
-  weight: string;
-  volume: string;
 }
 
 // User Store (sub-collection of User)
@@ -127,4 +119,10 @@ export interface BaseStoreBrand {
 
 export interface StoreBrand extends BaseStoreBrand {
   id: string;
+}
+
+export interface Currency {
+  code: string;
+  symbol: string;
+  name: string;
 }

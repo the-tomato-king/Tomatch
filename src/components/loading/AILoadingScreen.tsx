@@ -1,6 +1,6 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
-import { colors } from "../theme/colors";
+import { colors } from "../../theme/colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const AILoadingScreen = () => {
