@@ -24,7 +24,12 @@ import {
   deleteOneDocFromDB,
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
-import { ImageType, Product } from "../../types";
+import {
+  ImageType,
+  Product,
+  BaseCustomizedProduct,
+  CustomizedProduct,
+} from "../../types";
 import LoadingLogo from "../../components/LoadingLogo";
 import ProductImage from "../../components/ProductImage";
 import EditProductImage from "../../components/EditProductImage";
@@ -48,18 +53,10 @@ const AddProductScreen = () => {
   const productId = isEditMode ? route.params?.productId : null;
 
   const [loading, setLoading] = useState(isEditMode);
-  const [open, setOpen] = useState(false);
   const [category, setCategory] = useState("");
-  const [items] = useState(
-    Object.values(PRODUCT_CATEGORIES).map((category) => ({
-      label: category,
-      value: category,
-    }))
-  );
-
   const [name, setName] = useState("");
-  const [pluCode, setPluCode] = useState("");
   const [imageType, setImageType] = useState<ImageType | "">("");
+  const [pluCode, setPluCode] = useState("");
   const [imageSource, setImageSource] = useState<string>("");
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
 
@@ -69,20 +66,23 @@ const AddProductScreen = () => {
       const fetchProductData = async () => {
         try {
           setLoading(true);
-          const productData = await readOneDoc<Product>(
-            COLLECTIONS.PRODUCTS,
+          const userId = "user123"; // TODO: get user id from auth
+          const customizedProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.CUSTOMIZED_PRODUCTS}`;
+
+          const productData = await readOneDoc<CustomizedProduct>(
+            customizedProductPath,
             productId
           );
+
           if (productData) {
             setName(productData.name);
             setCategory(productData.category);
             setPluCode(productData.plu_code || "");
-            setImageType(productData.image_type || "");
             setImageSource(productData.image_source || "");
           }
         } catch (error) {
-          console.error("Error fetching product:", error);
-          Alert.alert("Error", "Failed to load product data");
+          console.error("Error fetching custom product:", error);
+          Alert.alert("Error", "Failed to load custom product data");
         } finally {
           setLoading(false);
         }
@@ -98,32 +98,44 @@ const AddProductScreen = () => {
         return;
       }
 
-      const productData = {
+      const userId = "user123"; // TODO: get from auth
+      const customizedProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.CUSTOMIZED_PRODUCTS}`;
+
+      const customizedProductData: BaseCustomizedProduct = {
         name,
         category,
         plu_code: pluCode,
-        image_type: imageType as ImageType,
         image_source: imageSource,
+        barcode: "", // Adding empty barcode as it's in the interface
+        created_at: new Date(),
         updated_at: new Date(),
       };
 
       if (isEditMode) {
-        await updateOneDocInDB(COLLECTIONS.PRODUCTS, productId, productData);
-        Alert.alert("Success", "Product updated successfully!");
+        // Update existing customized product
+        await updateOneDocInDB(
+          customizedProductPath,
+          productId,
+          customizedProductData
+        );
+        Alert.alert("Success", "Custom product updated successfully!");
       } else {
-        productData.updated_at = new Date();
-        const newProductId = await createDoc(COLLECTIONS.PRODUCTS, productData);
+        // Create new customized product
+        const newProductId = await createDoc(
+          customizedProductPath,
+          customizedProductData
+        );
         if (!newProductId) {
-          throw new Error("Failed to create product");
+          throw new Error("Failed to create custom product");
         }
-        Alert.alert("Success", "Product created successfully!");
+        Alert.alert("Success", "Custom product created successfully!");
       }
       navigation.goBack();
     } catch (error) {
-      console.error("Error saving product:", error);
+      console.error("Error saving custom product:", error);
       Alert.alert(
         "Error",
-        `Failed to ${isEditMode ? "update" : "create"} product`
+        `Failed to ${isEditMode ? "update" : "create"} custom product`
       );
     }
   };
@@ -132,8 +144,8 @@ const AddProductScreen = () => {
     if (!isEditMode || !productId) return;
 
     Alert.alert(
-      "Delete Product",
-      "Are you sure you want to delete this product? All related price records will also be deleted.",
+      "Delete Custom Product",
+      "Are you sure you want to delete this custom product? All related price records will also be deleted.",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -142,6 +154,7 @@ const AddProductScreen = () => {
           onPress: async () => {
             try {
               const userId = "user123"; // TODO: get from auth
+              const customizedProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.CUSTOMIZED_PRODUCTS}`;
 
               // 1. Delete all related price records
               const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
@@ -161,12 +174,12 @@ const AddProductScreen = () => {
               const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
               await deleteOneDocFromDB(statsPath, productId);
 
-              // 3. Delete the product
-              await deleteOneDocFromDB(COLLECTIONS.PRODUCTS, productId);
+              // 3. Delete the customized product
+              await deleteOneDocFromDB(customizedProductPath, productId);
 
               Alert.alert(
                 "Success",
-                "Product and related records deleted successfully",
+                "Custom product and related records deleted successfully",
                 [
                   {
                     text: "OK",
@@ -177,8 +190,8 @@ const AddProductScreen = () => {
                 ]
               );
             } catch (error) {
-              console.error("Error deleting product:", error);
-              Alert.alert("Error", "Failed to delete the product");
+              console.error("Error deleting custom product:", error);
+              Alert.alert("Error", "Failed to delete the custom product");
             }
           },
         },
@@ -236,7 +249,6 @@ const AddProductScreen = () => {
           result.assets[0].uri,
           userId
         );
-        setImageType("user_image" as ImageType);
         setImageSource(imageName);
       } catch (error) {
         console.error("Error uploading image:", error);
@@ -269,7 +281,6 @@ const AddProductScreen = () => {
           result.assets[0].uri,
           userId
         );
-        setImageType("user_image" as ImageType);
         setImageSource(imageName);
       } catch (error) {
         console.error("Error uploading image:", error);

@@ -66,7 +66,7 @@ export interface UserProduct extends BaseUserProduct {
 export interface BaseCustomizedProduct {
   name: string;
   category: string;
-  image_url: string;
+  image_source: string;
   plu_code: string;
   barcode: string;
   created_at: Date;
