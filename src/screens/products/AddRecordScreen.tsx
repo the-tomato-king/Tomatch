@@ -33,11 +33,9 @@ import { COLLECTIONS } from "../../constants/firebase";
 import {
   BasePriceRecord,
   BaseUserProduct,
-  BaseUserProductStats,
   PriceRecord,
   Product,
   UserProduct,
-  UserProductStats,
   UserStore,
 } from "../../types";
 import ProductSearchInput from "../../components/ProductSearchInput";
@@ -125,10 +123,7 @@ const AddRecordScreen = () => {
               );
 
               if (userProductData && userProductData.product_id) {
-                const productData = await readOneDoc<Product>(
-                  COLLECTIONS.PRODUCTS,
-                  userProductData.product_id
-                );
+                const productData = getProductById(userProductData.product_id);
 
                 if (productData) {
                   setProduct(productData);
@@ -141,6 +136,15 @@ const AddRecordScreen = () => {
                     image_source: productData.image_source || "",
                     plu_code: productData.plu_code || "",
                     barcode: productData.barcode || "",
+                    total_price: 0,
+                    average_price: 0,
+                    lowest_price: 0,
+                    highest_price: 0,
+                    lowest_price_store: {
+                      store_id: "",
+                      store_name: "",
+                    },
+                    total_price_records: 0,
                     created_at: new Date(),
                     updated_at: new Date(),
                   });
@@ -377,6 +381,15 @@ const AddRecordScreen = () => {
               image_source: completeProduct.image_source || "",
               plu_code: completeProduct.plu_code || "",
               barcode: completeProduct.barcode || "",
+              total_price: 0,
+              average_price: 0,
+              lowest_price: 0,
+              highest_price: 0,
+              lowest_price_store: {
+                store_id: "",
+                store_name: "",
+              },
+              total_price_records: 0,
               created_at: new Date(),
               updated_at: new Date(),
             };
@@ -390,6 +403,15 @@ const AddRecordScreen = () => {
               image_source: "🛒", // Default icon
               plu_code: "",
               barcode: "",
+              total_price: 0,
+              average_price: 0,
+              lowest_price: 0,
+              highest_price: 0,
+              lowest_price_store: {
+                store_id: "",
+                store_name: "",
+              },
+              total_price_records: 0,
               created_at: new Date(),
               updated_at: new Date(),
             };
@@ -413,6 +435,7 @@ const AddRecordScreen = () => {
           unit_type: unitType,
           unit_price: numericPrice,
           photo_url: photoUrl,
+          currency: "$", // TODO: Get from user settings
           recorded_at: new Date(),
         };
 
@@ -421,74 +444,65 @@ const AddRecordScreen = () => {
         const recordId = await createDoc(priceRecordPath, priceRecord);
 
         if (recordId) {
-          // Get product ID for statistics, prioritize selectedProduct.product_id
-          const productStatsId = selectedProduct.product_id || userProductId;
+          // Update user product stats after saving the record
+          // Update stats directly in the user product document, not a separate stats collection
 
-          // Create or update product statistics information
-          const userProductStatsRef = doc(
+          // Get the latest user product data
+          const userProductRef = doc(
             db,
             COLLECTIONS.USERS,
             userId,
-            COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS,
-            productStatsId
+            COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS,
+            userProductId
           );
-          const userProductStatsDoc = await getDoc(userProductStatsRef);
 
-          let userProductStats: BaseUserProductStats;
+          const userProductDoc = await getDoc(userProductRef);
 
-          if (userProductStatsDoc.exists()) {
-            const existingStats =
-              userProductStatsDoc.data() as UserProductStats;
-            const newTotalPrice = existingStats.total_price + numericPrice;
-            const newTotalRecords = existingStats.total_price_records + 1;
+          if (userProductDoc.exists()) {
+            const existingProduct = userProductDoc.data() as UserProduct;
+
+            // Calculate new stats
+            const newTotalPrice =
+              (existingProduct.total_price || 0) + numericPrice;
+            const newTotalRecords =
+              (existingProduct.total_price_records || 0) + 1;
             const newAveragePrice = newTotalPrice / newTotalRecords;
 
-            userProductStats = {
-              ...existingStats,
+            // Determine if it's the lowest price
+            const isLowestPrice =
+              !existingProduct.lowest_price ||
+              numericPrice < existingProduct.lowest_price;
+
+            // Determine if it's the highest price
+            const isHighestPrice =
+              !existingProduct.highest_price ||
+              numericPrice > existingProduct.highest_price;
+
+            // Prepare update data
+            const updateData = {
               total_price: newTotalPrice,
               average_price: newAveragePrice,
-              lowest_price:
-                numericPrice < existingStats.lowest_price
-                  ? numericPrice
-                  : existingStats.lowest_price,
-              highest_price:
-                numericPrice > existingStats.highest_price
-                  ? numericPrice
-                  : existingStats.highest_price,
-              lowest_price_store:
-                numericPrice < existingStats.lowest_price
-                  ? {
-                      store_id: selectedStore.id,
-                      store_name: selectedStore.name,
-                    }
-                  : existingStats.lowest_price_store,
+              lowest_price: isLowestPrice
+                ? numericPrice
+                : existingProduct.lowest_price,
+              highest_price: isHighestPrice
+                ? numericPrice
+                : existingProduct.highest_price,
+              lowest_price_store: isLowestPrice
+                ? { store_id: selectedStore.id, store_name: selectedStore.name }
+                : existingProduct.lowest_price_store,
               total_price_records: newTotalRecords,
-              last_updated: new Date(),
+              updated_at: new Date(),
             };
 
-            const userProductStatsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
+            // Update user product data
             await updateOneDocInDB(
-              userProductStatsPath,
-              userProductStats.product_id,
-              userProductStats
+              `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`,
+              userProductId,
+              updateData
             );
           } else {
-            userProductStats = {
-              product_id: productStatsId,
-              currency: "$", // TODO: Get from user settings
-              total_price: numericPrice,
-              average_price: numericPrice,
-              lowest_price: numericPrice,
-              highest_price: numericPrice,
-              lowest_price_store: {
-                store_id: selectedStore.id,
-                store_name: selectedStore.name,
-              },
-              total_price_records: 1,
-              last_updated: new Date(),
-            };
-
-            await setDoc(userProductStatsRef, userProductStats);
+            console.error("User product not found after creating price record");
           }
 
           alert("Record saved successfully!");
@@ -565,6 +579,15 @@ const AddRecordScreen = () => {
                   image_source: product.image_source || "",
                   plu_code: product.plu_code || "",
                   barcode: product.barcode || "",
+                  total_price: 0,
+                  average_price: 0,
+                  lowest_price: 0,
+                  highest_price: 0,
+                  lowest_price_store: {
+                    store_id: "",
+                    store_name: "",
+                  },
+                  total_price_records: 0,
                   created_at: new Date(),
                   updated_at: new Date(),
                 });

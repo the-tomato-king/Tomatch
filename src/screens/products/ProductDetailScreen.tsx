@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -27,7 +28,7 @@ import { db } from "../../services/firebase/firebaseConfig";
 import {
   Product,
   PriceRecord,
-  UserProductStats,
+  UserProduct,
   UserStore,
   ImageType,
 } from "../../types";
@@ -47,60 +48,38 @@ const ProductDetailScreen = () => {
   const navigation = useNavigation<ProductDetailScreenNavigationProp>();
 
   const [loading, setLoading] = useState(true);
-  const [product, setProduct] = useState<Product | null>(null);
+  const [userProduct, setUserProduct] = useState<UserProduct | null>(null);
   const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([]);
-  const [productStats, setProductStats] = useState<UserProductStats | null>(
-    null
-  );
 
   useEffect(() => {
     const fetchProductData = async () => {
       try {
         setLoading(true);
         const userId = "user123"; // TODO: get user id from auth
+        const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
-        const localProduct = getProductById(productId);
-        if (localProduct) {
-          setProduct(localProduct);
-        } else {
-          // if local product is not found, it's a custom product, get it from user_products
-          const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-          const userProductDoc = await getDoc(
-            doc(db, userProductsPath, userProductId)
-          );
-          if (userProductDoc.exists()) {
-            const userProductData = userProductDoc.data();
-            setProduct({
-              id: productId,
-              name: userProductData.name,
-              category: userProductData.category,
-              image_type: userProductData.image_type,
-              image_source: userProductData.image_source,
-              plu_code: userProductData.plu_code || "",
-              barcode: userProductData.barcode || "",
-            });
-          }
-        }
-
-        // monitor user product stats
-        const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
-        const statsUnsubscribe = onSnapshot(
-          doc(db, statsPath, productId),
+        const productUnsubscribe = onSnapshot(
+          doc(db, userProductsPath, userProductId),
           (doc) => {
             if (doc.exists()) {
-              setProductStats({
+              const data = doc.data();
+              setUserProduct({
                 id: doc.id,
-                ...doc.data(),
-              } as UserProductStats);
+                ...data,
+              } as UserProduct);
+            } else {
+              Alert.alert("Error", "User product not found");
             }
           },
           (error) => {
-            console.error("Error listening to product stats:", error);
+            console.error("Error listening to user product:", error);
+            Alert.alert("Error", "Failed to load product data");
           }
         );
 
+
         return () => {
-          statsUnsubscribe();
+          productUnsubscribe();
         };
       } catch (error) {
         console.error("Error setting up listeners:", error);
@@ -208,7 +187,7 @@ const ProductDetailScreen = () => {
     return `${formattedDate} at ${formattedTime}`;
   };
 
-  if (loading) {
+  if (loading || !userProduct) {
     return <LoadingLogo />;
   }
 
@@ -218,24 +197,24 @@ const ProductDetailScreen = () => {
       <TouchableOpacity
         style={[styles.section]}
         onPress={() =>
-          navigation.navigate("EditProduct", { productId: productId })
+          navigation.navigate("EditProduct", { productId: userProductId })
         }
       >
         <View style={styles.basicInfoContainer}>
           <ProductImage
-            imageType={product?.image_type as ImageType}
-            imageSource={product?.image_source as string}
+            imageType={userProduct.image_type as ImageType}
+            imageSource={userProduct.image_source as string}
           />
           <View style={styles.contentContainer}>
             <View style={styles.titleContainer}>
-              <Text style={styles.sectionTitle}>{product?.name}</Text>
+              <Text style={styles.sectionTitle}>{userProduct.name}</Text>
               <View style={styles.categoryContainer}>
-                <Text style={styles.category}>{product?.category}</Text>
+                <Text style={styles.category}>{userProduct.category}</Text>
               </View>
             </View>
             <View style={styles.priceContainer}>
               <Text style={styles.priceValue}>
-                ${productStats?.average_price.toFixed(2)}
+                ${userProduct.average_price.toFixed(2)}
               </Text>
               <Text style={styles.priceUnit}>/lb</Text>
               <Text style={styles.priceLabel}>Average</Text>
@@ -254,10 +233,10 @@ const ProductDetailScreen = () => {
             </View>
             <View style={styles.priceRangeLabels}>
               <Text style={[styles.minMaxPrice, { color: "#4CAF50" }]}>
-                ${productStats?.lowest_price.toFixed(2)}
+                ${userProduct.lowest_price.toFixed(2)}
               </Text>
               <Text style={[styles.minMaxPrice, { color: "#F44336" }]}>
-                ${productStats?.highest_price.toFixed(2)}
+                ${userProduct.highest_price.toFixed(2)}
               </Text>
             </View>
           </View>
