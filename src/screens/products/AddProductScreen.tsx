@@ -16,7 +16,11 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
 import { PRODUCT_CATEGORIES } from "../../data/Product";
 import SearchDropdown from "../../components/SearchDropdown";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import {
+  useNavigation,
+  useRoute,
+  CommonActions,
+} from "@react-navigation/native";
 import {
   createDoc,
   readOneDoc,
@@ -56,38 +60,73 @@ const AddProductScreen = () => {
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
   const [localImageUri, setLocalImageUri] = useState<string>("");
 
-  // get product data
+  // Get product data
   useEffect(() => {
     if (isEditMode && productId) {
-      const fetchProductData = async () => {
-        try {
-          setLoading(true);
-          const userId = "user123"; // TODO: get user id from auth
-          const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-
-          const productData = await readOneDoc<UserProduct>(
-            userProductPath,
-            productId
-          );
-
-          if (productData) {
-            setName(productData.name);
-            setCategory(productData.category);
-            setPluCode(productData.plu_code || "");
-            setImageType(productData.image_type || "user_image");
-            setImageSource(productData.image_source || "");
-          }
-        } catch (error) {
-          console.error("Error fetching custom product:", error);
-          Alert.alert("Error", "Failed to load custom product data");
-        } finally {
-          setLoading(false);
-        }
-      };
       fetchProductData();
     }
   }, [isEditMode, productId]);
 
+  // Fetch product data for edit mode
+  const fetchProductData = async () => {
+    try {
+      setLoading(true);
+      const userId = "user123"; // TODO: get user id from auth
+      const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+
+      const productData = await readOneDoc<UserProduct>(
+        userProductPath,
+        productId
+      );
+
+      if (productData) {
+        setName(productData.name);
+        setCategory(productData.category);
+        setPluCode(productData.plu_code || "");
+        setImageType(productData.image_type || "user_image");
+        setImageSource(productData.image_source || "");
+      }
+    } catch (error) {
+      console.error("Error fetching custom product:", error);
+      Alert.alert("Error", "Failed to load custom product data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Check if we're in the HomeStack (EditProduct screen from ProductDetail)
+  const isInHomeStack = () => {
+    return isEditMode && route.name === "EditProduct";
+  };
+
+  // Handle navigation after operations
+  const handleNavigation = () => {
+    if (isInHomeStack()) {
+      // If coming from HomeStack, directly go back to HomeScreen with reset
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: "Main",
+              params: {
+                screen: "Home",
+                params: {
+                  screen: "HomeScreen",
+                  params: { needsRefresh: true },
+                },
+              },
+            },
+          ],
+        })
+      );
+    } else {
+      // Default behavior: go back (ProductLibrary flow)
+      navigation.goBack();
+    }
+  };
+
+  // Save product function
   const handleSave = async () => {
     try {
       if (!name || !category) {
@@ -117,7 +156,7 @@ const AddProductScreen = () => {
         image_type: imageType as ImageType,
         plu_code: pluCode,
         image_source: finalImageSource,
-        barcode: "", // Adding empty barcode as it's in the interface
+        barcode: "",
         total_price: 0,
         average_price: 0,
         lowest_price: 0,
@@ -134,16 +173,19 @@ const AddProductScreen = () => {
       if (isEditMode) {
         // Update existing user product
         await updateOneDocInDB(userProductPath, productId, userProductData);
-        Alert.alert("Success", "Custom product updated successfully!");
+        Alert.alert("Success", "Custom product updated successfully!", [
+          { text: "OK", onPress: handleNavigation },
+        ]);
       } else {
         // Create new user customized product
         const newProductId = await createDoc(userProductPath, userProductData);
         if (!newProductId) {
           throw new Error("Failed to create user product");
         }
-        Alert.alert("Success", "User product created successfully!");
+        Alert.alert("Success", "User product created successfully!", [
+          { text: "OK", onPress: handleNavigation },
+        ]);
       }
-      navigation.goBack();
     } catch (error) {
       console.error("Error saving custom product:", error);
       Alert.alert(
@@ -153,6 +195,7 @@ const AddProductScreen = () => {
     }
   };
 
+  // Delete product function
   const handleDelete = async () => {
     if (!isEditMode || !productId) return;
 
@@ -189,14 +232,7 @@ const AddProductScreen = () => {
               Alert.alert(
                 "Success",
                 "User product and related records deleted successfully",
-                [
-                  {
-                    text: "OK",
-                    onPress: () => {
-                      navigation.goBack();
-                    },
-                  },
-                ]
+                [{ text: "OK", onPress: handleNavigation }]
               );
             } catch (error) {
               console.error("Error deleting user product:", error);
@@ -208,6 +244,7 @@ const AddProductScreen = () => {
     );
   };
 
+  // Handle image selection methods
   const pickImage = () => {
     Alert.alert(
       "Select Image",

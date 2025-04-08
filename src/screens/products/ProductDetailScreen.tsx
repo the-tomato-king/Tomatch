@@ -37,6 +37,7 @@ import ProductImage from "../../components/ProductImage";
 import { colors } from "../../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { getProductById } from "../../services/productService";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
 type ProductDetailScreenNavigationProp =
@@ -50,15 +51,18 @@ const ProductDetailScreen = () => {
   const [loading, setLoading] = useState(true);
   const [userProduct, setUserProduct] = useState<UserProduct | null>(null);
   const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([]);
+  const [productExists, setProductExists] = useState(true);
 
   useEffect(() => {
+    let productUnsubscribe: (() => void) | undefined;
+
     const fetchProductData = async () => {
       try {
         setLoading(true);
         const userId = "user123"; // TODO: get user id from auth
         const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
-        const productUnsubscribe = onSnapshot(
+        productUnsubscribe = onSnapshot(
           doc(db, userProductsPath, userProductId),
           (doc) => {
             if (doc.exists()) {
@@ -67,28 +71,33 @@ const ProductDetailScreen = () => {
                 id: doc.id,
                 ...data,
               } as UserProduct);
+              setProductExists(true);
             } else {
-              Alert.alert("Error", "User product not found");
+              setProductExists(false);
+              setUserProduct(null);
             }
+            setLoading(false);
           },
           (error) => {
             console.error("Error listening to user product:", error);
-            Alert.alert("Error", "Failed to load product data");
+            setProductExists(false);
+            setLoading(false);
           }
         );
-
-
-        return () => {
-          productUnsubscribe();
-        };
       } catch (error) {
         console.error("Error setting up listeners:", error);
-      } finally {
+        setProductExists(false);
         setLoading(false);
       }
     };
 
     fetchProductData();
+
+    return () => {
+      if (productUnsubscribe) {
+        productUnsubscribe();
+      }
+    };
   }, [productId, userProductId]);
 
   useEffect(() => {
@@ -187,7 +196,33 @@ const ProductDetailScreen = () => {
     return `${formattedDate} at ${formattedTime}`;
   };
 
-  if (loading || !userProduct) {
+  if (loading) {
+    return <LoadingLogo />;
+  }
+
+  if (!productExists) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <MaterialCommunityIcons
+          name="alert-circle-outline"
+          size={50}
+          color={colors.negative}
+        />
+        <Text style={styles.notFoundTitle}>Product Not Found</Text>
+        <Text style={styles.notFoundText}>
+          This product may have been deleted or is no longer available.
+        </Text>
+        <TouchableOpacity
+          style={[styles.button, styles.backButton]}
+          onPress={() => navigation.navigate("HomeScreen")}
+        >
+          <Text style={styles.buttonText}>Back to Home</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!userProduct) {
     return <LoadingLogo />;
   }
 
@@ -411,6 +446,38 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: colors.primary,
+  },
+  centerContent: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  notFoundTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
+    color: colors.darkText,
+  },
+  notFoundText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 30,
+    color: colors.secondaryText,
+  },
+  button: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  backButton: {
+    backgroundColor: colors.primary,
+  },
+  buttonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
 
