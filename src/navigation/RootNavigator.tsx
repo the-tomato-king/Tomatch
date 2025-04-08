@@ -1,3 +1,4 @@
+// src/navigation/RootNavigator.tsx
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
@@ -9,21 +10,37 @@ import { globalStyles } from "../theme/styles";
 import AddProductScreen from "../screens/products/AddProductScreen";
 import HeaderAddButton from "../components/HeaderAddButton";
 import BackButton from "../components/BackButton";
+import LoginScreen from "../screens/auth/LoginScreen";
+import { useAuth } from "../contexts/AuthContext";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const AuthStack = createNativeStackNavigator();
+const AppStack = createNativeStackNavigator();
 
-const RootNavigator = () => {
+const AuthNavigator = () => {
   return (
-    <Stack.Navigator>
-      <Stack.Screen
+    <AuthStack.Navigator>
+      <AuthStack.Screen 
+        name="Login" 
+        component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+    </AuthStack.Navigator>
+  );
+};
+
+const AppNavigator = () => {
+  return (
+    <AppStack.Navigator>
+      <AppStack.Screen
         name="Main"
         component={MainTabNavigator}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <AppStack.Screen
         name="AddRecordModal"
         component={AddRecordScreen}
-        options={({ navigation, route }) => ({
+        options={({ navigation }) => ({
           presentation: "modal",
           title: "Add Record",
           headerLeft: () => (
@@ -36,7 +53,7 @@ const RootNavigator = () => {
           ),
         })}
       />
-      <Stack.Screen
+      <AppStack.Screen
         name="ProductLibrary"
         component={ProductLibraryScreen}
         options={({ navigation }) => ({
@@ -57,7 +74,7 @@ const RootNavigator = () => {
           ),
         })}
       />
-      <Stack.Screen
+      <AppStack.Screen
         name="AddProduct"
         component={AddProductScreen}
         options={({ navigation }) => ({
@@ -72,7 +89,7 @@ const RootNavigator = () => {
           ),
         })}
       />
-      <Stack.Screen
+      <AppStack.Screen
         name="EditProduct"
         component={AddProductScreen}
         options={{
@@ -80,6 +97,25 @@ const RootNavigator = () => {
           headerLeft: () => <BackButton />,
         }}
       />
+    </AppStack.Navigator>
+  );
+};
+
+const RootNavigator = () => {
+  const { user, isLoading } = useAuth();
+  
+  // Show loading screen while checking authentication status
+  if (isLoading) {
+    return null; // Or a custom loading component
+  }
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {user ? (
+        <Stack.Screen name="App" component={AppNavigator} />
+      ) : (
+        <Stack.Screen name="Auth" component={AuthNavigator} />
+      )}
     </Stack.Navigator>
   );
 };

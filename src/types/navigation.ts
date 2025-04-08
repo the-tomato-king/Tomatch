@@ -43,6 +43,9 @@ export type ShoppingStackParamList = {
 };
 
 export type RootStackParamList = {
+  App: undefined;
+  Auth: undefined;
+  Login: undefined;
   Main: {
     screen?: string;
     params?: {
