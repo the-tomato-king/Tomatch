@@ -125,3 +125,9 @@ export interface BaseStoreBrand {
 export interface StoreBrand extends BaseStoreBrand {
   id: string;
 }
+
+export interface Currency {
+  code: string;
+  symbol: string;
+  name: string;
+}

@@ -21,9 +21,17 @@ import { db } from "../../services/firebase/firebaseConfig";
 import MainPageHeader from "../../components/MainPageHeader";
 import LocationModal from "../../components/modals/LocationModal";
 import { updateOneDocInDB } from "../../services/firebase/firebaseHelper";
+import CurrencyModal from "../../components/modals/CurrencyModal";
+import { CURRENCIES } from "../../constants/currencies";
+import { useUserPreference } from "../../hooks/useUserPreference";
 
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
+
+const getCurrencySymbol = (code: string) => {
+  const currency = CURRENCIES.find((c) => c.code === code);
+  return currency ? `${code} (${currency.symbol})` : code;
+};
 
 const SettingPage = () => {
   const navigation = useNavigation<SettingScreenNavigationProp>();
@@ -31,9 +39,18 @@ const SettingPage = () => {
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
+  const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
 
-  //TODO: delete this when auth is implemented
-  const userId = "user123";
+  const userId = "user123"; // TODO: get from auth
+  const {
+    loading: userPreferenceLoading,
+    error: userPreferenceError,
+    preferences,
+    formatCurrency,
+    formatLocation,
+    updateCurrency,
+    updateLocation,
+  } = useUserPreference(userId);
 
   useEffect(() => {
     setLoading(true);
@@ -92,22 +109,29 @@ const SettingPage = () => {
     }
   };
 
-  if (loading) {
+  const handleUpdateCurrency = async (newCurrency: string) => {
+    try {
+      await updateOneDocInDB(COLLECTIONS.USERS, userId, {
+        preferred_currency: newCurrency,
+        updated_at: new Date(),
+      });
+    } catch (error) {
+      console.error("Error updating currency:", error);
+      Alert.alert("Error", "Failed to update currency");
+    }
+  };
+
+  if (userPreferenceLoading || loading) {
     return <LoadingLogo />;
   }
 
-  //TODO: delete this when auth is implemented
-  if (!user) {
+  if (userPreferenceError || !preferences) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>User data not available</Text>
-          <TouchableOpacity
-            style={styles.errorButton}
-            onPress={() => navigation.navigate("EditProfile")}
-          >
-            <Text style={styles.errorButtonText}>Create Profile</Text>
-          </TouchableOpacity>
+          <Text style={styles.errorText}>
+            {userPreferenceError || "No preferences found"}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -128,8 +152,8 @@ const SettingPage = () => {
             <Text style={styles.avatarText}>Avatar</Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{user.name}</Text>
-            <Text style={styles.userEmail}>{user.email}</Text>
+            <Text style={styles.userName}>{user?.name}</Text>
+            <Text style={styles.userEmail}>{user?.email}</Text>
           </View>
           <Text style={styles.chevron}>{">"}</Text>
         </TouchableOpacity>
@@ -163,31 +187,35 @@ const SettingPage = () => {
             <Text style={styles.settingLabel}>Location</Text>
             <View style={styles.locationInfo}>
               <Text style={styles.settingValue}>
-                {user?.location
-                  ? `${user.location.city}, ${user.location.province}`
+                {preferences.location
+                  ? formatLocation(preferences.location)
                   : "Not set"}
               </Text>
               <Text style={styles.chevron}>{">"}</Text>
             </View>
           </TouchableOpacity>
 
-          <View style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => setIsCurrencyModalVisible(true)}
+          >
             <Text style={styles.settingLabel}>Currency</Text>
-            <Text style={styles.settingValue}>{user.preferred_currency}</Text>
-          </View>
+            <View style={styles.locationInfo}>
+              <Text style={styles.settingValue}>
+                {formatCurrency(preferences.currency)}
+              </Text>
+              <Text style={styles.chevron}>{">"}</Text>
+            </View>
+          </TouchableOpacity>
 
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Weight Unit</Text>
-            <Text style={styles.settingValue}>
-              {user.preferred_unit.weight}
-            </Text>
+            <Text style={styles.settingValue}>{preferences.units.weight}</Text>
           </View>
 
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Volume Unit</Text>
-            <Text style={styles.settingValue}>
-              {user.preferred_unit.volume}
-            </Text>
+            <Text style={styles.settingValue}>{preferences.units.volume}</Text>
           </View>
 
           <View style={styles.settingItem}>
@@ -207,6 +235,13 @@ const SettingPage = () => {
           onClose={() => setIsLocationModalVisible(false)}
           onSave={handleUpdateLocation}
           initialLocation={user?.location as unknown as UserLocation}
+        />
+
+        <CurrencyModal
+          visible={isCurrencyModalVisible}
+          onClose={() => setIsCurrencyModalVisible(false)}
+          onSave={handleUpdateCurrency}
+          initialCurrency={user?.preferred_currency || "USD"}
         />
       </ScrollView>
     </SafeAreaView>
