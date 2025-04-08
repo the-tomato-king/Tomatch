@@ -78,6 +78,7 @@ const AddProductScreen = () => {
             setName(productData.name);
             setCategory(productData.category);
             setPluCode(productData.plu_code || "");
+            setImageType(productData.image_type || "user_image");
             setImageSource(productData.image_source || "");
           }
         } catch (error) {
@@ -104,6 +105,7 @@ const AddProductScreen = () => {
       const customizedProductData: BaseCustomizedProduct = {
         name,
         category,
+        image_type: imageType as ImageType,
         plu_code: pluCode,
         image_source: imageSource,
         barcode: "", // Adding empty barcode as it's in the interface
@@ -249,6 +251,7 @@ const AddProductScreen = () => {
           result.assets[0].uri,
           userId
         );
+        setImageType("user_image");
         setImageSource(imageName);
       } catch (error) {
         console.error("Error uploading image:", error);
@@ -281,6 +284,7 @@ const AddProductScreen = () => {
           result.assets[0].uri,
           userId
         );
+        setImageType("user_image");
         setImageSource(imageName);
       } catch (error) {
         console.error("Error uploading image:", error);

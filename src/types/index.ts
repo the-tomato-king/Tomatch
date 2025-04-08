@@ -67,6 +67,7 @@ export interface BaseCustomizedProduct {
   name: string;
   category: string;
   image_source: string;
+  image_type: ImageType;
   plu_code: string;
   barcode: string;
   created_at: Date;
