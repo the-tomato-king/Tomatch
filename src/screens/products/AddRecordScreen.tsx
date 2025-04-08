@@ -49,10 +49,10 @@ import {
 } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import StoreSearchInput from "../../components/StoreSearchInput";
-import LoadingLogo from "../../components/LoadingLogo";
+import LoadingLogo from "../../components/loading/LoadingLogo";
 import { uploadImage } from "../../services/firebase/storageHelper";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";
-import AILoadingScreen from "../../components/AILoadingScreen";
+import AILoadingScreen from "../../components/loading/AILoadingScreen";
 import { getProductById, getAllProducts } from "../../services/productService";
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;

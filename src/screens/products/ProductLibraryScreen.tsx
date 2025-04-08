@@ -22,7 +22,7 @@ import { RootStackParamList } from "../../types/navigation";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { Product, UserProduct } from "../../types";
-import LoadingLogo from "../../components/LoadingLogo";
+import LoadingLogo from "../../components/loading/LoadingLogo";
 import { COLLECTIONS } from "../../constants/firebase";
 import {
   getAllProducts,

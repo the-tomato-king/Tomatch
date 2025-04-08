@@ -10,7 +10,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import ProductCard from "../components/ProductCard";
 import { UserProduct, Product } from "../types";
 import { COLLECTIONS } from "../constants/firebase";
-import LoadingLogo from "../components/LoadingLogo";
+import LoadingLogo from "../components/loading/LoadingLogo";
 import { colors } from "../theme/colors";
 import { useFocusEffect } from "@react-navigation/native";
 import { collection, onSnapshot } from "firebase/firestore";

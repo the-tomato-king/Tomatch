@@ -10,8 +10,8 @@ import {
   Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { User } from "../../types";
-import LoadingLogo from "../../components/LoadingLogo";
+import { User, UserLocation } from "../../types";
+import LoadingLogo from "../../components/loading/LoadingLogo";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SettingStackParamList } from "../../types/navigation";
@@ -19,6 +19,9 @@ import { COLLECTIONS } from "../../constants/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import MainPageHeader from "../../components/MainPageHeader";
+import LocationModal from "../../components/modals/LocationModal";
+import { updateOneDocInDB } from "../../services/firebase/firebaseHelper";
+
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
 
@@ -27,6 +30,7 @@ const SettingPage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
 
   //TODO: delete this when auth is implemented
   const userId = "user123";
@@ -74,6 +78,18 @@ const SettingPage = () => {
 
   const navigateToEditProfile = () => {
     navigation.navigate("EditProfile");
+  };
+
+  const handleUpdateLocation = async (newLocation: UserLocation) => {
+    try {
+      await updateOneDocInDB(COLLECTIONS.USERS, userId, {
+        location: newLocation,
+        updated_at: new Date(),
+      });
+    } catch (error) {
+      console.error("Error updating location:", error);
+      Alert.alert("Error", "Failed to update location");
+    }
   };
 
   if (loading) {
@@ -140,10 +156,20 @@ const SettingPage = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preference</Text>
 
-          <View style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => setIsLocationModalVisible(true)}
+          >
             <Text style={styles.settingLabel}>Location</Text>
-            <Text style={styles.chevron}>{">"}</Text>
-          </View>
+            <View style={styles.locationInfo}>
+              <Text style={styles.settingValue}>
+                {user?.location
+                  ? `${user.location.city}, ${user.location.province}`
+                  : "Not set"}
+              </Text>
+              <Text style={styles.chevron}>{">"}</Text>
+            </View>
+          </TouchableOpacity>
 
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Currency</Text>
@@ -175,6 +201,13 @@ const SettingPage = () => {
             />
           </View>
         </View>
+
+        <LocationModal
+          visible={isLocationModalVisible}
+          onClose={() => setIsLocationModalVisible(false)}
+          onSave={handleUpdateLocation}
+          initialLocation={user?.location as unknown as UserLocation}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -286,5 +319,10 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 12,
     color: "#666",
+  },
+  locationInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 });

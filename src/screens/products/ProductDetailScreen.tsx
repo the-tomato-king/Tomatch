@@ -32,7 +32,7 @@ import {
   UserStore,
   ImageType,
 } from "../../types";
-import LoadingLogo from "../../components/LoadingLogo";
+import LoadingLogo from "../../components/loading/LoadingLogo";
 import ProductImage from "../../components/ProductImage";
 import { colors } from "../../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";

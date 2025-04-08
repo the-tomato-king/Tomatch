@@ -12,7 +12,7 @@ import {
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { User } from "../../types";
-import LoadingLogo from "../../components/LoadingLogo";
+import LoadingLogo from "../../components/loading/LoadingLogo";
 import { colors } from "../../theme/colors";
 import {
   readOneDoc,

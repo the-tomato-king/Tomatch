@@ -29,7 +29,7 @@ import {
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
 import { ImageType, Product, BaseUserProduct, UserProduct } from "../../types";
-import LoadingLogo from "../../components/LoadingLogo";
+import LoadingLogo from "../../components/loading/LoadingLogo";
 import ProductImage from "../../components/ProductImage";
 import EditProductImage from "../../components/EditProductImage";
 import EmojiSelector from "react-native-emoji-selector";

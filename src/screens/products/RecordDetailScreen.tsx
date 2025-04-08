@@ -21,7 +21,7 @@ import {
   updateOneDocInDB,
   deleteOneDocFromDB,
 } from "../../services/firebase/firebaseHelper";
-import LoadingLogo from "../../components/LoadingLogo";
+import LoadingLogo from "../../components/loading/LoadingLogo";
 import { globalStyles } from "../../theme/styles";
 import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
