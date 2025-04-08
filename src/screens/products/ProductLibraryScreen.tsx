@@ -21,6 +21,10 @@ import { db } from "../../services/firebase/firebaseConfig";
 import { Product } from "../../types";
 import LoadingLogo from "../../components/LoadingLogo";
 import { COLLECTIONS } from "../../constants/firebase";
+import {
+  getAllProducts,
+  filterProductsByCategory,
+} from "../../services/productService";
 
 type ProductLibraryRouteProp = NativeStackScreenProps<
   RootStackParamList,
@@ -38,28 +42,9 @@ const ProductLibraryScreen = () => {
   const [searchQuery, setSearchQuery] = useState(initialSearchText);
 
   useEffect(() => {
-    setLoading(true);
-    const productsRef = collection(db, COLLECTIONS.PRODUCTS);
-    const q = query(productsRef);
-
-    const unsubscribe = onSnapshot(
-      q,
-      (querySnapshot) => {
-        const productsData: Product[] = [];
-        querySnapshot.forEach((doc) => {
-          productsData.push({ id: doc.id, ...doc.data() } as Product);
-        });
-        setProducts(productsData);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching products:", error);
-        Alert.alert("Error", "Failed to load products");
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
+    const allProducts = getAllProducts();
+    setProducts(allProducts);
+    setLoading(false);
   }, []);
 
   const handleCategorySelect = (category: string) => {

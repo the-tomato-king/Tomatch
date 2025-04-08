@@ -18,6 +18,7 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
 import MainPageHeader from "../components/MainPageHeader";
 import SearchBar from "../components/SearchBar";
+import { getAllProducts, getProductById } from "../services/productService";
 
 const HomeScreen = () => {
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
@@ -46,35 +47,28 @@ const HomeScreen = () => {
       }
     );
 
-    // monitor products collection change
-    const unsubscribeProducts = onSnapshot(
-      collection(db, COLLECTIONS.PRODUCTS),
-      (snapshot) => {
-        const details: { [key: string]: Product } = {};
-        snapshot.docs.forEach((doc) => {
-          details[doc.id] = { id: doc.id, ...doc.data() } as Product;
-        });
-        setProductsDetails(details);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error listening to products:", error);
-        setLoading(false);
-      }
-    );
+    // 替换为本地产品数据
+    const allProducts = getAllProducts();
+    const details: { [key: string]: Product } = {};
+    allProducts.forEach((product) => {
+      details[product.id] = product;
+    });
+    setProductsDetails(details);
+    setLoading(false);
 
     // cleanup function
     return () => {
       unsubscribeUserProducts();
-      unsubscribeProducts();
     };
   }, []);
 
   const filteredProducts = userProducts.filter((product) => {
-    const productDetail = productsDetails[product.product_id];
-    return productDetail?.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const productDetail = productsDetails[product.product_id || ""];
+    if (!productDetail) {
+      // Make sure product.name exists before calling toLowerCase
+      return product.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    return productDetail.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   if (loading) {
@@ -94,11 +88,11 @@ const HomeScreen = () => {
       <FlatList
         style={styles.list}
         data={filteredProducts}
-        keyExtractor={(item) => item.product_id}
+        keyExtractor={(item) => item.product_id || item.id}
         renderItem={({ item }) => (
           <ProductCard
             product={item}
-            productDetails={productsDetails[item.product_id]}
+            productDetails={productsDetails[item.product_id || ""]}
           />
         )}
         ListEmptyComponent={

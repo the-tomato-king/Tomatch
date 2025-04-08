@@ -55,6 +55,7 @@ import LoadingLogo from "../../components/LoadingLogo";
 import { uploadImage } from "../../services/firebase/storageHelper";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";
 import AILoadingScreen from "../../components/AILoadingScreen";
+import { getProductById } from "../../services/productService";
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
@@ -134,6 +135,12 @@ const AddRecordScreen = () => {
                   setProductName(productData.name);
                   setSelectedProduct({
                     product_id: productData.id,
+                    name: productData.name,
+                    category: productData.category || "",
+                    image_type: productData.image_type || "emoji",
+                    image_source: productData.image_source || "",
+                    plu_code: productData.plu_code || "",
+                    barcode: productData.barcode || "",
                     created_at: new Date(),
                     updated_at: new Date(),
                   });
@@ -353,13 +360,42 @@ const AddRecordScreen = () => {
           // If product exists, use its ID directly
           userProductId = existingUserProduct.id;
         } else {
-          // create user product if it doesn't exist
-          const userProduct: BaseUserProduct = {
-            product_id: selectedProduct.product_id,
-            created_at: new Date(),
-            updated_at: new Date(),
-          };
+          // If product doesn't exist, get complete product information
+          const completeProduct = selectedProduct.product_id
+            ? getProductById(selectedProduct.product_id)
+            : null;
 
+          // Prepare complete user product data
+          let userProduct: BaseUserProduct;
+          if (completeProduct) {
+            // If a local product is found, copy all fields
+            userProduct = {
+              product_id: completeProduct.id,
+              name: completeProduct.name,
+              category: completeProduct.category || "",
+              image_type: completeProduct.image_type || "emoji",
+              image_source: completeProduct.image_source || "",
+              plu_code: completeProduct.plu_code || "",
+              barcode: completeProduct.barcode || "",
+              created_at: new Date(),
+              updated_at: new Date(),
+            };
+          } else {
+            // If no local product is found (exceptional case), use minimal information set
+            userProduct = {
+              product_id: selectedProduct.product_id,
+              name: productName, // Use input field name
+              category: "", // May need a default category
+              image_type: "emoji",
+              image_source: "🛒", // Default icon
+              plu_code: "",
+              barcode: "",
+              created_at: new Date(),
+              updated_at: new Date(),
+            };
+          }
+
+          // Save complete user product
           const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
           userProductId = await createDoc(userProductPath, userProduct);
 
@@ -369,26 +405,32 @@ const AddRecordScreen = () => {
           }
         }
 
+        // Create price record, associate with user_product_id
         const priceRecord: BasePriceRecord = {
           user_product_id: userProductId,
           store_id: selectedStore.id,
           price: numericPrice,
           unit_type: unitType,
-          unit_price: numericPrice, //TODO: Calculate unit price, now same as price
+          unit_price: numericPrice,
           photo_url: photoUrl,
           recorded_at: new Date(),
         };
 
+        // Save price record
         const priceRecordPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
         const recordId = await createDoc(priceRecordPath, priceRecord);
 
         if (recordId) {
+          // Get product ID for statistics, prioritize selectedProduct.product_id
+          const productStatsId = selectedProduct.product_id || userProductId;
+
+          // Create or update product statistics information
           const userProductStatsRef = doc(
             db,
             COLLECTIONS.USERS,
             userId,
             COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS,
-            selectedProduct.product_id
+            productStatsId
           );
           const userProductStatsDoc = await getDoc(userProductStatsRef);
 
@@ -432,7 +474,7 @@ const AddRecordScreen = () => {
             );
           } else {
             userProductStats = {
-              product_id: selectedProduct.product_id,
+              product_id: productStatsId,
               currency: "$", // TODO: Get from user settings
               total_price: numericPrice,
               average_price: numericPrice,
@@ -517,6 +559,12 @@ const AddRecordScreen = () => {
                 setProductName(product.name);
                 setSelectedProduct({
                   product_id: product.id,
+                  name: product.name,
+                  category: product.category || "",
+                  image_type: product.image_type || "emoji",
+                  image_source: product.image_source || "",
+                  plu_code: product.plu_code || "",
+                  barcode: product.barcode || "",
                   created_at: new Date(),
                   updated_at: new Date(),
                 });

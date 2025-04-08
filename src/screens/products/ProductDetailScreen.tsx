@@ -15,13 +15,27 @@ import {
   readOneDoc,
   readAllDocs,
 } from "../../services/firebase/firebaseHelper";
-import { collection, onSnapshot, query, where, doc } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  query,
+  where,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
-import { Product, PriceRecord, UserProductStats, UserStore } from "../../types";
+import {
+  Product,
+  PriceRecord,
+  UserProductStats,
+  UserStore,
+  ImageType,
+} from "../../types";
 import LoadingLogo from "../../components/LoadingLogo";
 import ProductImage from "../../components/ProductImage";
 import { colors } from "../../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
+import { getProductById } from "../../services/productService";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
 type ProductDetailScreenNavigationProp =
@@ -45,18 +59,28 @@ const ProductDetailScreen = () => {
         setLoading(true);
         const userId = "user123"; // TODO: get user id from auth
 
-        // monitor product change
-        const productUnsubscribe = onSnapshot(
-          doc(db, COLLECTIONS.PRODUCTS, productId),
-          (doc) => {
-            if (doc.exists()) {
-              setProduct({ id: doc.id, ...doc.data() } as Product);
-            }
-          },
-          (error) => {
-            console.error("Error listening to product:", error);
+        const localProduct = getProductById(productId);
+        if (localProduct) {
+          setProduct(localProduct);
+        } else {
+          // if local product is not found, it's a custom product, get it from user_products
+          const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+          const userProductDoc = await getDoc(
+            doc(db, userProductsPath, userProductId)
+          );
+          if (userProductDoc.exists()) {
+            const userProductData = userProductDoc.data();
+            setProduct({
+              id: productId,
+              name: userProductData.name,
+              category: userProductData.category,
+              image_type: userProductData.image_type,
+              image_source: userProductData.image_source,
+              plu_code: userProductData.plu_code || "",
+              barcode: userProductData.barcode || "",
+            });
           }
-        );
+        }
 
         // monitor user product stats
         const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
@@ -76,7 +100,6 @@ const ProductDetailScreen = () => {
         );
 
         return () => {
-          productUnsubscribe();
           statsUnsubscribe();
         };
       } catch (error) {
@@ -87,7 +110,7 @@ const ProductDetailScreen = () => {
     };
 
     fetchProductData();
-  }, [productId]);
+  }, [productId, userProductId]);
 
   useEffect(() => {
     const userId = "user123"; // TODO: get user id from auth
@@ -200,8 +223,8 @@ const ProductDetailScreen = () => {
       >
         <View style={styles.basicInfoContainer}>
           <ProductImage
-            imageType={product?.image_type}
-            imageSource={product?.image_source}
+            imageType={product?.image_type as ImageType}
+            imageSource={product?.image_source as string}
           />
           <View style={styles.contentContainer}>
             <View style={styles.titleContainer}>

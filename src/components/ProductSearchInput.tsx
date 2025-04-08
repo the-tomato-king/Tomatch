@@ -9,6 +9,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
 import { useProducts } from "../hooks/useProducts";
+import { searchProducts } from "../services/productService";
 
 type ProductSearchNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -56,6 +57,16 @@ const ProductSearchInput = ({
       setSuggestions([]);
     }
   }, [showSuggestions]);
+
+  useEffect(() => {
+    // 当输入变化时搜索本地产品库
+    if (inputValue.trim()) {
+      const results = searchProducts(inputValue);
+      setSuggestions(results);
+    } else {
+      setSuggestions([]);
+    }
+  }, [inputValue]);
 
   return (
     <View style={styles.wrapper}>

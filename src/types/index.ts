@@ -52,7 +52,13 @@ export interface UserStore extends BaseUserStore {
 
 // User Products (sub-collection of User)
 export interface BaseUserProduct {
-  product_id: string; // reference to products collection
+  product_id?: string; // if it's a preset product, it references the product in the product library
+  name: string; // product name (copied from the product library or user-defined)
+  category: string; // product category
+  image_type: ImageType; // image type
+  image_source: string; // image source
+  plu_code: string; // PLU code
+  barcode: string; // barcode
   created_at: Date;
   updated_at: Date;
 }
@@ -61,24 +67,6 @@ export interface UserProduct extends BaseUserProduct {
   id: string;
 }
 
-// TODO: implement it in development
-// User Customized Product (sub-collection of User)
-export interface BaseCustomizedProduct {
-  name: string;
-  category: string;
-  image_source: string;
-  image_type: ImageType;
-  plu_code: string;
-  barcode: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface CustomizedProduct extends BaseCustomizedProduct {
-  id: string;
-}
-
-// TODO: implement it in development
 // User Shopping List (sub-collection of User)
 export interface BaseShoppingList {
   product_id: string;
@@ -131,7 +119,8 @@ export interface UserProductStats extends BaseUserProductStats {
 export type ImageType = "emoji" | "preset_image" | "user_image";
 
 // Product
-export interface BaseProduct {
+export interface Product {
+  id: string;
   name: string;
   category: string;
   image_type: ImageType;
@@ -140,9 +129,6 @@ export interface BaseProduct {
   barcode: string;
 }
 
-export interface Product extends BaseProduct {
-  id: string;
-}
 
 export interface BaseStoreBrand {
   name: string;

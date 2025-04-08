@@ -31,10 +31,7 @@ const ProductCard = ({ product, productDetails }: ProductCardProps) => {
       try {
         const userId = "user123";
         const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
-        const stats = await readOneDoc<UserProductStats>(
-          statsPath,
-          product.product_id
-        );
+        const stats = await readOneDoc<UserProductStats>(statsPath, product.id);
         if (stats) {
           setProductStats(stats);
         }
@@ -48,7 +45,7 @@ const ProductCard = ({ product, productDetails }: ProductCardProps) => {
 
   const handlePress = () => {
     navigation.navigate("ProductDetail", {
-      productId: product.product_id,
+      productId: product.product_id || product.id,
       userProductId: product.id,
     });
   };
