@@ -19,48 +19,53 @@ const ProductImage = ({
   size = 70,
 }: ProductImageProps) => {
   const [imageUrl, setImageUrl] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    // 重置错误状态
-    setError(null);
+    // Reset state
+    setImageUrl("");
+    setLoading(false);
 
-    // 调试日志
-    console.log("ProductImage props:", {
-      imageType,
-      imageSource,
-      size,
-    });
+    // // For debugging only
+    // console.log("ProductImage props:", {
+    //   imageType,
+    //   imageSource,
+    //   size,
+    // });
 
+    // Handle emoji type - no need to load anything
     if (imageType === "emoji") {
-      console.log("Using emoji type, skipping image load");
+      return;
+    }
+
+    // Check for valid inputs before trying to load image
+    if (!imageType || !imageSource) {
+      console.log(
+        "Skipping image load due to missing imageType or imageSource"
+      );
       return;
     }
 
     const defaultUserId = "user123"; // TODO: get from auth
-
-    // 调试日志
-    console.log("Attempting to load image with:", {
-      imageSource,
-      imageType,
-      defaultUserId,
-    });
+    setLoading(true);
 
     getProductImage(imageSource, imageType, defaultUserId)
       .then((url) => {
         console.log("Successfully loaded image URL:", url);
         setImageUrl(url);
+        setLoading(false);
       })
       .catch((error) => {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        console.error("Detailed image loading error:", {
+        console.error("Image loading error:", {
           error: errorMessage,
           imageType,
           imageSource,
           defaultUserId,
         });
-        setError(errorMessage);
+        // Don't set error state visibly to user, just log it
+        setLoading(false);
       });
   }, [imageSource, imageType]);
 
@@ -83,35 +88,20 @@ const ProductImage = ({
     emojiText: {
       fontSize: size * 0.64,
     },
-    errorContainer: {
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    errorText: {
-      fontSize: 10,
-      color: colors.negative,
-      textAlign: "center",
-    },
   });
 
-  // 根据不同状态显示不同内容
+  // Render content based on current state
   const renderContent = () => {
-    if (imageType === "emoji") {
+    if (imageType === "emoji" && imageSource) {
       return <Text style={styles.emojiText}>{imageSource}</Text>;
-    }
-
-    if (error) {
-      return (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>!</Text>
-        </View>
-      );
     }
 
     if (imageUrl) {
       return <Image source={{ uri: imageUrl }} style={styles.image} />;
     }
 
+    // Default empty state - just show the background container
+    // No error icon or message displayed
     return null;
   };
 

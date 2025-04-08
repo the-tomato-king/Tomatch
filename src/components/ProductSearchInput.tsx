@@ -8,8 +8,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
-import { useProducts } from "../hooks/useProducts";
-import { searchProducts } from "../services/productService";
+import { searchProducts, getAllProducts } from "../services/productService";
 
 type ProductSearchNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -25,23 +24,28 @@ const ProductSearchInput = ({
   onChangeInputValue,
   onSelectProduct,
 }: ProductSearchInputProps) => {
-  const { products, loading } = useProducts();
-  const [suggestions, setSuggestions] = useState<Product[]>(products);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isNewProduct, setIsNewProduct] = useState(false);
   const navigation = useNavigation<ProductSearchNavigationProp>();
 
+  // Initialize products on mount
   useEffect(() => {
-    if (inputValue.length > 0) {
-      // TODO: We are using local products now, use firebase to get products
-      const filteredProducts = products.filter((product) =>
-        product.name.toLowerCase().includes(inputValue.toLowerCase())
-      );
-      setSuggestions(filteredProducts);
+    const products = getAllProducts();
+    setAllProducts(products);
+  }, []);
+
+  // Handle input changes
+  useEffect(() => {
+    if (inputValue.trim().length > 0) {
+      const results = searchProducts(inputValue);
+      setSuggestions(results);
       setShowSuggestions(true);
       setIsNewProduct(
-        !products.some(
-          (product) => product.name.toLowerCase() === inputValue.toLowerCase()
+        !results.some(
+          (product: Product) =>
+            product.name.toLowerCase() === inputValue.toLowerCase()
         )
       );
     } else {
@@ -49,24 +53,14 @@ const ProductSearchInput = ({
       setShowSuggestions(false);
       setIsNewProduct(false);
     }
-  }, [inputValue, products]);
+  }, [inputValue]);
 
-  // Make sure suggestions are cleared when user already tapped on a suggestion
+  // Clear suggestions when they're hidden
   useEffect(() => {
     if (!showSuggestions) {
       setSuggestions([]);
     }
   }, [showSuggestions]);
-
-  useEffect(() => {
-    // 当输入变化时搜索本地产品库
-    if (inputValue.trim()) {
-      const results = searchProducts(inputValue);
-      setSuggestions(results);
-    } else {
-      setSuggestions([]);
-    }
-  }, [inputValue]);
 
   return (
     <View style={styles.wrapper}>
@@ -87,7 +81,7 @@ const ProductSearchInput = ({
               containerStyle={styles.questionIcon}
               onPress={() => {
                 navigation.navigate("ProductLibrary", {
-                  onSelectProduct: (product) => {
+                  onSelectProduct: (product: Product) => {
                     onSelectProduct(product);
                     setShowSuggestions(false);
                     setSuggestions([]);
