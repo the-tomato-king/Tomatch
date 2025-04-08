@@ -24,6 +24,8 @@ import { updateOneDocInDB } from "../../services/firebase/firebaseHelper";
 import CurrencyModal from "../../components/modals/CurrencyModal";
 import { CURRENCIES } from "../../constants/currencies";
 import { useUserPreference } from "../../hooks/useUserPreference";
+import UnitModal from "../../components/modals/UnitModal";
+import { UNITS } from "../../constants/units";
 
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
@@ -40,6 +42,8 @@ const SettingPage = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
   const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
+  const [isWeightUnitModalVisible, setIsWeightUnitModalVisible] =
+    useState(false);
 
   const userId = "user123"; // TODO: get from auth
   const {
@@ -118,6 +122,18 @@ const SettingPage = () => {
     } catch (error) {
       console.error("Error updating currency:", error);
       Alert.alert("Error", "Failed to update currency");
+    }
+  };
+
+  const handleUpdateUnit = async (newUnit: string) => {
+    try {
+      await updateOneDocInDB(COLLECTIONS.USERS, userId, {
+        preferred_unit: newUnit,
+        updated_at: new Date(),
+      });
+    } catch (error) {
+      console.error("Error updating unit:", error);
+      Alert.alert("Error", "Failed to update unit");
     }
   };
 
@@ -208,26 +224,18 @@ const SettingPage = () => {
             </View>
           </TouchableOpacity>
 
-          <View style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => setIsWeightUnitModalVisible(true)}
+          >
             <Text style={styles.settingLabel}>Weight Unit</Text>
-            <Text style={styles.settingValue}>{preferences.units.weight}</Text>
-          </View>
-
-          <View style={styles.settingItem}>
-            <Text style={styles.settingLabel}>Volume Unit</Text>
-            <Text style={styles.settingValue}>{preferences.units.volume}</Text>
-          </View>
-
-          <View style={styles.settingItem}>
-            <Text style={styles.settingLabel}>Dark Mode</Text>
-            <Switch
-              trackColor={{ false: "#eee", true: "#007AFF" }}
-              thumbColor={darkMode ? "#fff" : "#fff"}
-              ios_backgroundColor="#eee"
-              onValueChange={toggleDarkMode}
-              value={darkMode}
-            />
-          </View>
+            <View style={styles.locationInfo}>
+              <Text style={styles.settingValue}>
+                {user?.preferred_unit}
+              </Text>
+              <Text style={styles.chevron}>{">"}</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         <LocationModal
@@ -242,6 +250,13 @@ const SettingPage = () => {
           onClose={() => setIsCurrencyModalVisible(false)}
           onSave={handleUpdateCurrency}
           initialCurrency={user?.preferred_currency || "USD"}
+        />
+
+        <UnitModal
+          visible={isWeightUnitModalVisible}
+          onClose={() => setIsWeightUnitModalVisible(false)}
+          onSave={handleUpdateUnit}
+          initialUnit={user?.preferred_unit||""}
         />
       </ScrollView>
     </SafeAreaView>

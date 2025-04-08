@@ -12,10 +12,7 @@ interface UseUserPreferenceReturn {
   preferences: {
     currency: string;
     location: UserLocation | null;
-    units: {
-      weight: string;
-      volume: string;
-    };
+    unit: string;
   } | null;
 
   // format methods
@@ -26,7 +23,6 @@ interface UseUserPreferenceReturn {
   updateCurrency: (currency: string) => Promise<void>;
   updateLocation: (location: UserLocation) => Promise<void>;
   updateWeightUnit: (unit: string) => Promise<void>;
-  updateVolumeUnit: (unit: string) => Promise<void>;
 }
 
 export const useUserPreference = (userId: string): UseUserPreferenceReturn => {
@@ -46,7 +42,7 @@ export const useUserPreference = (userId: string): UseUserPreferenceReturn => {
           setPreferences({
             currency: userData.preferred_currency,
             location: userData.location,
-            units: userData.preferred_unit,
+            unit: userData.preferred_unit,
           });
           setError(null);
         } else {
@@ -98,10 +94,7 @@ export const useUserPreference = (userId: string): UseUserPreferenceReturn => {
     updatePreference("location", location);
 
   const updateWeightUnit = (unit: string) =>
-    updatePreference("preferred_unit", unit, "weight");
-
-  const updateVolumeUnit = (unit: string) =>
-    updatePreference("preferred_unit", unit, "volume");
+    updatePreference("preferred_unit", unit);
 
   return {
     loading,
@@ -112,6 +105,5 @@ export const useUserPreference = (userId: string): UseUserPreferenceReturn => {
     updateCurrency,
     updateLocation,
     updateWeightUnit,
-    updateVolumeUnit,
   };
 };

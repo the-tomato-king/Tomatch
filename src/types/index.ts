@@ -4,7 +4,7 @@ export interface BaseUser {
   email: string;
   phone_number: string;
   location: UserLocation;
-  preferred_unit: PreferredUnit;
+  preferred_unit: string;
   preferred_currency: string;
   created_at: Date;
   updated_at: Date;
@@ -23,11 +23,6 @@ export interface UserLocation {
 interface Coordinates {
   latitude: number;
   longitude: number;
-}
-
-interface PreferredUnit {
-  weight: string;
-  volume: string;
 }
 
 // User Store (sub-collection of User)
