@@ -26,7 +26,6 @@ import { globalStyles } from "../../theme/styles";
 import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { UserProductStats, BaseUserProductStats } from "../../types";
 
 type PriceRecordInformationRouteProp = RouteProp<
   HomeStackParamList,
@@ -84,18 +83,7 @@ const PriceRecordInformationScreen = () => {
       async (userProductSnapshot) => {
         if (userProductSnapshot.exists()) {
           const userProductData = userProductSnapshot.data() as UserProduct;
-          if (userProductData.product_id) {
-            // Get product data
-            const unsubscribeProductDetails = onSnapshot(
-              doc(db, COLLECTIONS.PRODUCTS, userProductData.product_id),
-              (productSnapshot) => {
-                if (productSnapshot.exists()) {
-                  setProduct(productSnapshot.data() as Product);
-                }
-              }
-            );
-            return () => unsubscribeProductDetails();
-          }
+          setProduct(userProductData);
         }
       }
     );
@@ -173,7 +161,7 @@ const PriceRecordInformationScreen = () => {
               const userId = "user123"; // TODO: get user id from auth
 
               try {
-                // 1. Get product stats
+                // 1. Get user product
                 const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
                 const userProduct = await readOneDoc<UserProduct>(
                   userProductPath,
@@ -185,36 +173,18 @@ const PriceRecordInformationScreen = () => {
                   return;
                 }
 
-                const userProductStatsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
-                const stats = await readOneDoc<UserProductStats>(
-                  userProductStatsPath,
-                  userProduct.product_id
-                );
-
-                if (!stats) {
-                  console.error("Product stats not found");
-                  return;
-                }
-
-                const newTotalRecords = stats.total_price_records - 1;
-                const newTotalPrice = stats.total_price - record.price;
+                const newTotalRecords = userProduct.total_price_records - 1;
+                const newTotalPrice = userProduct.total_price - record.price;
 
                 // 2. If this is the last record
                 if (newTotalRecords === 0) {
-                  // Delete product stats
-                  await deleteOneDocFromDB(
-                    userProductStatsPath,
-                    userProduct.product_id
-                  );
-
                   // Delete user product
-                  const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
                   await deleteOneDocFromDB(
                     userProductPath,
                     record.user_product_id
                   );
                 } else {
-                  // 3. Update product stats
+                  // 3. Update user product stats
                   // Get all remaining records to recalculate min/max
                   const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
                   const recordsQuery = query(
@@ -225,7 +195,7 @@ const PriceRecordInformationScreen = () => {
 
                   let lowestPrice = Infinity;
                   let highestPrice = -Infinity;
-                  let lowestPriceStore = stats.lowest_price_store;
+                  let lowestPriceStore = userProduct.lowest_price_store;
 
                   recordsSnapshot.docs.forEach((doc) => {
                     const recordData = doc.data();
@@ -244,21 +214,20 @@ const PriceRecordInformationScreen = () => {
                     }
                   });
 
-                  const updatedStats: BaseUserProductStats = {
-                    ...stats,
+                  const updatedUserProduct = {
                     total_price: newTotalPrice,
                     average_price: newTotalPrice / newTotalRecords,
                     lowest_price: lowestPrice,
                     highest_price: highestPrice,
                     lowest_price_store: lowestPriceStore,
                     total_price_records: newTotalRecords,
-                    last_updated: new Date(),
+                    updated_at: new Date(),
                   };
 
                   await updateOneDocInDB(
-                    userProductStatsPath,
-                    userProduct.product_id,
-                    updatedStats
+                    userProductPath,
+                    record.user_product_id,
+                    updatedUserProduct
                   );
                 }
 
