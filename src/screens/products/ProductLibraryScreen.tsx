@@ -134,11 +134,12 @@ const ProductLibraryScreen = () => {
     if (route.params?.onSelectProduct) {
       if (product.isUserProduct) {
         // If it's a user product, pass it with the original user product ID
-        route.params.onSelectProduct({
+        const userProduct = {
           ...product,
           id: product.id,
           user_product_id: product.userProductId,
-        });
+        } as unknown as Product;
+        route.params.onSelectProduct(userProduct);
       } else {
         // If it's a local product, pass it as normal
         route.params.onSelectProduct({ ...product, id: product.id });
