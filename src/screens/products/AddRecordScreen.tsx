@@ -53,7 +53,7 @@ import LoadingLogo from "../../components/LoadingLogo";
 import { uploadImage } from "../../services/firebase/storageHelper";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";
 import AILoadingScreen from "../../components/AILoadingScreen";
-import { getProductById } from "../../services/productService";
+import { getProductById, getAllProducts } from "../../services/productService";
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
@@ -365,7 +365,37 @@ const AddRecordScreen = () => {
   ) => {
     // Create a new BaseUserProduct object if user just typed a name without selecting
     if (!selectedProduct && productName) {
-      // Create a new product with basic information
+      // Check if the productName exactly matches a product in the local library
+      const allProducts = getAllProducts(); // Use the correct function to get all products
+      const matchingProduct = allProducts.find(
+        (product) => product.name.toLowerCase() === productName.toLowerCase()
+      );
+
+      if (matchingProduct) {
+        // If found a matching product, use its information
+        return {
+          product_id: matchingProduct.id,
+          name: matchingProduct.name,
+          category: matchingProduct.category || "",
+          image_type: matchingProduct.image_type || "emoji",
+          image_source: matchingProduct.image_source || "",
+          plu_code: matchingProduct.plu_code || "",
+          barcode: matchingProduct.barcode || "",
+          total_price: 0,
+          average_price: 0,
+          lowest_price: 0,
+          highest_price: 0,
+          lowest_price_store: {
+            store_id: "",
+            store_name: "",
+          },
+          total_price_records: 0,
+          created_at: new Date(),
+          updated_at: new Date(),
+        };
+      }
+
+      // Create a new product with basic information if no match
       return {
         product_id: "", // No product_id as this is a custom product
         name: productName,
@@ -522,8 +552,13 @@ const AddRecordScreen = () => {
       // If it's a new product created from text input, save it first
       let userProductId;
       if (selectedProduct === undefined || !("id" in userProduct)) {
-        // If image was uploaded and this is a new product, use it as the product image
-        if (photoUrl && userProduct.image_type === "user_image") {
+        // Only update the image_source with photoUrl if this is truly a new product
+        // (not matching any existing product) and image_type is "user_image"
+        if (
+          photoUrl &&
+          userProduct.image_type === "user_image" &&
+          !userProduct.product_id
+        ) {
           userProduct.image_source = photoUrl;
         }
 
@@ -549,7 +584,11 @@ const AddRecordScreen = () => {
       if (success) {
         // Update product stats (skip in edit mode)
         if (!isEditMode) {
-          await updateProductStats(userId, userProductId as string, numericPrice);
+          await updateProductStats(
+            userId,
+            userProductId as string,
+            numericPrice
+          );
         }
 
         alert(
