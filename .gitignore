@@ -39,3 +39,5 @@ yarn-error.*
 # document
 document/
 
+# cursorrules
+.cursorrules

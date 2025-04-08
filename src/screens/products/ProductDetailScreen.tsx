@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -15,13 +16,28 @@ import {
   readOneDoc,
   readAllDocs,
 } from "../../services/firebase/firebaseHelper";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  query,
+  where,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
-import { Product, PriceRecord, UserProductStats, UserStore } from "../../types";
+import {
+  Product,
+  PriceRecord,
+  UserProduct,
+  UserStore,
+  ImageType,
+} from "../../types";
 import LoadingLogo from "../../components/LoadingLogo";
 import ProductImage from "../../components/ProductImage";
 import { colors } from "../../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
+import { getProductById } from "../../services/productService";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
 type ProductDetailScreenNavigationProp =
@@ -33,41 +49,56 @@ const ProductDetailScreen = () => {
   const navigation = useNavigation<ProductDetailScreenNavigationProp>();
 
   const [loading, setLoading] = useState(true);
-  const [product, setProduct] = useState<Product | null>(null);
+  const [userProduct, setUserProduct] = useState<UserProduct | null>(null);
   const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([]);
-  const [productStats, setProductStats] = useState<UserProductStats | null>(
-    null
-  );
+  const [productExists, setProductExists] = useState(true);
 
   useEffect(() => {
+    let productUnsubscribe: (() => void) | undefined;
+
     const fetchProductData = async () => {
       try {
         setLoading(true);
-
-        // get product details
-        const productData = await readOneDoc<Product>(
-          COLLECTIONS.PRODUCTS,
-          productId
-        );
-        setProduct(productData);
-
-        // get user product stats
         const userId = "user123"; // TODO: get user id from auth
-        const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
-        const statsData = await readOneDoc<UserProductStats>(
-          statsPath,
-          productId
+        const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+
+        productUnsubscribe = onSnapshot(
+          doc(db, userProductsPath, userProductId),
+          (doc) => {
+            if (doc.exists()) {
+              const data = doc.data();
+              setUserProduct({
+                id: doc.id,
+                ...data,
+              } as UserProduct);
+              setProductExists(true);
+            } else {
+              setProductExists(false);
+              setUserProduct(null);
+            }
+            setLoading(false);
+          },
+          (error) => {
+            console.error("Error listening to user product:", error);
+            setProductExists(false);
+            setLoading(false);
+          }
         );
-        setProductStats(statsData);
       } catch (error) {
-        console.error("Error fetching product data:", error);
-      } finally {
+        console.error("Error setting up listeners:", error);
+        setProductExists(false);
         setLoading(false);
       }
     };
 
     fetchProductData();
-  }, [productId]);
+
+    return () => {
+      if (productUnsubscribe) {
+        productUnsubscribe();
+      }
+    };
+  }, [productId, userProductId]);
 
   useEffect(() => {
     const userId = "user123"; // TODO: get user id from auth
@@ -169,25 +200,56 @@ const ProductDetailScreen = () => {
     return <LoadingLogo />;
   }
 
+  if (!productExists) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <MaterialCommunityIcons
+          name="alert-circle-outline"
+          size={50}
+          color={colors.negative}
+        />
+        <Text style={styles.notFoundTitle}>Product Not Found</Text>
+        <Text style={styles.notFoundText}>
+          This product may have been deleted or is no longer available.
+        </Text>
+        <TouchableOpacity
+          style={[styles.button, styles.backButton]}
+          onPress={() => navigation.navigate("HomeScreen")}
+        >
+          <Text style={styles.buttonText}>Back to Home</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!userProduct) {
+    return <LoadingLogo />;
+  }
+
   return (
     <View style={styles.container}>
       {/* Product Information */}
-      <View style={[styles.section]}>
+      <TouchableOpacity
+        style={[styles.section]}
+        onPress={() =>
+          navigation.navigate("EditProduct", { productId: userProductId })
+        }
+      >
         <View style={styles.basicInfoContainer}>
           <ProductImage
-            imageType={product?.image_type}
-            imageSource={product?.image_source}
+            imageType={userProduct.image_type as ImageType}
+            imageSource={userProduct.image_source as string}
           />
           <View style={styles.contentContainer}>
             <View style={styles.titleContainer}>
-              <Text style={styles.sectionTitle}>{product?.name}</Text>
+              <Text style={styles.sectionTitle}>{userProduct.name}</Text>
               <View style={styles.categoryContainer}>
-                <Text style={styles.category}>{product?.category}</Text>
+                <Text style={styles.category}>{userProduct.category}</Text>
               </View>
             </View>
             <View style={styles.priceContainer}>
               <Text style={styles.priceValue}>
-                ${productStats?.average_price.toFixed(2)}
+                ${userProduct.average_price.toFixed(2)}
               </Text>
               <Text style={styles.priceUnit}>/lb</Text>
               <Text style={styles.priceLabel}>Average</Text>
@@ -206,15 +268,15 @@ const ProductDetailScreen = () => {
             </View>
             <View style={styles.priceRangeLabels}>
               <Text style={[styles.minMaxPrice, { color: "#4CAF50" }]}>
-                ${productStats?.lowest_price.toFixed(2)}
+                ${userProduct.lowest_price.toFixed(2)}
               </Text>
               <Text style={[styles.minMaxPrice, { color: "#F44336" }]}>
-                ${productStats?.highest_price.toFixed(2)}
+                ${userProduct.highest_price.toFixed(2)}
               </Text>
             </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Price Records */}
       <View style={styles.section}>
@@ -384,6 +446,38 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: colors.primary,
+  },
+  centerContent: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  notFoundTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
+    color: colors.darkText,
+  },
+  notFoundText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 30,
+    color: colors.secondaryText,
+  },
+  button: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  backButton: {
+    backgroundColor: colors.primary,
+  },
+  buttonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
 

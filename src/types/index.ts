@@ -1,7 +1,4 @@
 // User
-
-import { LatLng } from "react-native-maps";
-
 export interface BaseUser {
   name: string;
   email: string;
@@ -55,32 +52,30 @@ export interface UserStore extends BaseUserStore {
 
 // User Products (sub-collection of User)
 export interface BaseUserProduct {
-  product_id: string; // reference to products collection
+  product_id?: string; // if it's a preset product, it references the product in the product library
+  name: string; // product name (copied from the product library or user-defined)
+  category: string; // product category
+  image_type: ImageType; // image type
+  image_source: string; // image source
+  plu_code: string; // PLU code
+  barcode: string; // barcode
   created_at: Date;
   updated_at: Date;
+  total_price: number;
+  average_price: number;
+  lowest_price: number;
+  highest_price: number;
+  lowest_price_store: {
+    store_id: string;
+    store_name: string;
+  };
+  total_price_records: number;
 }
 
 export interface UserProduct extends BaseUserProduct {
   id: string;
 }
 
-// TODO: implement it in development
-// User Customized Product (sub-collection of User)
-export interface BaseCustomizedProduct {
-  name: string;
-  category: string;
-  image_url: string;
-  plu_code: string;
-  barcode: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface CustomizedProduct extends BaseCustomizedProduct {
-  id: string;
-}
-
-// TODO: implement it in development
 // User Shopping List (sub-collection of User)
 export interface BaseShoppingList {
   product_id: string;
@@ -99,6 +94,7 @@ export interface BasePriceRecord {
   user_product_id: string; // references user_products
   store_id: string; // references stores
   price: number;
+  currency: string;
   unit_type: string;
   unit_price: number;
   photo_url: string;
@@ -109,31 +105,11 @@ export interface PriceRecord extends BasePriceRecord {
   id: string;
   store?: UserStore;
 }
-
-// User Product Stats(sub-collection of User)
-export interface BaseUserProductStats {
-  product_id: string; // reference to products collection
-  currency: string;
-  total_price: number;
-  average_price: number;
-  lowest_price: number;
-  highest_price: number;
-  lowest_price_store: {
-    store_id: string;
-    store_name: string;
-  };
-  total_price_records: number;
-  last_updated: Date;
-}
-
-export interface UserProductStats extends BaseUserProductStats {
-  id: string;
-}
-
-type ImageType = "emoji" | "image";
+export type ImageType = "emoji" | "preset_image" | "user_image";
 
 // Product
-export interface BaseProduct {
+export interface Product {
+  id: string;
   name: string;
   category: string;
   image_type: ImageType;
@@ -142,9 +118,6 @@ export interface BaseProduct {
   barcode: string;
 }
 
-export interface Product extends BaseProduct {
-  id: string;
-}
 
 export interface BaseStoreBrand {
   name: string;

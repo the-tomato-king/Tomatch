@@ -33,11 +33,9 @@ import { COLLECTIONS } from "../../constants/firebase";
 import {
   BasePriceRecord,
   BaseUserProduct,
-  BaseUserProductStats,
   PriceRecord,
   Product,
   UserProduct,
-  UserProductStats,
   UserStore,
 } from "../../types";
 import ProductSearchInput from "../../components/ProductSearchInput";
@@ -55,6 +53,7 @@ import LoadingLogo from "../../components/LoadingLogo";
 import { uploadImage } from "../../services/firebase/storageHelper";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";
 import AILoadingScreen from "../../components/AILoadingScreen";
+import { getProductById, getAllProducts } from "../../services/productService";
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
@@ -73,7 +72,6 @@ const AddRecordScreen = () => {
   const [loading, setLoading] = useState(isEditMode);
   const [selectedProduct, setSelectedProduct] = useState<BaseUserProduct>();
   const [selectedStore, setSelectedStore] = useState<UserStore>();
-  const [product, setProduct] = useState<Product | null>(null);
 
   const [image, setImage] = useState<string | null>(null);
   const [productName, setProductName] = useState("");
@@ -124,16 +122,27 @@ const AddRecordScreen = () => {
               );
 
               if (userProductData && userProductData.product_id) {
-                const productData = await readOneDoc<Product>(
-                  COLLECTIONS.PRODUCTS,
-                  userProductData.product_id
-                );
+                const productData = getProductById(userProductData.product_id);
 
                 if (productData) {
-                  setProduct(productData);
                   setProductName(productData.name);
                   setSelectedProduct({
                     product_id: productData.id,
+                    name: productData.name,
+                    category: productData.category || "",
+                    image_type: productData.image_type || "emoji",
+                    image_source: productData.image_source || "",
+                    plu_code: productData.plu_code || "",
+                    barcode: productData.barcode || "",
+                    total_price: 0,
+                    average_price: 0,
+                    lowest_price: 0,
+                    highest_price: 0,
+                    lowest_price_store: {
+                      store_id: "",
+                      store_name: "",
+                    },
+                    total_price_records: 0,
                     created_at: new Date(),
                     updated_at: new Date(),
                   });
@@ -166,6 +175,76 @@ const AddRecordScreen = () => {
     }
   }, [isEditMode, recordId]);
 
+  // Add this useEffect to sync productName and selectedProduct
+  useEffect(() => {
+    // If productName changes and doesn't match selectedProduct.name, clear selectedProduct
+    if (
+      selectedProduct &&
+      productName !== selectedProduct.name &&
+      productName.trim() !== ""
+    ) {
+      // User has edited the product name after selecting a product
+      setSelectedProduct(undefined);
+    }
+  }, [productName]);
+
+  // Modify the ProductSearchInput onChangeInputValue callback
+  // to include this logic directly when text changes
+  const handleProductNameChange = (text: string) => {
+    setProductName(text);
+    // If product name is changed and doesn't match selected product, clear selection
+    if (
+      selectedProduct &&
+      text !== selectedProduct.name &&
+      text.trim() !== ""
+    ) {
+      setSelectedProduct(undefined);
+    }
+  };
+
+  const analyzeImageAndFillForm = async (
+    imageUri: string,
+    base64Data: string | undefined
+  ) => {
+    try {
+      setIsAILoading(true);
+
+      if (!base64Data) {
+        throw new Error("Base64 image data required for analysis");
+      }
+
+      const receiptData = await analyzeReceiptImage(base64Data);
+
+      // auto fill form
+      if (receiptData.productName) {
+        setProductName(receiptData.productName);
+      }
+      if (receiptData.priceValue) {
+        setPrice(receiptData.priceValue);
+      }
+      if (receiptData.unitValue) {
+        setUnitValue(receiptData.unitValue);
+      }
+      if (receiptData.unitType) {
+        // check if unit is in allowed units list
+        const validUnit = ALL_UNITS.find(
+          (unit) => unit.toLowerCase() === receiptData.unitType?.toLowerCase()
+        );
+        if (validUnit) {
+          setUnitType(validUnit);
+        }
+      }
+    } catch (error) {
+      console.error("Error analyzing image:", error);
+      Alert.alert(
+        "Error",
+        "Failed to analyze receipt image. Check console for details."
+      );
+    } finally {
+      setIsAILoading(false);
+    }
+  };
+
   const takePhoto = async () => {
     try {
       const permissionResult = await requestCameraPermissionsAsync();
@@ -183,43 +262,10 @@ const AddRecordScreen = () => {
 
       if (!result.canceled && result.assets[0]) {
         setImage(result.assets[0].uri);
-
-        try {
-          setIsAILoading(true);
-
-          const receiptData = await analyzeReceiptImage(
-            result.assets[0].base64 || ""
-          );
-
-          // auto fill form
-          if (receiptData.productName) {
-            setProductName(receiptData.productName);
-          }
-          if (receiptData.priceValue) {
-            setPrice(receiptData.priceValue);
-          }
-          if (receiptData.unitValue) {
-            setUnitValue(receiptData.unitValue);
-          }
-          if (receiptData.unitType) {
-            // check if unit is in allowed units list
-            const validUnit = ALL_UNITS.find(
-              (unit) =>
-                unit.toLowerCase() === receiptData.unitType?.toLowerCase()
-            );
-            if (validUnit) {
-              setUnitType(validUnit);
-            }
-          }
-        } catch (error) {
-          console.error("Error testing OpenAI API:", error);
-          Alert.alert(
-            "Error",
-            "Failed to analyze receipt image. Check console for details."
-          );
-        } finally {
-          setIsAILoading(false);
-        }
+        await analyzeImageAndFillForm(
+          result.assets[0].uri,
+          result.assets[0].base64 || ""
+        );
       }
     } catch (error) {
       console.error("Error taking photo:", error);
@@ -239,10 +285,15 @@ const AddRecordScreen = () => {
       const result = await launchImageLibraryAsync({
         mediaTypes: "images",
         quality: 0.2,
+        base64: true, // Add base64 support for image library selection
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets[0]) {
         setImage(result.assets[0].uri);
+        await analyzeImageAndFillForm(
+          result.assets[0].uri,
+          result.assets[0].base64 || ""
+        );
       }
     } catch (error) {
       console.error("Error selecting photo:", error);
@@ -272,188 +323,282 @@ const AddRecordScreen = () => {
     );
   };
 
+  // Validates basic form inputs
+  const validateFormInputs = () => {
+    if (!productName || !storeName || !price || !unitType) {
+      alert("Please fill in all required fields");
+      return false;
+    }
+
+    const numericPrice = parseFloat(price);
+    if (isNaN(numericPrice)) {
+      alert("Please enter a valid price");
+      return false;
+    }
+
+    if (!selectedStore) {
+      alert("Please select a store from the list");
+      return false;
+    }
+
+    return numericPrice;
+  };
+
+  // Uploads image and returns URL
+  const uploadProductImage = async (userId: string) => {
+    let photoUrl = "";
+    if (image) {
+      // use timestamp as unique identifier
+      const timestamp = new Date().getTime();
+      const imagePath = `price_records/${userId}/${timestamp}.jpg`;
+
+      // upload image and get URL
+      photoUrl = await uploadImage(image, imagePath);
+    }
+    return photoUrl;
+  };
+
+  // Creates a product if none is selected
+  const getOrCreateUserProduct = async (
+    userId: string,
+    numericPrice: number
+  ) => {
+    // Create a new BaseUserProduct object if user just typed a name without selecting
+    if (!selectedProduct && productName) {
+      // Check if the productName exactly matches a product in the local library
+      const allProducts = getAllProducts(); // Use the correct function to get all products
+      const matchingProduct = allProducts.find(
+        (product) => product.name.toLowerCase() === productName.toLowerCase()
+      );
+
+      if (matchingProduct) {
+        // If found a matching product, use its information
+        return {
+          product_id: matchingProduct.id,
+          name: matchingProduct.name,
+          category: matchingProduct.category || "",
+          image_type: matchingProduct.image_type || "emoji",
+          image_source: matchingProduct.image_source || "",
+          plu_code: matchingProduct.plu_code || "",
+          barcode: matchingProduct.barcode || "",
+          total_price: 0,
+          average_price: 0,
+          lowest_price: 0,
+          highest_price: 0,
+          lowest_price_store: {
+            store_id: "",
+            store_name: "",
+          },
+          total_price_records: 0,
+          created_at: new Date(),
+          updated_at: new Date(),
+        };
+      }
+
+      // Create a new product with basic information if no match
+      return {
+        product_id: "", // No product_id as this is a custom product
+        name: productName,
+        category: "", // Default empty category
+        image_type: image ? "user_image" : "emoji",
+        image_source: image, // Will be updated with photo URL if image exists
+        plu_code: "",
+        barcode: "",
+        total_price: 0,
+        average_price: 0,
+        lowest_price: 0,
+        highest_price: 0,
+        lowest_price_store: {
+          store_id: "",
+          store_name: "",
+        },
+        total_price_records: 0,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+    }
+
+    return selectedProduct;
+  };
+
+  // Creates or updates a price record
+  const savePriceRecord = async (
+    userId: string,
+    userProductId: string,
+    numericPrice: number,
+    photoUrl: string
+  ) => {
+    if (isEditMode && recordId) {
+      // Update existing record
+      const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+      const updatedRecord = {
+        price: numericPrice,
+        unit_type: unitType,
+        unit_price: numericPrice,
+        photo_url: photoUrl || "",
+        store_id: selectedStore!.id,
+        updated_at: new Date(),
+      };
+
+      const success = await updateOneDocInDB(
+        recordPath,
+        recordId,
+        updatedRecord
+      );
+      return { success, recordId: recordId };
+    } else {
+      // Create new price record
+      const priceRecord: BasePriceRecord = {
+        user_product_id: userProductId,
+        store_id: selectedStore!.id,
+        price: numericPrice,
+        unit_type: unitType,
+        unit_price: numericPrice,
+        photo_url: photoUrl,
+        currency: "$", // TODO: Get from user settings
+        recorded_at: new Date(),
+      };
+
+      const priceRecordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+      const newRecordId = await createDoc(priceRecordPath, priceRecord);
+      return { success: !!newRecordId, recordId: newRecordId };
+    }
+  };
+
+  // Updates product statistics after adding a record
+  const updateProductStats = async (
+    userId: string,
+    userProductId: string,
+    numericPrice: number
+  ) => {
+    const userProductRef = doc(
+      db,
+      COLLECTIONS.USERS,
+      userId,
+      COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS,
+      userProductId
+    );
+
+    const userProductDoc = await getDoc(userProductRef);
+
+    if (userProductDoc.exists()) {
+      const existingProduct = userProductDoc.data() as UserProduct;
+
+      // Calculate new stats
+      const newTotalPrice = (existingProduct.total_price || 0) + numericPrice;
+      const newTotalRecords = (existingProduct.total_price_records || 0) + 1;
+      const newAveragePrice = newTotalPrice / newTotalRecords;
+
+      // Determine if it's the lowest price
+      const isLowestPrice =
+        !existingProduct.lowest_price ||
+        numericPrice < existingProduct.lowest_price;
+
+      // Determine if it's the highest price
+      const isHighestPrice =
+        !existingProduct.highest_price ||
+        numericPrice > existingProduct.highest_price;
+
+      // Prepare update data
+      const updateData = {
+        total_price: newTotalPrice,
+        average_price: newAveragePrice,
+        lowest_price: isLowestPrice
+          ? numericPrice
+          : existingProduct.lowest_price,
+        highest_price: isHighestPrice
+          ? numericPrice
+          : existingProduct.highest_price,
+        lowest_price_store: isLowestPrice
+          ? { store_id: selectedStore!.id, store_name: selectedStore!.name }
+          : existingProduct.lowest_price_store,
+        total_price_records: newTotalRecords,
+        updated_at: new Date(),
+      };
+
+      // Update user product data
+      await updateOneDocInDB(
+        `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`,
+        userProductId,
+        updateData
+      );
+
+      return true;
+    }
+
+    return false;
+  };
+
   const handleSave = async () => {
     try {
-      // verify
-      if (!productName || !storeName || !price || !unitType) {
-        alert("Please fill in all required fields");
-        return;
-      }
-
-      const numericPrice = parseFloat(price);
-      if (isNaN(numericPrice)) {
-        alert("Please enter a valid price");
-        return;
-      }
-
-      if (!selectedProduct) {
-        alert("Please select a product from the list");
-        return;
-      }
-
-      if (!selectedStore) {
-        alert("Please select a store from the list");
-        return;
-      }
+      // Validate form inputs
+      const numericPrice = validateFormInputs();
+      if (!numericPrice) return;
 
       // TODO: Link to real user, now hardcoded to user123
       const userId = "user123";
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
 
-      let photoUrl = "";
-      if (image) {
-        // use timestamp as unique identifier
-        const timestamp = new Date().getTime();
-        const imagePath = `price_records/${userId}/${timestamp}.jpg`;
+      // Upload image if exists
+      const photoUrl = await uploadProductImage(userId);
 
-        // upload image and get URL
-        photoUrl = await uploadImage(image, imagePath);
+      // Get or create user product
+      let userProduct = await getOrCreateUserProduct(userId, numericPrice);
+      if (!userProduct) {
+        alert("Failed to process product information");
+        return;
       }
 
-      if (isEditMode && recordId) {
-        // update existing record
-        const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-        const updatedRecord = {
-          price: numericPrice,
-          unit_type: unitType,
-          unit_price: numericPrice,
-          photo_url: photoUrl || "",
-          store_id: selectedStore.id,
-          updated_at: new Date(),
-        };
+      // If it's a new product created from text input, save it first
+      let userProductId;
+      if (selectedProduct === undefined || !("id" in userProduct)) {
+        // Only update the image_source with photoUrl if this is truly a new product
+        // (not matching any existing product) and image_type is "user_image"
+        if (
+          photoUrl &&
+          userProduct.image_type === "user_image" &&
+          !userProduct.product_id
+        ) {
+          userProduct.image_source = photoUrl;
+        }
 
-        const success = await updateOneDocInDB(
-          recordPath,
-          recordId,
-          updatedRecord
-        );
+        const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+        userProductId = await createDoc(userProductPath, userProduct);
 
-        if (success) {
-          navigation.goBack();
-        } else {
-          Alert.alert("Error", "Failed to update record");
+        if (!userProductId) {
+          alert("Failed to save user product");
+          return;
         }
       } else {
-        // create new record - original add record logic
-        // Check if user already has this product
-        const userProductsRef = collection(
-          db,
-          COLLECTIONS.USERS,
-          userId,
-          COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
-        );
+        userProductId = userProduct.id;
+      }
 
-        const querySnapshot = await getDocs(userProductsRef);
-        const existingUserProduct = querySnapshot.docs.find(
-          (doc) => doc.data().product_id === selectedProduct.product_id
-        );
+      // Save price record
+      const { success, recordId } = await savePriceRecord(
+        userId,
+        userProductId as string,
+        numericPrice,
+        photoUrl
+      );
 
-        let userProductId;
-        if (existingUserProduct) {
-          // If product exists, use its ID directly
-          userProductId = existingUserProduct.id;
-        } else {
-          // create user product if it doesn't exist
-          const userProduct: BaseUserProduct = {
-            product_id: selectedProduct.product_id,
-            created_at: new Date(),
-            updated_at: new Date(),
-          };
-
-          const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-          userProductId = await createDoc(userProductPath, userProduct);
-
-          if (!userProductId) {
-            alert("Failed to save user product");
-            return;
-          }
-        }
-
-        const priceRecord: BasePriceRecord = {
-          user_product_id: userProductId,
-          store_id: selectedStore.id,
-          price: numericPrice,
-          unit_type: unitType,
-          unit_price: numericPrice, //TODO: Calculate unit price, now same as price
-          photo_url: photoUrl,
-          recorded_at: new Date(),
-        };
-
-        const priceRecordPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-        const recordId = await createDoc(priceRecordPath, priceRecord);
-
-        if (recordId) {
-          const userProductStatsRef = doc(
-            db,
-            COLLECTIONS.USERS,
+      if (success) {
+        // Update product stats (skip in edit mode)
+        if (!isEditMode) {
+          await updateProductStats(
             userId,
-            COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS,
-            selectedProduct.product_id
+            userProductId as string,
+            numericPrice
           );
-          const userProductStatsDoc = await getDoc(userProductStatsRef);
-
-          let userProductStats: BaseUserProductStats;
-
-          if (userProductStatsDoc.exists()) {
-            const existingStats =
-              userProductStatsDoc.data() as UserProductStats;
-            const newTotalPrice = existingStats.total_price + numericPrice;
-            const newTotalRecords = existingStats.total_price_records + 1;
-            const newAveragePrice = newTotalPrice / newTotalRecords;
-
-            userProductStats = {
-              ...existingStats,
-              total_price: newTotalPrice,
-              average_price: newAveragePrice,
-              lowest_price:
-                numericPrice < existingStats.lowest_price
-                  ? numericPrice
-                  : existingStats.lowest_price,
-              highest_price:
-                numericPrice > existingStats.highest_price
-                  ? numericPrice
-                  : existingStats.highest_price,
-              lowest_price_store:
-                numericPrice < existingStats.lowest_price
-                  ? {
-                      store_id: selectedStore.id,
-                      store_name: selectedStore.name,
-                    }
-                  : existingStats.lowest_price_store,
-              total_price_records: newTotalRecords,
-              last_updated: new Date(),
-            };
-
-            const userProductStatsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
-            await updateOneDocInDB(
-              userProductStatsPath,
-              userProductStats.product_id,
-              userProductStats
-            );
-          } else {
-            userProductStats = {
-              product_id: selectedProduct.product_id,
-              currency: "$", // TODO: Get from user settings
-              total_price: numericPrice,
-              average_price: numericPrice,
-              lowest_price: numericPrice,
-              highest_price: numericPrice,
-              lowest_price_store: {
-                store_id: selectedStore.id,
-                store_name: selectedStore.name,
-              },
-              total_price_records: 1,
-              last_updated: new Date(),
-            };
-
-            await setDoc(userProductStatsRef, userProductStats);
-          }
-
-          alert("Record saved successfully!");
-          navigation.goBack();
-        } else {
-          alert("Failed to save record");
         }
+
+        alert(
+          isEditMode
+            ? "Record updated successfully!"
+            : "Record saved successfully!"
+        );
+        navigation.goBack();
+      } else {
+        alert("Failed to save record");
       }
     } catch (error) {
       console.error("Error saving record:", error);
@@ -512,17 +657,33 @@ const AddRecordScreen = () => {
           {!isEditMode && (
             <ProductSearchInput
               inputValue={productName}
-              onChangeInputValue={setProductName}
+              onChangeInputValue={handleProductNameChange}
               onSelectProduct={(product) => {
                 setProductName(product.name);
                 setSelectedProduct({
                   product_id: product.id,
+                  name: product.name,
+                  category: product.category || "",
+                  image_type: product.image_type || "emoji",
+                  image_source: product.image_source || "",
+                  plu_code: product.plu_code || "",
+                  barcode: product.barcode || "",
+                  total_price: 0,
+                  average_price: 0,
+                  lowest_price: 0,
+                  highest_price: 0,
+                  lowest_price_store: {
+                    store_id: "",
+                    store_name: "",
+                  },
+                  total_price_records: 0,
                   created_at: new Date(),
                   updated_at: new Date(),
                 });
               }}
             />
           )}
+          {/* TODO: replace with general search dropdown */}
           <StoreSearchInput
             inputValue={storeName}
             onChangeInputValue={setStoreName}

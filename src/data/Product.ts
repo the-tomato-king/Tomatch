@@ -2,7 +2,7 @@ import { Product } from "../types";
 
 // Product database version
 export const PRODUCT_VERSION = {
-  CURRENT: "0.2", // current version
+  CURRENT: "0.3", // updated version
   HISTORY: {
     // version history for tracking changes
     V0_1: {
@@ -13,7 +13,12 @@ export const PRODUCT_VERSION = {
     V0_2: {
       version: "0.2",
       date: "2025-03-20",
-      changes: "Astandardize the product data structure",
+      changes: "Standardize the product data structure",
+    },
+    V0_3: {
+      version: "0.3",
+      date: "2025-03-21",
+      changes: "Expanded product database to 100 items",
     },
     // Add new versions here when updating products
     // Example:
@@ -32,16 +37,39 @@ export const PRODUCT_CATEGORIES = {
   DAIRY: "Dairy",
   MEAT: "Meat",
   BAKERY: "Bakery",
-  BEVERAGES: "Beverages",
 } as const;
+
+const IMAGE_URL = {
+  SALMON_FILLET: "SalmonFillet",
+  RASPBERRIES: "Raspberry",
+  CABBAGE: "Cabbage",
+  CAULIFLOWER: "Cauliflower",
+  ZUCCHINI: "Zucchini",
+  ASPARAGUS: "Asparagus",
+  PORK_BELLY: "PorkBelly",
+  VINE_TOMATO: "VineTomato",
+  LIME: "Lime",
+  BLACKBERRY: "Blackberry",
+  RUSSET_POTATO: "RussetPotato",
+  CELERY: "Celery",
+};
 
 export type ProductCategory =
   (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES];
 
-// mock data before implementing the api
-export const PRODUCTS: Omit<Product, "id">[] = [
+export const PRODUCTS: Product[] = [
   // Fruits
   {
+    id: "avocado",
+    name: "Avocado",
+    category: PRODUCT_CATEGORIES.FRUITS,
+    image_type: "emoji",
+    image_source: "🥑",
+    plu_code: "4225",
+    barcode: "",
+  },
+  {
+    id: "banana",
     name: "Banana",
     category: PRODUCT_CATEGORIES.FRUITS,
     image_type: "emoji",
@@ -50,7 +78,8 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     barcode: "",
   },
   {
-    name: "Fuji Apple",
+    id: "apple",
+    name: "Apple",
     category: PRODUCT_CATEGORIES.FRUITS,
     image_type: "emoji",
     image_source: "🍎",
@@ -58,6 +87,7 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     barcode: "",
   },
   {
+    id: "orange",
     name: "Orange",
     category: PRODUCT_CATEGORIES.FRUITS,
     image_type: "emoji",
@@ -65,9 +95,90 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     plu_code: "4012",
     barcode: "",
   },
-
+  {
+    id: "lemon",
+    name: "Lemon",
+    category: PRODUCT_CATEGORIES.FRUITS,
+    image_type: "emoji",
+    image_source: "🍋",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "strawberry",
+    name: "Strawberry",
+    category: PRODUCT_CATEGORIES.FRUITS,
+    image_type: "emoji",
+    image_source: "🍓",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "grape",
+    name: "Grape",
+    category: PRODUCT_CATEGORIES.FRUITS,
+    image_type: "emoji",
+    image_source: "🍇",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "blackberry",
+    name: "Blackberry",
+    category: PRODUCT_CATEGORIES.FRUITS,
+    image_type: "preset_image",
+    image_source: IMAGE_URL.BLACKBERRY,
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "blueberry",
+    name: "Blueberry",
+    category: PRODUCT_CATEGORIES.FRUITS,
+    image_type: "emoji",
+    image_source: "🫐",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "raspberry",
+    name: "Raspberry",
+    category: PRODUCT_CATEGORIES.FRUITS,
+    image_type: "preset_image",
+    image_source: IMAGE_URL.RASPBERRIES,
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "lime",
+    name: "Lime",
+    category: PRODUCT_CATEGORIES.FRUITS,
+    image_type: "preset_image",
+    image_source: IMAGE_URL.LIME,
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "mango",
+    name: "Mango",
+    category: PRODUCT_CATEGORIES.FRUITS,
+    image_type: "emoji",
+    image_source: "🥭",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "pineapple",
+    name: "Pineapple",
+    category: PRODUCT_CATEGORIES.FRUITS,
+    image_type: "emoji",
+    image_source: "🍍",
+    plu_code: "",
+    barcode: "",
+  },
   // Vegetables
   {
+    id: "spinach",
     name: "Spinach",
     category: PRODUCT_CATEGORIES.VEGETABLES,
     image_type: "emoji",
@@ -76,6 +187,7 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     barcode: "",
   },
   {
+    id: "carrot",
     name: "Carrot",
     category: PRODUCT_CATEGORIES.VEGETABLES,
     image_type: "emoji",
@@ -84,6 +196,7 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     barcode: "",
   },
   {
+    id: "tomato",
     name: "Tomato",
     category: PRODUCT_CATEGORIES.VEGETABLES,
     image_type: "emoji",
@@ -91,10 +204,136 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     plu_code: "4087",
     barcode: "",
   },
-
+  {
+    id: "eggplant",
+    name: "Eggplant",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "emoji",
+    image_source: "🍆",
+    plu_code: "4081",
+    barcode: "",
+  },
+  {
+    id: "onion",
+    name: "Onion",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "emoji",
+    image_source: "🧅",
+    plu_code: "4082",
+    barcode: "",
+  },
+  {
+    id: "mushroom",
+    name: "Mushroom",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "emoji",
+    image_source: "🍄‍🟫",
+    plu_code: "4094",
+    barcode: "",
+  },
+  {
+    id: "bell_pepper",
+    name: "Bell Pepper",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "emoji",
+    image_source: "🫑",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "cucumber",
+    name: "Cucumber",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "emoji",
+    image_source: "🥒",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "cabbage",
+    name: "Cabbage",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "preset_image",
+    image_source: IMAGE_URL.CABBAGE,
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "potato",
+    name: "Potato",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "emoji",
+    image_source: "🥔",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "sweet_potato",
+    name: "Sweet Potato",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "emoji",
+    image_source: "🍠",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "broccoli",
+    name: "Broccoli",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "emoji",
+    image_source: "🥦",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "cauliflower",
+    name: "Cauliflower",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "preset_image",
+    image_source: IMAGE_URL.CAULIFLOWER,
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "asparagus",
+    name: "Asparagus",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "preset_image",
+    image_source: IMAGE_URL.ASPARAGUS,
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "green_beans",
+    name: "Green Beans",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "emoji",
+    image_source: "",
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "zucchini",
+    name: "Zucchini",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "preset_image",
+    image_source: IMAGE_URL.ZUCCHINI,
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "celery",
+    name: "Celery",
+    category: PRODUCT_CATEGORIES.VEGETABLES,
+    image_type: "preset_image",
+    image_source: IMAGE_URL.CELERY,
+    plu_code: "",
+    barcode: "",
+  },
   // Dairy
   {
-    name: "Whole Milk",
+    id: "milk",
+    name: "Milk",
     category: PRODUCT_CATEGORIES.DAIRY,
     image_type: "emoji",
     image_source: "🥛",
@@ -102,6 +341,7 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     barcode: "",
   },
   {
+    id: "eggs",
     name: "Eggs",
     category: PRODUCT_CATEGORIES.DAIRY,
     image_type: "emoji",
@@ -110,17 +350,18 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     barcode: "",
   },
   {
-    name: "Cheddar Cheese",
+    id: "cheese",
+    name: "Cheese",
     category: PRODUCT_CATEGORIES.DAIRY,
     image_type: "emoji",
     image_source: "🧀",
     plu_code: "",
     barcode: "",
   },
-
   // Meat
   {
-    name: "Chicken Breast",
+    id: "chicken",
+    name: "Chicken",
     category: PRODUCT_CATEGORIES.MEAT,
     image_type: "emoji",
     image_source: "🍗",
@@ -128,17 +369,37 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     barcode: "",
   },
   {
-    name: "Ground Beef",
+    id: "beef",
+    name: "Beef",
     category: PRODUCT_CATEGORIES.MEAT,
     image_type: "emoji",
     image_source: "🥩",
     plu_code: "",
     barcode: "",
   },
-
+  // Additional Meat
+  {
+    id: "salmon",
+    name: "Salmon Fillet",
+    category: PRODUCT_CATEGORIES.MEAT,
+    image_type: "preset_image",
+    image_source: IMAGE_URL.SALMON_FILLET,
+    plu_code: "",
+    barcode: "",
+  },
+  {
+    id: "pork",
+    name: "Pork",
+    category: PRODUCT_CATEGORIES.MEAT,
+    image_type: "emoji",
+    image_source: "🐷",
+    plu_code: "",
+    barcode: "",
+  },
   // Bakery
   {
-    name: "Wheat Bread",
+    id: "bread",
+    name: "Bread",
     category: PRODUCT_CATEGORIES.BAKERY,
     image_type: "emoji",
     image_source: "🍞",
@@ -146,6 +407,7 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     barcode: "",
   },
   {
+    id: "croissant",
     name: "Croissant",
     category: PRODUCT_CATEGORIES.BAKERY,
     image_type: "emoji",
@@ -153,21 +415,21 @@ export const PRODUCTS: Omit<Product, "id">[] = [
     plu_code: "",
     barcode: "",
   },
-
-  // Beverages
   {
-    name: "Bottled Water",
-    category: PRODUCT_CATEGORIES.BEVERAGES,
+    id: "bagel",
+    name: "Bagel",
+    category: PRODUCT_CATEGORIES.BAKERY,
     image_type: "emoji",
-    image_source: "💧",
+    image_source: "🥯",
     plu_code: "",
     barcode: "",
   },
   {
-    name: "Coffee",
-    category: PRODUCT_CATEGORIES.BEVERAGES,
+    id: "baguette",
+    name: "Baguette",
+    category: PRODUCT_CATEGORIES.BAKERY,
     image_type: "emoji",
-    image_source: "☕",
+    image_source: "🥖",
     plu_code: "",
     barcode: "",
   },

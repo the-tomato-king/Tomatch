@@ -1,18 +1,74 @@
 import { StyleSheet, Text, View, Image } from "react-native";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { colors } from "../theme/colors";
+import {
+  getProductImage,
+  uploadProductImage,
+} from "../services/firebase/storageHelper";
+import { ImageType } from "../types";
 
 interface ProductImageProps {
-  imageType?: string;
-  imageSource?: string;
+  imageType: ImageType;
+  imageSource: string;
   size?: number;
 }
 
 const ProductImage = ({
   imageType,
   imageSource,
-  size = 70, // 默认尺寸
+  size = 70,
 }: ProductImageProps) => {
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Reset state
+    setImageUrl("");
+    setLoading(false);
+
+    // // For debugging only
+    // console.log("ProductImage props:", {
+    //   imageType,
+    //   imageSource,
+    //   size,
+    // });
+
+    // Handle emoji type - no need to load anything
+    if (imageType === "emoji") {
+      return;
+    }
+
+    // Check for valid inputs before trying to load image
+    if (!imageType || !imageSource) {
+      console.log(
+        "Skipping image load due to missing imageType or imageSource"
+      );
+      return;
+    }
+
+    const defaultUserId = "user123"; // TODO: get from auth
+    setLoading(true);
+
+    getProductImage(imageSource, imageType, defaultUserId)
+      .then((url) => {
+        console.log("Successfully loaded image URL:", url);
+        setImageUrl(url);
+        setLoading(false);
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.error("Image loading error:", {
+          error: errorMessage,
+          imageType,
+          imageSource,
+          defaultUserId,
+        });
+        // Don't set error state visibly to user, just log it
+        setLoading(false);
+      });
+  }, [imageSource, imageType]);
+
   const styles = StyleSheet.create({
     container: {
       width: size,
@@ -30,19 +86,26 @@ const ProductImage = ({
       borderRadius: size / 2,
     },
     emojiText: {
-      fontSize: size * 0.64, // 根据容器大小调整emoji大小
+      fontSize: size * 0.64,
     },
   });
 
-  return (
-    <View style={styles.container}>
-      {imageType === "emoji" ? (
-        <Text style={styles.emojiText}>{imageSource}</Text>
-      ) : imageSource ? (
-        <Image source={{ uri: imageSource }} style={styles.image} />
-      ) : null}
-    </View>
-  );
+  // Render content based on current state
+  const renderContent = () => {
+    if (imageType === "emoji" && imageSource) {
+      return <Text style={styles.emojiText}>{imageSource}</Text>;
+    }
+
+    if (imageUrl) {
+      return <Image source={{ uri: imageUrl }} style={styles.image} />;
+    }
+
+    // Default empty state - just show the background container
+    // No error icon or message displayed
+    return null;
+  };
+
+  return <View style={styles.container}>{renderContent()}</View>;
 };
 
 export default ProductImage;

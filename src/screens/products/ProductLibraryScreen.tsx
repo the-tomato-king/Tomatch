@@ -4,8 +4,9 @@ import {
   View,
   FlatList,
   TouchableOpacity,
+  Alert,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PRODUCTS, PRODUCT_CATEGORIES } from "../../data/Product";
 import { colors } from "../../theme/colors";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -13,38 +14,160 @@ import ProductImage from "../../components/ProductImage";
 import CategoryFilter from "../../components/CategoryFilter";
 import SearchBar from "../../components/SearchBar";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import {
+  NativeStackScreenProps,
+  NativeStackNavigationProp,
+} from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
+import { collection, onSnapshot, query } from "firebase/firestore";
+import { db } from "../../services/firebase/firebaseConfig";
+import { Product, UserProduct } from "../../types";
+import LoadingLogo from "../../components/LoadingLogo";
+import { COLLECTIONS } from "../../constants/firebase";
+import {
+  getAllProducts,
+  filterProductsByCategory,
+} from "../../services/productService";
 
 type ProductLibraryRouteProp = NativeStackScreenProps<
   RootStackParamList,
   "ProductLibrary"
 >["route"];
 
+type ProductLibraryNavigationProp =
+  NativeStackNavigationProp<RootStackParamList>;
+
+// Create a combined type for displaying in the library
+interface LibraryProduct extends Product {
+  isUserProduct?: boolean;
+  userProductId?: string;
+}
+
 const ProductLibraryScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<ProductLibraryNavigationProp>();
   const route = useRoute<ProductLibraryRouteProp>();
   const initialSearchText = route.params?.initialSearchText || "";
+
+  const [loading, setLoading] = useState(true);
+  const [localProducts, setLocalProducts] = useState<Product[]>([]);
+  const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
+  const [combinedProducts, setCombinedProducts] = useState<LibraryProduct[]>(
+    []
+  );
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState(initialSearchText);
+
+  useEffect(() => {
+    // Get local products
+    const allLocalProducts = getAllProducts();
+    setLocalProducts(allLocalProducts);
+
+    // Get user products from Firebase
+    const userId = "user123"; // TODO: get user id from auth
+    const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+
+    const unsubscribeUserProducts = onSnapshot(
+      collection(db, userProductsPath),
+      (snapshot) => {
+        const products = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as UserProduct[];
+        setUserProducts(products);
+      },
+      (error) => {
+        console.error("Error listening to user products:", error);
+      }
+    );
+
+    setLoading(false);
+
+    // Cleanup function
+    return () => {
+      unsubscribeUserProducts();
+    };
+  }, []);
+
+  // Combine local and user products whenever either changes
+  useEffect(() => {
+    // Convert local products to LibraryProduct format
+    const formattedLocalProducts: LibraryProduct[] = localProducts.map(
+      (product) => ({
+        ...product,
+        isUserProduct: false,
+      })
+    );
+
+    // Convert user products to LibraryProduct format
+    const formattedUserProducts: LibraryProduct[] = userProducts.map(
+      (product) => ({
+        id: product.product_id || product.id,
+        name: product.name,
+        category: product.category,
+        image_type: product.image_type,
+        image_source: product.image_source,
+        plu_code: product.plu_code || "",
+        barcode: product.barcode || "",
+        isUserProduct: true,
+        userProductId: product.id,
+      })
+    );
+
+    // Combine and set
+    setCombinedProducts([...formattedLocalProducts, ...formattedUserProducts]);
+  }, [localProducts, userProducts]);
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
   };
 
-  const filteredProducts = PRODUCTS.filter(
-    (product) =>
-      selectedCategory === "all" || product.category === selectedCategory
-  ).filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = combinedProducts
+    .filter(
+      (product) =>
+        selectedCategory === "all" || product.category === selectedCategory
+    )
+    .filter((product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-  const handleProductSelect = (product: (typeof PRODUCTS)[0]) => {
+  const handleProductSelect = (product: LibraryProduct) => {
     if (route.params?.onSelectProduct) {
-      route.params.onSelectProduct({ ...product, id: product.name });
+      if (product.isUserProduct) {
+        // If it's a user product, pass it with the original user product ID
+        const userProduct = {
+          ...product,
+          id: product.id,
+          user_product_id: product.userProductId,
+        } as unknown as Product;
+        route.params.onSelectProduct(userProduct);
+      } else {
+        // If it's a local product, pass it as normal
+        route.params.onSelectProduct({ ...product, id: product.id });
+      }
     }
     navigation.goBack();
   };
+
+  // Add long press handler for editing products
+  const handleLongPress = (product: LibraryProduct) => {
+    if (product.isUserProduct && product.userProductId) {
+      // Navigate to edit screen for user products
+      navigation.navigate("EditProduct", {
+        productId: product.userProductId,
+      });
+    } else {
+      // Show alert for library products that can't be edited
+      Alert.alert(
+        "Cannot Edit",
+        "Library products cannot be edited. You can add this product to your list and then customize it.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  if (loading) {
+    return <LoadingLogo />;
+  }
 
   return (
     <View style={styles.container}>
@@ -73,18 +196,40 @@ const ProductLibraryScreen = () => {
         <View style={styles.productListContainer}>
           <FlatList
             data={filteredProducts}
-            keyExtractor={(item) => item.name}
+            keyExtractor={(item) =>
+              item.isUserProduct
+                ? `user-${item.userProductId}`
+                : `local-${item.id}`
+            }
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => handleProductSelect(item)}>
+              <TouchableOpacity
+                onPress={() => handleProductSelect(item)}
+                onLongPress={() => handleLongPress(item)}
+                delayLongPress={500} // Standard long press delay
+              >
                 <View style={styles.productItem}>
                   <ProductImage
                     imageType={item.image_type}
                     imageSource={item.image_source}
                   />
                   <View style={styles.productInfo}>
-                    <Text style={styles.productName}>{item.name}</Text>
+                    <Text style={styles.productName}>
+                      {item.name}
+                      {item.isUserProduct && (
+                        <Text style={styles.userProductTag}> (My Product)</Text>
+                      )}
+                    </Text>
                     <Text style={styles.productCategory}>{item.category}</Text>
                   </View>
+                  {item.isUserProduct && (
+                    <View style={styles.editIndicator}>
+                      <MaterialCommunityIcons
+                        name="gesture-tap-hold"
+                        size={16}
+                        color={colors.secondaryText}
+                      />
+                    </View>
+                  )}
                 </View>
               </TouchableOpacity>
             )}
@@ -100,6 +245,7 @@ export default ProductLibraryScreen;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     marginHorizontal: 20,
   },
   separator: {
@@ -127,16 +273,15 @@ const styles = StyleSheet.create({
   },
   // product library
   productLibraryContainer: {
+    flex: 1,
     marginTop: 20,
     width: "100%",
-    height: "100%",
     backgroundColor: colors.white,
     borderRadius: 10,
   },
   // product list
   productListContainer: {
-    width: "100%",
-    height: "100%",
+    flex: 1,
   },
   productItem: {
     flexDirection: "row",
@@ -155,5 +300,13 @@ const styles = StyleSheet.create({
     flex: 5,
     fontSize: 14,
     color: colors.secondaryText,
+  },
+  userProductTag: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: "normal",
+  },
+  editIndicator: {
+    padding: 8,
   },
 });

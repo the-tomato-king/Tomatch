@@ -1,59 +1,99 @@
-import { FlatList, StyleSheet, Text, View, Image, SafeAreaView } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  SafeAreaView,
+} from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
 import ProductCard from "../components/ProductCard";
-import { UserProduct } from "../types";
+import { UserProduct, Product } from "../types";
 import { COLLECTIONS } from "../constants/firebase";
-import { readAllDocs } from "../services/firebase/firebaseHelper";
 import LoadingLogo from "../components/LoadingLogo";
 import { colors } from "../theme/colors";
 import { useFocusEffect } from "@react-navigation/native";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
 import MainPageHeader from "../components/MainPageHeader";
+import SearchBar from "../components/SearchBar";
+import { getAllProducts, getProductById } from "../services/productService";
 
 const HomeScreen = () => {
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [productsDetails, setProductsDetails] = useState<{
+    [key: string]: Product;
+  }>({});
 
-  useFocusEffect(
-    useCallback(() => {
-      const currentUser = "user123";
-      const collectionPath = `${COLLECTIONS.USERS}/${currentUser}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+  useEffect(() => {
+    const userId = "user123"; // TODO: get user id from auth
+    const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
-      // Create subscription to real-time updates
-      const unsubscribe = onSnapshot(
-        collection(db, collectionPath),
-        (snapshot) => {
-          const products = snapshot.docs.map((doc) => ({
-            ...doc.data(),
-            id: doc.id,
-          })) as UserProduct[];
-          setUserProducts(products);
-          setLoading(false);
-        },
-        (error) => {
-          console.error("Error listening to user products:", error);
-          setLoading(false);
-        }
-      );
+    // monitor user product list change
+    const unsubscribeUserProducts = onSnapshot(
+      collection(db, userProductsPath),
+      (snapshot) => {
+        const products = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as UserProduct[];
+        setUserProducts(products);
+      },
+      (error) => {
+        console.error("Error listening to user products:", error);
+      }
+    );
 
-      // Cleanup subscription on unmount
-      return () => unsubscribe();
-    }, [])
-  );
+    const allProducts = getAllProducts();
+    const details: { [key: string]: Product } = {};
+    allProducts.forEach((product) => {
+      details[product.id] = product;
+    });
+    setProductsDetails(details);
+    setLoading(false);
+
+    // cleanup function
+    return () => {
+      unsubscribeUserProducts();
+    };
+  }, []);
+
+  // Filter products with price records
+  const productsWithStats = userProducts.filter((product) => {
+    // Only keep products that have price records (total_price_records > 0)
+    return product.total_price_records > 0;
+  });
+
+  // Then apply search filter
+  const filteredProducts = productsWithStats.filter((product) => {
+    const productDetail = productsDetails[product.product_id || ""];
+    if (!productDetail) {
+      // Make sure product.name exists before calling toLowerCase
+      return product.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    return productDetail.name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   if (loading) {
     return <LoadingLogo />;
   }
 
   return (
-
     <SafeAreaView style={styles.container}>
       <MainPageHeader title="All Products" />
+      <View style={styles.searchContainer}>
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search products"
+        />
+      </View>
       <FlatList
         style={styles.list}
-        data={userProducts}
-        keyExtractor={(item) => item.product_id}
+        data={filteredProducts}
+        keyExtractor={(item) => item.product_id || item.id}
         renderItem={({ item }) => <ProductCard product={item} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -96,6 +136,10 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.lightGray2,
     marginHorizontal: 16,
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
 });
 

@@ -37,117 +37,87 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 
 ## Data Model 
 
-1. users (collection)
-	- id
-	- name
-	- email
-	- phone_number
-	- location
-		- country
-		- province
-		- city
-		- street_address
-		- postcode
-		- coordinates
-			- latitude
-			- longitude
-	- preferred_unit
-		- weight
-		- volume
-	- preferred_currency
-	- created_at
-	- updated_at
-1. user_products (sub-collection)
-    - id
-    - product_id (reference to products collection)
-    - created_at
-    - updated_at
-	    - customized_products (sub-collection)
-	        - id
-	        - name
-	        - category
-	        - image_url
-	        - plu_code
-	        - barcode
-	        - created_at
-	        - updated_at
-	        - shopping_lists (sub-collection)
-	            - list_id
-	            - product_id
-	            - product_name
-	            - status
-	            - created_at
-	            - updated_at
-	        - price_records (sub-collection)
-	            - id
-	            - user_product_id (references user_products)
-	            - store_id (references stores)
-	            - price
-	            - unit_type
-	            - unit_price
-	            - photo_url
-	            - recorded_at
-	        - user_product_stats (sub-collection)
-	            - id
-	            - product_id (reference to products collection)
-	            - currency
-	            - total_price
-	            - average_price
-	            - lowest_price
-	            - highest_price
-	            - lowest_price_store
-	                - store_id
-	                - store_name
-	            - total_price_records
-	            - last_updated
-	        - user_stores (sub-collection)
-	            - id
-	            - brand_id (references store_brands collection)
-	            - name
-	            - address
-	            - location
-	                - latitude
-	                - longitude
-	            - is_favorite
-	            - last_visited
-	            - created_at
-	            - updated_at
+### 1. users (collection)
+- id
+- name
+- email
+- phone_number
+- location
+- country
+- province
+- city
+- street_address
+- postcode
+- coordinates
+	- latitude
+	- longitude
+- preferred_unit
+- weight
+- volume
+- preferred_currency
+- created_at
+- updated_at
 
 
-2. products (collection)
-	- id
-	- name
-	- category
-	- image_type    // "emoji" | "image"
-	- image_source  // emoji string or image url
-	- plu_code
-	- barcode
+#### 1.1 user_products (sub-collection)
+- id
+- product_id (optional, references local product library)
+- name (product name, copied from product library or user-defined)
+- category
+- image_type ("emoji" | "preset_image" | "user_image")
+- image_source (emoji string or image url)
+- plu_code
+- barcode
+- created_at
+- updated_at
 
-3. store_brands (collection)
+#### 1.2 user_stores (sub-collection)
+- id
+- brand_id (references store_brands)
+- name (e.g., "Walmart Downtown", "Walmart West Side")
+- address
+- location
+	- latitude
+	- longitude
+- is_favorite
+- last_visited
+- created_at
+- updated_at
+- is_inactive
+
+#### 1.3 shopping_lists (sub-collection)
+- id
+- product_id
+- product_name
+- status
+- created_at
+- updated_at
+
+#### 1.4 price_records (sub-collection)
+- id
+- user_product_id (references user_products)
+- store_id (references user_stores)
+- price
+- unit_type
+- unit_price
+- photo_url
+- recorded_at
+
+
+### 2. store_brands (collection)
 	- id
 	- name
 	- logo
 	- updated_at
 
-4. shopping_list (collection)
-    - id
-    - name
-    - items
-    - shoppingTime
-    - location
-        - name
-        - address
-        - latitude
-        - longitude
-    - userid
-	    - shopping_list_item (subcollection)
-	        - id
-	        - name
-	        - quantity
-	        - checked
-
-
-	  
+### 3. Local Product Library (in-app, not in Firestore)
+	- id
+	- name
+	- category
+	- image_type ("emoji" | "preset_image" | "user_image")
+	- image_source (emoji string or image url)
+	- plu_code
+	- barcode
 
 ## CRUD Operations on Collections
 
@@ -159,54 +129,46 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 
 Sub-Collections under users: 
 
-1.1 user_products (Sub-collection): Stores references to products that users have tracked.
-- [x] Create: Automatically created when users add a price record for a product.
-- [x] Read: Used internally to link users with products they track.
-- [ ] Update: Updated when users interact with the product.
-- [ ] Delete: Users can remove products they no longer want to track.
+1.1 user_products (Sub-collection): Stores products that users have tracked, including both local product references and custom products.
+- [x] Create: Users add products from the local library or create custom products.
+- [x] Read: Users retrieve their tracked products.
+- [x] Update: Users can modify product details or update tracking information.
+- [x] Delete: Users can remove products they no longer want to track.
 
-1.2 customized_products (Sub-collection): Stores user-defined products not present in the main product database.
-- [ ] Create: Users manually add new custom products.
-- [ ] Read: Users retrieve a list of their customized products.
-- [ ] Update: Users can modify product details such as name, category, and image.
-- [ ] Delete: Users can remove unwanted customized products.
-
-1.3 shopping_lists (sub-collection)
+1.2 shopping_lists (sub-collection): Manages user's shopping list items.
 - [x] Create: Users create new shopping lists and add products.
 - [x] Read: Users retrieve their shopping lists and associated products.
-- [x] Update: Users can mark items as purchased in each of shopping lists.
-- [x] Delete: Users can delete entire shopping lists.
+- [x] Update: Users can mark items as purchased in each shopping list.
+- [x] Delete: Users can delete entire shopping lists or individual items.
 
-1.4 price_records (Sub-collection): Stores individual price entries for products.
-- [x] Create: Users add price records manually or via OCR from price tags.
+1.3 price_records (Sub-collection): Stores individual price entries for products.
+- [ ] Create: Users add price records manually or via OCR from price tags.
 - [x] Read: Users retrieve product price history and price trends.
-- [x] Update: Users can edit incorrect prices or store information.
+- [ ] Update: Users can edit incorrect prices or store information.
 - [x] Delete: Users can remove outdated or incorrect price records.
 
-1.5 user_product_stats (Sub-collection): Stores aggregated statistics for each product a user tracks.
+1.4 user_product_stats (Sub-collection): Stores aggregated statistics for each product a user tracks.
 - [x] Create: Automatically generated when a user adds their first price record for a product.
 - [x] Read: Users view statistics like average price, lowest price, etc.
 - [x] Update: Automatically updated when new price records are added.
 - [x] Delete: Removed when a user deletes the associated product from their tracking.
 
-1.6 user_stores (Sub-collection): Stores information about stores that users have visited or added.
+1.5 user_stores (Sub-collection): Stores information about stores that users have visited or added.
 - [x] Create: Users can add new stores manually or when adding price records.
 - [x] Read: Users can view their list of stores and details about each store.
 - [x] Update: Users can update store information or mark stores as favorites.
 - [x] Delete: Users can remove stores they no longer visit.
 
-2. products (collection): Global product database.
-- Create: Only Admins can add new product entries.
-- [x] Read: Users can browse/search for products by name, code, or category.
-- Update: Only Admins can update product names, categories, or images.
-- Delete: Only Admins can remove outdated or incorrect products.
-
-1. store_brands (collection): Stores information about retail brands.
+2. store_brands (collection): Stores information about retail brands.
 - Create: Only Admins can add new store brands.
 - [x] Read: Users can view store brand information.
 - Update: Only Admins can update store brand details.
 - Delete: Only Admins can remove outdated or incorrect store brands.
- 
+
+3. Local Product Library: A built-in database of common products.
+- No direct CRUD operations as it's local to the app
+- [x] Read: Users can browse/search for products by name, code, or category.
+
 ## Contributors
 
 - [Shiyu Xu (Gina)](https://github.com/Gnblink0)
@@ -348,4 +310,4 @@ Sub-Collections under users:
 1. Clone the repository
 2. Install dependencies: `npm install`
 3. Create a `.env` file in the root directory with the required environment variables
-4. Start the development server: `npx expo start`
+4. Start the development server: `

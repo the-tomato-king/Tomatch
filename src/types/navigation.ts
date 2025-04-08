@@ -17,6 +17,9 @@ export type HomeStackParamList = {
   };
   PriceRecordInformation: { recordId: string };
   EditPriceRecord: { recordId: string };
+  EditProduct: {
+    productId: string;
+  };
 };
 
 export type StoreStackParamList = {
@@ -55,6 +58,9 @@ export type RootStackParamList = {
     initialSearchText?: string;
   };
   AddProduct: undefined;
+  EditProduct: {
+    productId: string;
+  };
 };
 
 export type SettingStackParamList = {

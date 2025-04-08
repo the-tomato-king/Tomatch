@@ -8,6 +8,7 @@ import { Text } from "react-native";
 import { globalStyles } from "../theme/styles";
 import AddProductScreen from "../screens/products/AddProductScreen";
 import HeaderAddButton from "../components/HeaderAddButton";
+import BackButton from "../components/BackButton";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -59,7 +60,25 @@ const RootNavigator = () => {
       <Stack.Screen
         name="AddProduct"
         component={AddProductScreen}
-        options={{ headerShown: true, headerTitle: "Add Product" }}
+        options={({ navigation }) => ({
+          headerTitle: "Add Product",
+          headerLeft: () => (
+            <Text
+              style={globalStyles.headerButton}
+              onPress={() => navigation.goBack()}
+            >
+              Cancel
+            </Text>
+          ),
+        })}
+      />
+      <Stack.Screen
+        name="EditProduct"
+        component={AddProductScreen}
+        options={{
+          headerTitle: "Edit Product",
+          headerLeft: () => <BackButton />,
+        }}
       />
     </Stack.Navigator>
   );

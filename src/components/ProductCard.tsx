@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Product, UserProduct, UserProductStats } from "../types";
+import { UserProduct } from "../types";
 import { globalStyles } from "../theme/styles";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -9,7 +9,7 @@ import { colors } from "../theme/colors";
 import { readOneDoc } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
 import ProductImage from "./ProductImage";
-
+import { ImageType } from "../types";
 type ProductNavigationProp = NativeStackNavigationProp<
   HomeStackParamList,
   "HomeScreen"
@@ -21,52 +21,10 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const navigation = useNavigation<ProductNavigationProp>();
-  const [productDetails, setProductDetails] = useState<Product | null>(null);
-  const [productStats, setProductStats] = useState<UserProductStats | null>(
-    null
-  );
-
-  useEffect(() => {
-    const fetchProductDetails = async () => {
-      try {
-        const details = await readOneDoc<Product>(
-          COLLECTIONS.PRODUCTS,
-          product.product_id
-        );
-        if (details) {
-          setProductDetails(details);
-        }
-      } catch (error) {
-        console.error("Error fetching product details:", error);
-      }
-    };
-
-    const fetchProductStats = async () => {
-      try {
-        // TODO:
-        const userId = "user123";
-        const statsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCT_STATS}`;
-
-        const stats = await readOneDoc<UserProductStats>(
-          statsPath,
-          product.product_id
-        );
-
-        if (stats) {
-          setProductStats(stats);
-        }
-      } catch (error) {
-        console.error("Error fetching product stats:", error);
-      }
-    };
-
-    fetchProductDetails();
-    fetchProductStats();
-  }, [product.product_id]);
 
   const handlePress = () => {
     navigation.navigate("ProductDetail", {
-      productId: product.product_id,
+      productId: product.product_id || product.id,
       userProductId: product.id,
     });
   };
@@ -85,21 +43,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
     <TouchableOpacity onPress={handlePress}>
       <View style={styles.productItem}>
         <ProductImage
-          imageType={productDetails?.image_type}
-          imageSource={productDetails?.image_source}
+          imageType={product.image_type as ImageType}
+          imageSource={product.image_source as string}
         />
         <View style={styles.productInfo}>
-          <Text style={styles.productName}>{productDetails?.name}</Text>
-          <Text style={styles.productCategory}>{productDetails?.category}</Text>
+          <Text style={styles.productName}>{product.name}</Text>
+          <Text style={styles.productCategory}>{product.category}</Text>
         </View>
-        {productStats && (
-          <View style={styles.priceContainer}>
-            <Text style={styles.priceText}>
-              {formatPrice(productStats.average_price)}
+        <View style={styles.priceContainer}>
+          <Text style={styles.priceText}>
+            {formatPrice(product.average_price)}
               <Text style={styles.unitText}>/lb</Text>
+              {/* TODO: use user preferred unit */}
             </Text>
-          </View>
-        )}
+        </View>
       </View>
     </TouchableOpacity>
   );
