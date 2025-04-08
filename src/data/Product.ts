@@ -114,8 +114,8 @@ export const PRODUCTS: Product[] = [
     barcode: "",
   },
   {
-    id: "grapes",
-    name: "Grapes",
+    id: "grape",
+    name: "Grape",
     category: PRODUCT_CATEGORIES.FRUITS,
     image_type: "emoji",
     image_source: "🍇",

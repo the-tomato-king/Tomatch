@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, TextInput, StyleSheet, Text, FlatList } from "react-native";
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  Text,
+  FlatList,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 import { Product, UserProduct } from "../types";
 import { globalStyles } from "../theme/styles";
 import { colors } from "../theme/colors";
@@ -41,13 +49,16 @@ const ProductSearchInput = ({
     if (inputValue.trim().length > 0) {
       const results = searchProducts(inputValue);
       setSuggestions(results);
-      setShowSuggestions(true);
-      setIsNewProduct(
-        !results.some(
-          (product: Product) =>
-            product.name.toLowerCase() === inputValue.toLowerCase()
-        )
+
+      // Check if there's an exact match
+      const exactMatch = results.some(
+        (product: Product) =>
+          product.name.toLowerCase() === inputValue.toLowerCase()
       );
+
+      // Only show suggestions if there's no exact match
+      setShowSuggestions(!exactMatch);
+      setIsNewProduct(!exactMatch && results.length === 0);
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -55,73 +66,72 @@ const ProductSearchInput = ({
     }
   }, [inputValue]);
 
-  // Clear suggestions when they're hidden
-  useEffect(() => {
-    if (!showSuggestions) {
-      setSuggestions([]);
-    }
-  }, [showSuggestions]);
-
   return (
-    <View style={styles.wrapper}>
-      <View style={[globalStyles.inputContainer]}>
-        <View style={globalStyles.labelContainer}>
-          <Text style={globalStyles.inputLabel}>Product</Text>
-        </View>
-        <View style={styles.inputWrapper}>
-          <TextInput
-            style={[globalStyles.input]}
-            value={inputValue}
-            onChangeText={onChangeInputValue}
-            placeholder="Search product..."
-            onFocus={() => setShowSuggestions(true)}
-          />
-          {isNewProduct && inputValue.length > 0 && (
-            <GeneralPressable
-              containerStyle={styles.questionIcon}
-              onPress={() => {
-                navigation.navigate("ProductLibrary", {
-                  onSelectProduct: (product: Product) => {
-                    onSelectProduct(product);
-                    setShowSuggestions(false);
-                    setSuggestions([]);
-                  },
-                  initialSearchText: inputValue,
-                });
-              }}
-            >
-              <MaterialCommunityIcons
-                name="help-circle-outline"
-                size={24}
-                color={colors.negative}
-              />
-            </GeneralPressable>
-          )}
-        </View>
-      </View>
+    <TouchableWithoutFeedback onPress={() => setShowSuggestions(false)}>
+      <View style={styles.wrapper}>
+        <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+          <View>
+            <View style={[globalStyles.inputContainer]}>
+              <View style={globalStyles.labelContainer}>
+                <Text style={globalStyles.inputLabel}>Product</Text>
+              </View>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={[globalStyles.input]}
+                  value={inputValue}
+                  onChangeText={onChangeInputValue}
+                  placeholder="Search product..."
+                  onFocus={() => setShowSuggestions(true)}
+                />
+                {isNewProduct && inputValue.length > 0 && (
+                  <GeneralPressable
+                    containerStyle={styles.questionIcon}
+                    onPress={() => {
+                      navigation.navigate("ProductLibrary", {
+                        onSelectProduct: (product: Product) => {
+                          onSelectProduct(product);
+                          setShowSuggestions(false);
+                          setSuggestions([]);
+                        },
+                        initialSearchText: inputValue,
+                      });
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name="help-circle-outline"
+                      size={24}
+                      color={colors.negative}
+                    />
+                  </GeneralPressable>
+                )}
+              </View>
+            </View>
 
-      {showSuggestions && suggestions.length > 0 && (
-        <View style={styles.suggestionsContainer}>
-          <FlatList
-            data={suggestions}
-            keyExtractor={(item) => item.name}
-            keyboardShouldPersistTaps="handled"
-            renderItem={({ item }) => (
-              <GeneralPressable
-                containerStyle={styles.suggestionItem}
-                onPress={() => {
-                  onSelectProduct(item);
-                  setShowSuggestions(false);
-                  setSuggestions([]);
-                }}
-              >
-                <Text style={styles.suggestionText}>{item.name}</Text>
-              </GeneralPressable>
+            {showSuggestions && suggestions.length > 0 && (
+              <View style={styles.suggestionsContainer}>
+                <FlatList
+                  data={suggestions}
+                  keyExtractor={(item) => item.name}
+                  keyboardShouldPersistTaps="handled"
+                  renderItem={({ item }) => (
+                    <GeneralPressable
+                      containerStyle={styles.suggestionItem}
+                      onPress={() => {
+                        onSelectProduct(item);
+                        setShowSuggestions(false);
+                        setSuggestions([]);
+                      }}
+                    >
+                      <Text style={styles.suggestionText}>{item.name}</Text>
+                    </GeneralPressable>
+                  )}
+                />
+              </View>
             )}
-          />
-        </View>
-      )}
-    </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
