@@ -26,6 +26,7 @@ import { CURRENCIES } from "../../constants/currencies";
 import { useUserPreference } from "../../hooks/useUserPreference";
 import UnitModal from "../../components/modals/UnitModal";
 import { UNITS } from "../../constants/units";
+import { useAuth } from "../../contexts/AuthContext";
 
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
@@ -37,13 +38,13 @@ const getCurrencySymbol = (code: string) => {
 
 const SettingPage = () => {
   const navigation = useNavigation<SettingScreenNavigationProp>();
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
   const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
   const [isWeightUnitModalVisible, setIsWeightUnitModalVisible] =
     useState(false);
+  const { user, logout } = useAuth();
 
   const userId = "user123"; // TODO: get from auth
   const {
@@ -65,8 +66,7 @@ const SettingPage = () => {
       userDocRef,
       (docSnapshot) => {
         if (docSnapshot.exists()) {
-          const userData = docSnapshot.data() as User;
-          setUser(userData);
+          const userData = docSnapshot.data() as User;;
         } else {
           console.error("User document does not exist");
           Alert.alert(
@@ -153,6 +153,32 @@ const SettingPage = () => {
     );
   }
 
+  const handleLogout = () => {
+    Alert.alert(
+      'Confirm Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error) {
+              console.log(error)
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+  
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar />
@@ -190,6 +216,15 @@ const SettingPage = () => {
             <Text style={styles.settingLabel}>Change Password</Text>
             <Text style={styles.chevron}>{">"}</Text>
           </View>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleLogout}
+          >
+            <Text style={styles.settingLabel}>Logout</Text>
+            <Text style={styles.chevron}>{">"}</Text>
+          </TouchableOpacity>
+          
         </View>
 
         {/* Preference Section */}
