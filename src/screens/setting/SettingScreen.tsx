@@ -17,7 +17,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SettingStackParamList } from "../../types/navigation";
 import { COLLECTIONS } from "../../constants/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../../services/firebase/firebaseConfig";
+import { auth, db } from "../../services/firebase/firebaseConfig";
 import MainPageHeader from "../../components/MainPageHeader";
 import LocationModal from "../../components/modals/LocationModal";
 import { updateOneDocInDB } from "../../services/firebase/firebaseHelper";
@@ -181,6 +181,36 @@ const SettingPage = () => {
       { cancelable: false }
     );
   };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Confirm Account Deletion",
+      "Are you sure you want to delete your account? This action is irreversible.",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("User canceled the delete operation"),
+          style: "cancel"
+        },
+        {
+          text: "OK",
+          onPress: async () => {
+            try {
+              if (!user) {
+                console.log("No user logged in");
+                return;
+              }
+              await user.delete();
+              logout();
+            } catch (error) {
+              console.log(error);
+            }
+          }
+        }
+      ]
+    );
+  };
+  
   
 
   return (
@@ -229,6 +259,14 @@ const SettingPage = () => {
             onPress={handleLogout}
           >
             <Text style={styles.settingLabel}>Logout</Text>
+            <Text style={styles.chevron}>{">"}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleDeleteAccount}
+          >
+            <Text style={styles.settingLabel}>Delete My Account</Text>
             <Text style={styles.chevron}>{">"}</Text>
           </TouchableOpacity>
           
