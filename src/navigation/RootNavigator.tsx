@@ -13,6 +13,7 @@ import BackButton from "../components/BackButton";
 import LoginScreen from "../screens/auth/LoginScreen";
 import { useAuth } from "../contexts/AuthContext";
 import SignupScreen from "../screens/auth/SignupScreen";
+import OnboardingScreen from "../screens/auth/OnBoardingScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator();
@@ -20,7 +21,12 @@ const AppStack = createNativeStackNavigator();
 
 const AuthNavigator = () => {
   return (
-    <AuthStack.Navigator>
+    <AuthStack.Navigator initialRouteName="Onboarding">
+      <AuthStack.Screen 
+        name="Onboarding" 
+        component={OnboardingScreen}
+        options={{ headerShown: false }}
+      />
       <AuthStack.Screen 
         name="Login" 
         component={LoginScreen}
