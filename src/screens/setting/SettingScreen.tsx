@@ -102,7 +102,7 @@ const SettingPage = () => {
   };
 
   const navigateToChangePassword = () => {
-    navigation.navigate("EditProfile");
+    navigation.navigate("ChangePassword");
   };
 
   const handleUpdateLocation = async (newLocation: UserLocation) => {

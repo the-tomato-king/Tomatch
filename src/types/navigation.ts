@@ -76,4 +76,5 @@ export type RootStackParamList = {
 export type SettingStackParamList = {
   SettingScreen: undefined;
   EditProfile: undefined;
+  ChangePassword: undefined;
 };
