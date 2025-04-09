@@ -118,8 +118,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
     backgroundColor: "#fff",
-    borderRadius: 8,
-    marginVertical: 5,
+    borderRadius: 10,
+    marginVertical: 8,
+    marginHorizontal:15
   },
   itemContent: {
     padding: 5,
