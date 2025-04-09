@@ -12,6 +12,7 @@ import HeaderAddButton from "../components/HeaderAddButton";
 import BackButton from "../components/BackButton";
 import LoginScreen from "../screens/auth/LoginScreen";
 import { useAuth } from "../contexts/AuthContext";
+import SignupScreen from "../screens/auth/SignupScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator();
@@ -23,6 +24,11 @@ const AuthNavigator = () => {
       <AuthStack.Screen 
         name="Login" 
         component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+      <AuthStack.Screen 
+        name="Signup" 
+        component={SignupScreen}
         options={{ headerShown: false }}
       />
     </AuthStack.Navigator>

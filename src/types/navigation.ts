@@ -42,10 +42,17 @@ export type ShoppingStackParamList = {
   };
 };
 
+// src/types/navigation.ts
 export type RootStackParamList = {
+  // Root level screens for navigation container
   App: undefined;
   Auth: undefined;
+  
+  // Auth related screens
   Login: undefined;
+  Signup: undefined;
+  
+  // App related screens
   Main: {
     screen?: string;
     params?: {

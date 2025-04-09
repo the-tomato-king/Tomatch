@@ -1,28 +1,35 @@
+// src/screens/auth/LoginScreen.tsx
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
 import { auth } from '../../services/firebase/firebaseConfig'; 
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types/navigation';
+
+type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
 const LoginScreen = () => {
+  const navigation = useNavigation<LoginScreenNavigationProp>();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-  const handleLogin = async () => {
-    if (email === "" || password === "") {
-      Alert.alert("Please fill out all fields");
-      return;
-    }
-    try {
-      const userCred = await signInWithEmailAndPassword(auth, email, password);
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
-    }
-  };
+    const handleLogin = async () => {
+        if (email === "" || password === "") {
+          Alert.alert("Please fill out all fields");
+          return;
+        }
+        try {
+          const userCred = await signInWithEmailAndPassword(auth, email, password);
+        } catch (error: any) {
+          Alert.alert("Error", error.message);
+        }
+    };
 
-//   const signupHandler = () => {
-//     router.replace("signup");
-//   };
+    const signupHandler = () => {
+        navigation.navigate('Signup');
+    };
 
     return (
         <View style={styles.container}>
@@ -41,7 +48,7 @@ const LoginScreen = () => {
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <Button title="Login" onPress={handleLogin} />
-            {/* <Button title="New User? Create An Account" onPress={signupHandler} /> */}
+            <Button title="New User? Create An Account" onPress={signupHandler} />
         </View>
     );
 };

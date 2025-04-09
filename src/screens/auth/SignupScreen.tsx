@@ -1,13 +1,20 @@
+// src/screens/auth/SignupScreen.tsx
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
 import { auth } from '../../services/firebase/firebaseConfig'; 
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types/navigation';
+
+type SignupScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signup'>;
 
 const SignupScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState("");
-
+    const navigation = useNavigation<SignupScreenNavigationProp>();
+    
     const handleSignup = async () => {
         if (email === "" || password === "" || confirmPassword === "") {
           Alert.alert("Please fill out all fields");
@@ -27,13 +34,12 @@ const SignupScreen = () => {
         } catch (error: any) {
           Alert.alert("Error", error.message);
         }
-      };
-
-    // const loginHandler = () => {
-    //     // go to login
-    //     router.replace("login");
-    //   };
-
+    };
+    
+    const loginHandler = () => {
+        navigation.navigate("Login");
+    };
+    
     return (
         <View style={styles.container}>
             <TextInput
@@ -50,14 +56,14 @@ const SignupScreen = () => {
                 style={styles.input}
             />
             <TextInput
-                placeholder="Comfirm Password"
+                placeholder="Confirm Password"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
                 style={styles.input}
             />
             <Button title="Sign Up" onPress={handleSignup} />
-            {/* <Button title="Already Registered? Login" onPress={loginHandler} /> */}
+            <Button title="Already Registered? Login" onPress={loginHandler} />
         </View>
     );
 };
