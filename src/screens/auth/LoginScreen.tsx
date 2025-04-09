@@ -1,6 +1,6 @@
 // src/screens/auth/LoginScreen.tsx
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
+import { View, TextInput, Button, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { auth } from '../../services/firebase/firebaseConfig'; 
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigation } from '@react-navigation/native';
@@ -33,6 +33,7 @@ const LoginScreen = () => {
 
     return (
         <View style={styles.container}>
+          <Text style={styles.title}>Welcome to Scalor!</Text>
             <TextInput
                 placeholder="Email"
                 value={email}
@@ -48,7 +49,10 @@ const LoginScreen = () => {
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <Button title="Login" onPress={handleLogin} />
-            <Button title="New User? Create An Account" onPress={signupHandler} />
+            <TouchableOpacity onPress={signupHandler} style={styles.smallButton}>
+              <Text style={styles.smallButtonText}>New User? Create An Account</Text>
+            </TouchableOpacity>
+
         </View>
     );
 };
@@ -59,16 +63,34 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         padding: 16,
     },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      marginBottom: 32,
+      color: '#333',
+  },
     input: {
-        height: 40,
-        borderColor: 'gray',
-        borderWidth: 1,
-        marginBottom: 12,
-        paddingHorizontal: 8,
+      height: 48,
+      borderColor: 'gray',
+      borderWidth: 1,
+      borderRadius: 12,
+      marginBottom: 12,
+      paddingHorizontal: 12,
     },
     error: {
         color: 'red',
     },
+    smallButton: {
+      position: 'absolute',
+      bottom: 30,
+      alignSelf: 'center',
+    },
+    smallButtonText: {
+      fontSize: 14,
+      color: '#007AFF',
+    },
+    
 });
 
 export default LoginScreen;

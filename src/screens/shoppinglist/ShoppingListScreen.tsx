@@ -83,10 +83,10 @@ const ShoppingListScreen = () => {
             <View style={styles.itemContent}>
               <Text style={styles.listName}>{item.name}</Text>
               <Text style={styles.shoppingTime}>
-                Store: {item.location?.name}
+                {item.location?.name}
               </Text>
               <Text style={styles.shoppingTime}>
-                Shopping Time:{" "}
+                {" "}
                 {new Date(item.shoppingTime).toLocaleDateString()}
               </Text>
             </View>

@@ -19,6 +19,7 @@ import {
   updateOneDocInDB,
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
+import { getAuth } from "firebase/auth";
 
 const EditProfileScreen = () => {
   const navigation = useNavigation();
@@ -30,21 +31,25 @@ const EditProfileScreen = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  // TODO: fixed user id
-  const userId = "user123";
+  const auth = getAuth();
+  const userId = auth.currentUser?.uid;
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const userData = await readOneDoc<User>(COLLECTIONS.USERS, userId);
-        console.log("userData", userData);
+        if (userId) {
+          const userData = await readOneDoc<User>(COLLECTIONS.USERS, userId);
+          console.log("userData", userData);
 
-        if (userData) {
-          setUser(userData);
-          setName(userData.name || "");
-          setEmail(userData.email || "");
-          setPhone(userData.phone_number || "");
+          if (userData) {
+            setUser(userData);
+            setName(userData.name || "");
+            setEmail(userData.email || "");
+            setPhone(userData.phone_number || "");
+          }
+        } else {
+          Alert.alert("Error", "User not authenticated");
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -55,7 +60,7 @@ const EditProfileScreen = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [userId]);
 
   const validateForm = (): boolean => {
     if (!name.trim()) {
@@ -94,7 +99,7 @@ const EditProfileScreen = () => {
 
       const success = await updateOneDocInDB(
         COLLECTIONS.USERS,
-        userId,
+        userId as string,
         updatedUserData
       );
 

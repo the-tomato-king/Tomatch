@@ -21,6 +21,7 @@ import { Product } from "../../types";
 import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
 import * as Notifications from "expo-notifications";
+import { getAuth } from "firebase/auth";
 
 export interface ShoppingItem {
   id: string;
@@ -50,6 +51,8 @@ const AddShoppingListScreen = () => {
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<StoreLocation | null>(null);
+  const auth = getAuth();
+  const userId = auth.currentUser?.uid;
 
   const handleStoreSelect = useCallback((storeData: StoreLocation) => {
     setSelectedLocation(storeData);
@@ -229,7 +232,7 @@ const AddShoppingListScreen = () => {
       name: listName,
       items: shoppingItems,
       shoppingTime: shoppingTime ? shoppingTime.toISOString() : null,
-      userId: null,
+      userId: userId,
       location: selectedLocation || null,
       notification: setNotification ? true : false,
     };

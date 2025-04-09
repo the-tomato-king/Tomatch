@@ -1,6 +1,6 @@
 // src/screens/auth/SignupScreen.tsx
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
+import { View, TextInput, Button, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { auth } from '../../services/firebase/firebaseConfig'; 
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useNavigation } from '@react-navigation/native';
@@ -63,7 +63,9 @@ const SignupScreen = () => {
                 style={styles.input}
             />
             <Button title="Sign Up" onPress={handleSignup} />
-            <Button title="Already Registered? Login" onPress={loginHandler} />
+            <TouchableOpacity onPress={loginHandler} style={styles.smallButton}>
+              <Text style={styles.smallButtonText}>Already Registered? Login</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -80,9 +82,19 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         marginBottom: 12,
         paddingHorizontal: 8,
+        borderRadius:12
     },
     error: {
         color: 'red',
+    },
+    smallButton: {
+      position: 'absolute',
+      bottom: 30,
+      alignSelf: 'center',
+    },
+    smallButtonText: {
+      fontSize: 14,
+      color: '#007AFF',
     },
 });
 
