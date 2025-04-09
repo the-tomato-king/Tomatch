@@ -18,8 +18,10 @@ import { db } from "../services/firebase/firebaseConfig";
 import MainPageHeader from "../components/MainPageHeader";
 import SearchBar from "../components/SearchBar";
 import { getAllProducts, getProductById } from "../services/productService";
+import { useAuth } from "../contexts/AuthContext";
 
 const HomeScreen = () => {
+  const { userId } = useAuth();
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,7 +30,6 @@ const HomeScreen = () => {
   }>({});
 
   useEffect(() => {
-    const userId = "user123"; // TODO: get user id from auth
     const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
     // monitor user product list change
@@ -58,7 +59,7 @@ const HomeScreen = () => {
     return () => {
       unsubscribeUserProducts();
     };
-  }, []);
+  }, [userId]);
 
   // Filter products with price records
   const productsWithStats = userProducts.filter((product) => {

@@ -26,7 +26,7 @@ import { globalStyles } from "../../theme/styles";
 import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
-
+import { useAuth } from "../../contexts/AuthContext";
 type PriceRecordInformationRouteProp = RouteProp<
   HomeStackParamList,
   "PriceRecordInformation"
@@ -44,9 +44,9 @@ const PriceRecordInformationScreen = () => {
   const [record, setRecord] = useState<PriceRecord>();
   const [product, setProduct] = useState<Product | null>(null);
   const [store, setStore] = useState<UserStore | null>(null);
+  const { userId } = useAuth();
 
   useEffect(() => {
-    const userId = "user123"; // TODO: get user id from auth
     const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
 
     // Create listener for the record
@@ -75,7 +75,6 @@ const PriceRecordInformationScreen = () => {
   useEffect(() => {
     if (!record?.user_product_id) return;
 
-    const userId = "user123"; // TODO: get user id from auth
     const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
     const unsubscribeProduct = onSnapshot(
@@ -95,7 +94,6 @@ const PriceRecordInformationScreen = () => {
   useEffect(() => {
     if (!record?.store_id) return;
 
-    const userId = "user123"; // TODO: get user id from auth
     const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
 
     const unsubscribeStore = onSnapshot(
@@ -158,8 +156,6 @@ const PriceRecordInformationScreen = () => {
             text: "Delete",
             style: "destructive",
             onPress: async () => {
-              const userId = "user123"; // TODO: get user id from auth
-
               try {
                 // 1. Get user product
                 const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;

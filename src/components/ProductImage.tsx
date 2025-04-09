@@ -1,11 +1,9 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 import React, { useState, useEffect } from "react";
 import { colors } from "../theme/colors";
-import {
-  getProductImage,
-  uploadProductImage,
-} from "../services/firebase/storageHelper";
+import { getProductImage } from "../services/firebase/storageHelper";
 import { ImageType } from "../types";
+import { useAuth } from "../contexts/AuthContext";
 
 interface ProductImageProps {
   imageType: ImageType;
@@ -20,7 +18,7 @@ const ProductImage = ({
 }: ProductImageProps) => {
   const [imageUrl, setImageUrl] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-
+  const { userId } = useAuth();
   useEffect(() => {
     // Reset state
     setImageUrl("");
@@ -46,10 +44,9 @@ const ProductImage = ({
       return;
     }
 
-    const defaultUserId = "user123"; // TODO: get from auth
     setLoading(true);
 
-    getProductImage(imageSource, imageType, defaultUserId)
+    getProductImage(imageSource, imageType, userId)
       .then((url) => {
         console.log("Successfully loaded image URL:", url);
         setImageUrl(url);
@@ -62,12 +59,12 @@ const ProductImage = ({
           error: errorMessage,
           imageType,
           imageSource,
-          defaultUserId,
+          userId,
         });
         // Don't set error state visibly to user, just log it
         setLoading(false);
       });
-  }, [imageSource, imageType]);
+  }, [imageSource, imageType, userId]);
 
   const styles = StyleSheet.create({
     container: {

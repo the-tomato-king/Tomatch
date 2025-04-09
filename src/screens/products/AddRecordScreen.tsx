@@ -40,11 +40,8 @@ import {
 } from "../../types";
 import ProductSearchInput from "../../components/ProductSearchInput";
 import {
-  collection,
-  getDocs,
   doc,
   getDoc,
-  setDoc,
   updateDoc as firebaseUpdateDoc,
 } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
@@ -54,6 +51,8 @@ import { uploadImage } from "../../services/firebase/storageHelper";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";
 import AILoadingScreen from "../../components/loading/AILoadingScreen";
 import { getProductById, getAllProducts } from "../../services/productService";
+import { useAuth } from "../../contexts/AuthContext";
+
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
@@ -65,6 +64,7 @@ type EditRecordScreenRouteProp = RouteProp<
 const AddRecordScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { userId } = useAuth();
 
   const isEditMode = route.name === "EditPriceRecord";
   const recordId = isEditMode ? route.params?.recordId : null;
@@ -97,10 +97,6 @@ const AddRecordScreen = () => {
       const fetchRecordData = async () => {
         try {
           setLoading(true);
-
-          // TODO: get user id from auth
-          const userId = "user123";
-
           const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
           const recordData = await readOneDoc<PriceRecord>(
             recordPath,
@@ -173,7 +169,7 @@ const AddRecordScreen = () => {
 
       fetchRecordData();
     }
-  }, [isEditMode, recordId]);
+  }, [isEditMode, recordId, userId]);
 
   // Add this useEffect to sync productName and selectedProduct
   useEffect(() => {
@@ -535,8 +531,6 @@ const AddRecordScreen = () => {
       const numericPrice = validateFormInputs();
       if (!numericPrice) return;
 
-      // TODO: Link to real user, now hardcoded to user123
-      const userId = "user123";
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
 
       // Upload image if exists

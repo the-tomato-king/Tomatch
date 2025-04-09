@@ -43,10 +43,12 @@ import {
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { uploadProductImage } from "../../services/firebase/storageHelper";
+import { useAuth } from "../../contexts/AuthContext";
 
 const AddProductScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const { userId } = useAuth();
 
   const isEditMode = route.name === "EditProduct";
   const productId = isEditMode ? route.params?.productId : null;
@@ -71,7 +73,6 @@ const AddProductScreen = () => {
   const fetchProductData = async () => {
     try {
       setLoading(true);
-      const userId = "user123"; // TODO: get user id from auth
       const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
       const productData = await readOneDoc<UserProduct>(
@@ -134,7 +135,6 @@ const AddProductScreen = () => {
         return;
       }
 
-      const userId = "user123"; // TODO: get from auth
       const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
       let finalImageSource = imageSource;
@@ -209,7 +209,6 @@ const AddProductScreen = () => {
           style: "destructive",
           onPress: async () => {
             try {
-              const userId = "user123"; // TODO: get from auth
               const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
               // 1. Delete all related price records
@@ -326,7 +325,7 @@ const AddProductScreen = () => {
       <View style={styles.cardContainer}>
         {/* Picture */}
         <EditProductImage
-          userId="user123" // TODO: get from auth
+          userId={userId}
           imageType={imageType as ImageType}
           imageSource={imageSource}
           localImageUri={localImageUri}

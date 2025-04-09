@@ -45,8 +45,8 @@ const SettingPage = () => {
   const [isWeightUnitModalVisible, setIsWeightUnitModalVisible] =
     useState(false);
   const { user, logout } = useAuth();
+  const { userId } = useAuth();
 
-  const userId = "user123"; // TODO: get from auth
   const {
     loading: userPreferenceLoading,
     error: userPreferenceError,

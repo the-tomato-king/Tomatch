@@ -12,7 +12,7 @@ import { useLocation } from "../contexts/LocationContext";
 import { calculateDistance, formatDistance } from "../utils/distance";
 import { StoreBrand } from "../types";
 import { readOneDoc } from "../services/firebase/firebaseHelper";
-
+import { useAuth } from "../contexts/AuthContext";
 interface StoreWithBrand extends UserStore {
   brand?: StoreBrand | null;
 }
@@ -24,6 +24,7 @@ interface MyStoresListProps {
 const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
+  const { userId } = useAuth();
   const { userLocation } = useLocation();
   const [storesWithBrands, setStoresWithBrands] = useState<StoreWithBrand[]>(
     []
@@ -58,7 +59,6 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
 
   const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
     try {
-      const userId = "user123"; // TODO: get current user id
       const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${id}`;
 
       await updateDoc(doc(db, storeDocPath), {

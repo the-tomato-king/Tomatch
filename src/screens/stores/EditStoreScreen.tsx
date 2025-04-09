@@ -28,6 +28,7 @@ import MapComponent from "../../components/Map";
 import { NearbyStore } from "../../types/location";
 import LocationSelector from "../../components/LocationSelector";
 import { colors } from "../../theme/colors";
+import { useAuth } from "../../contexts/AuthContext";
 
 type AddStoreScreenNavigationProp =
   NativeStackNavigationProp<StoreStackParamList>;
@@ -38,7 +39,7 @@ const EditStoreScreen = () => {
   const navigation = useNavigation<AddStoreScreenNavigationProp>();
   const route = useRoute<EditStoreScreenRouteProp>();
   const { storeId } = route.params;
-
+  const { userId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [customStoreName, setCustomStoreName] = useState("");
   const [address, setAddress] = useState("");
@@ -60,7 +61,6 @@ const EditStoreScreen = () => {
   useEffect(() => {
     const fetchStoreDetails = async () => {
       try {
-        const userId = "user123"; // TODO: get from auth
         const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
 
         const storeData = await readOneDoc<UserStore>(storePath, storeId);
@@ -114,7 +114,6 @@ const EditStoreScreen = () => {
     }
 
     try {
-      const userId = "user123"; // TODO: get from auth
       const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
 
       const updateData = {
