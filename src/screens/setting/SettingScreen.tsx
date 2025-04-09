@@ -101,6 +101,10 @@ const SettingPage = () => {
     navigation.navigate("EditProfile");
   };
 
+  const navigateToChangePassword = () => {
+    navigation.navigate("EditProfile");
+  };
+
   const handleUpdateLocation = async (newLocation: UserLocation) => {
     try {
       await updateOneDocInDB(COLLECTIONS.USERS, userId, {
@@ -212,10 +216,13 @@ const SettingPage = () => {
             <Text style={styles.chevron}>{">"}</Text>
           </TouchableOpacity>
 
-          <View style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={navigateToChangePassword}
+          >
             <Text style={styles.settingLabel}>Change Password</Text>
             <Text style={styles.chevron}>{">"}</Text>
-          </View>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.settingItem}
