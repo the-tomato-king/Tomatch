@@ -1,11 +1,37 @@
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  Button,
+  Text,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
+import { auth } from "../../services/firebase/firebaseConfig";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  signOut,
+} from "firebase/auth";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../types/navigation";
+import { createUserDocument } from "../../services/userService";
+
+type SignupScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "Signup"
+>;
+
 const SignupScreen = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const navigation = useNavigation<SignupScreenNavigationProp>();
 
   const handleSignup = async () => {
-    if (email === '' || password === '' || confirmPassword === '') {
+    if (email === "" || password === "" || confirmPassword === "") {
       Alert.alert("Please fill out all fields");
       return;
     }
@@ -117,3 +143,5 @@ const styles = StyleSheet.create({
     color: "#007AFF",
   },
 });
+
+export default SignupScreen;
