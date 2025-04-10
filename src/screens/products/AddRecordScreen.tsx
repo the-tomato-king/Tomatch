@@ -534,10 +534,13 @@ const AddRecordScreen = () => {
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
 
       // Upload image if exists
-      const photoUrl = await uploadProductImage(userId);
+      const photoUrl = await uploadProductImage(userId as string);
 
       // Get or create user product
-      let userProduct = await getOrCreateUserProduct(userId, numericPrice);
+      let userProduct = await getOrCreateUserProduct(
+        userId as string,
+        numericPrice
+      );
       if (!userProduct) {
         alert("Failed to process product information");
         return;
@@ -569,7 +572,7 @@ const AddRecordScreen = () => {
 
       // Save price record
       const { success, recordId } = await savePriceRecord(
-        userId,
+        userId as string,
         userProductId as string,
         numericPrice,
         photoUrl
@@ -579,7 +582,7 @@ const AddRecordScreen = () => {
         // Update product stats (skip in edit mode)
         if (!isEditMode) {
           await updateProductStats(
-            userId,
+            userId as string,
             userProductId as string,
             numericPrice
           );

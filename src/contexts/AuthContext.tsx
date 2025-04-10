@@ -13,35 +13,48 @@ import {
 } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
 
-export const AuthContext = createContext<{
-  user: User | null;
-  userId: string | undefined;
+// 定义两种不同状态的类型
+export type UnauthenticatedState = {
+  user: null;
+  userId: null;
   isLoading: boolean;
-  isEmailVerified: boolean;
+  isEmailVerified: false;
+};
+
+export type AuthenticatedState = {
+  user: User; // 不是 User | null，是确定的 User
+  userId: string; // 不是 string | null，是确定的 string
+  isLoading: boolean;
+  isEmailVerified: true;
   logout: () => Promise<void>;
-}>({
+};
+
+type AuthContextType = UnauthenticatedState | AuthenticatedState;
+
+export const AuthContext = createContext<AuthContextType>({
   user: null,
-  userId: undefined,
+  userId: null,
   isLoading: true,
   isEmailVerified: false,
-  logout: async () => {},
 });
+
+// type guard function
+function isAuthenticated(state: AuthContextType): state is AuthenticatedState {
+  return state.user !== null;
+}
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
-  // 1. check if context exists
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
 
-  // 2. if still loading, don't throw authentication error
-  if (context.isLoading) {
-    return context;
+  // when used in the App screen, we know that the user is definitely logged in
+  if (isAuthenticated(context)) {
+    return context; // TypeScript knows that here the return type is AuthenticatedState
   }
 
-  // 3. no longer throw authentication error, return current state
-  return context;
+  return context; // TypeScript knows that here the return type is UnauthenticatedState
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -50,8 +63,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [previousEmail, setPreviousEmail] = useState<string | null>(null);
-
-  const userId = user?.uid;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -80,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       } else {
         setUser(null);
       }
-      setIsLoading(false);
+      setIsLoading(false); // important: set the loading state to false
     });
 
     return () => unsubscribe();
@@ -96,17 +107,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
+  // construct the context value based on the current state
+  const value: AuthContextType = user
+    ? {
+        // authenticated state
         user,
-        userId,
+        userId: user.uid,
         isLoading,
-        isEmailVerified: user?.emailVerified || false,
+        isEmailVerified: true,
         logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+      }
+    : {
+        // unauthenticated state
+        user: null,
+        userId: null,
+        isLoading,
+        isEmailVerified: false,
+      };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -13,6 +13,7 @@ import BackButton from "../components/BackButton";
 import LoginScreen from "../screens/auth/LoginScreen";
 import { useAuth } from "../contexts/AuthContext";
 import SignupScreen from "../screens/auth/SignupScreen";
+import LoadingLogo from "../components/loading/LoadingLogo";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator();
@@ -21,13 +22,13 @@ const AppStack = createNativeStackNavigator();
 const AuthNavigator = () => {
   return (
     <AuthStack.Navigator>
-      <AuthStack.Screen 
-        name="Login" 
+      <AuthStack.Screen
+        name="Login"
         component={LoginScreen}
         options={{ headerShown: false }}
       />
-      <AuthStack.Screen 
-        name="Signup" 
+      <AuthStack.Screen
+        name="Signup"
         component={SignupScreen}
         options={{ headerShown: false }}
       />
@@ -109,10 +110,9 @@ const AppNavigator = () => {
 
 const RootNavigator = () => {
   const { user, isLoading } = useAuth();
-  
-  // Show loading screen while checking authentication status
+
   if (isLoading) {
-    return null; // Or a custom loading component
+    return <LoadingLogo />;
   }
 
   return (

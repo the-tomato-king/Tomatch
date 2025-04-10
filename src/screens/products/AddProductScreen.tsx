@@ -140,7 +140,10 @@ const AddProductScreen = () => {
       let finalImageSource = imageSource;
       if (localImageUri && imageType === "user_image") {
         try {
-          finalImageSource = await uploadProductImage(localImageUri, userId);
+          finalImageSource = await uploadProductImage(
+            localImageUri,
+            userId as string
+          );
         } catch (error) {
           console.error("Error uploading image:", error);
           Alert.alert(
@@ -325,7 +328,7 @@ const AddProductScreen = () => {
       <View style={styles.cardContainer}>
         {/* Picture */}
         <EditProductImage
-          userId={userId}
+          userId={userId as string}
           imageType={imageType as ImageType}
           imageSource={imageSource}
           localImageUri={localImageUri}

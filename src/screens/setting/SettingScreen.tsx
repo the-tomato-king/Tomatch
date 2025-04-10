@@ -14,7 +14,10 @@ import { User, UserLocation } from "../../types";
 import LoadingLogo from "../../components/loading/LoadingLogo";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { SettingStackParamList } from "../../types/navigation";
+import {
+  SettingStackParamList,
+  RootStackParamList,
+} from "../../types/navigation";
 import { COLLECTIONS } from "../../constants/firebase";
 import { doc, onSnapshot, deleteDoc } from "firebase/firestore";
 import { auth, db } from "../../services/firebase/firebaseConfig";
@@ -35,6 +38,9 @@ import {
   getDocs,
   writeBatch,
 } from "firebase/firestore";
+import { AuthenticatedState } from "../../contexts/AuthContext";
+import { deleteUser, User as FirebaseUser } from "firebase/auth";
+import { AppUser } from "../../types";
 
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
@@ -46,14 +52,20 @@ const getCurrencySymbol = (code: string) => {
 
 const SettingPage = () => {
   const navigation = useNavigation<SettingScreenNavigationProp>();
+  const rootNavigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
   const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
   const [isWeightUnitModalVisible, setIsWeightUnitModalVisible] =
     useState(false);
-  const { user, logout } = useAuth();
-  const { userId } = useAuth();
+  const {
+    userId,
+    user: firebaseUser,
+    logout,
+  } = useAuth() as AuthenticatedState;
+  const [user, setUser] = useState<AppUser | null>(null);
 
   const {
     loading: userPreferenceLoading,
@@ -74,8 +86,8 @@ const SettingPage = () => {
       userDocRef,
       (docSnapshot) => {
         if (docSnapshot.exists()) {
-          const userData = docSnapshot.data() as User;
-          // handle user data...
+          const userData = docSnapshot.data() as AppUser;
+          setUser(userData);
         } else {
           console.log("Creating initial user document...");
           // if user document does not exist, try to create
@@ -236,7 +248,7 @@ const SettingPage = () => {
               await batch.commit();
 
               // 3. delete Auth account
-              await user.delete();
+              await deleteUser(firebaseUser);
 
               Alert.alert(
                 "Account Deleted",
@@ -244,7 +256,7 @@ const SettingPage = () => {
                 [
                   {
                     text: "OK",
-                    onPress: () => navigation.navigate("Auth"),
+                    onPress: () => rootNavigation.navigate("Auth"),
                   },
                 ]
               );

@@ -1,4 +1,16 @@
 // User
+
+// for compatibility with firebase auth user, define our own User type
+export interface AppUser {
+  uid: string;
+  email: string;
+  name?: string;
+  preferred_unit?: string;
+  preferred_currency?: string;
+  location?: UserLocation;
+}
+
+
 export interface BaseUser {
   name: string;
   email: string;
@@ -110,7 +122,6 @@ export interface Product {
   barcode: string;
 }
 
-
 export interface BaseStoreBrand {
   name: string;
   logo: string;
@@ -126,3 +137,5 @@ export interface Currency {
   symbol: string;
   name: string;
 }
+
+

@@ -66,7 +66,7 @@ const StoreScreen = () => {
       const userStoresRef = collection(
         db,
         COLLECTIONS.USERS,
-        userId,
+        userId as string,
         COLLECTIONS.SUB_COLLECTIONS.USER_STORES
       );
 

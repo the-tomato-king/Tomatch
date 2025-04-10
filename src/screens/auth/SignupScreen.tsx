@@ -54,7 +54,7 @@ const SignupScreen = () => {
       // 3. Create user document in Firestore
       await createUserDocument(userCred.user.uid, email);
 
-      // 4. 登出用户，等待邮箱验证
+      // 4. Sign out user, waiting for email verification
       await signOut(auth);
 
       // 5. Show success message with verification instructions
