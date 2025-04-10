@@ -35,7 +35,7 @@ const onboardingData: OnboardingItem[] = [
       id: '2',
       title: 'Quick Price Tracking 📷',
       description: 'Snap photos of price tags to automatically record prices using AI technology',
-      image: 'https://via.placeholder.com/300',
+      image: require('../../../assets/WechatIMG134.jpg'),
     },
     {
       id: '3',
@@ -45,12 +45,6 @@ const onboardingData: OnboardingItem[] = [
     },
     {
       id: '4',
-      title: 'Price History 📝',
-      description: 'View trends and price changes over time with simple charts',
-      image: 'https://via.placeholder.com/300',
-    },
-    {
-      id: '5',
       title: 'Shopping Lists 🛒',
       description: 'Create and manage your grocery lists in one place',
       image: 'https://via.placeholder.com/300',
@@ -89,7 +83,6 @@ const OnboardingScreen = () => {
     return (
       <View style={[styles.slide, { width }]}>
         <View style={styles.imageContainer}>
-          {/* Use local images instead of placeholder */}
           <Image
             source={{ uri: item.image }}
             style={styles.image}

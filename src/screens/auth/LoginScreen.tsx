@@ -48,7 +48,9 @@ const LoginScreen = () => {
                 style={styles.input}
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
-            <Button title="Login" onPress={handleLogin} />
+            <View style={{ marginTop: 20 }}>
+              <Button title="Login" onPress={handleLogin} />
+            </View>
             <TouchableOpacity onPress={signupHandler} style={styles.smallButton}>
               <Text style={styles.smallButtonText}>New User? Create An Account</Text>
             </TouchableOpacity>

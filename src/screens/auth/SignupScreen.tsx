@@ -42,6 +42,7 @@ const SignupScreen = () => {
     
     return (
         <View style={styles.container}>
+          <Text style={styles.title}>Create a New Account</Text>
             <TextInput
                 placeholder="Email"
                 value={email}
@@ -62,7 +63,9 @@ const SignupScreen = () => {
                 secureTextEntry
                 style={styles.input}
             />
-            <Button title="Sign Up" onPress={handleSignup} />
+            <View style={{ marginTop: 20 }}>
+              <Button title="Sign Up" onPress={handleSignup} />
+            </View>
             <TouchableOpacity onPress={loginHandler} style={styles.smallButton}>
               <Text style={styles.smallButtonText}>Already Registered? Login</Text>
             </TouchableOpacity>
@@ -76,6 +79,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         padding: 16,
     },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      marginBottom: 32,
+      color: '#333',
+  },
     input: {
         height: 40,
         borderColor: 'gray',
