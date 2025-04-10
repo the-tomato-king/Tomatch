@@ -16,7 +16,10 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
 import MainPageHeader from "../components/MainPageHeader";
 import SearchBar from "../components/search/SearchBar";
-import { getAllProducts, getProductById } from "../services/productService";
+import {
+  getAllProducts,
+  getProductById,
+} from "../services/productLibraryService";
 import { useAuth } from "../contexts/AuthContext";
 
 const HomeScreen = () => {

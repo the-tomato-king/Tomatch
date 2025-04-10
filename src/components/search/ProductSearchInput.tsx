@@ -16,7 +16,10 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
-import { searchProducts, getAllProducts } from "../../services/productService";
+import {
+  searchProducts,
+  getAllProducts,
+} from "../../services/productLibraryService";
 
 type ProductSearchNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;

@@ -10,7 +10,6 @@ export interface AppUser {
   location?: UserLocation;
 }
 
-
 export interface BaseUser {
   name: string;
   email: string;
@@ -55,16 +54,7 @@ export interface UserStore extends BaseUserStore {
 }
 
 // User Products (sub-collection of User)
-export interface BaseUserProduct {
-  product_id?: string; // if it's a preset product, it references the product in the product library
-  name: string; // product name (copied from the product library or user-defined)
-  category: string; // product category
-  image_type: ImageType; // image type
-  image_source: string; // image source
-  plu_code: string; // PLU code
-  barcode: string; // barcode
-  created_at: Date;
-  updated_at: Date;
+interface PriceStatistics {
   total_price: number;
   average_price: number;
   lowest_price: number;
@@ -74,6 +64,27 @@ export interface BaseUserProduct {
     store_name: string;
   };
   total_price_records: number;
+}
+
+export interface BaseUserProduct {
+  product_id?: string;
+  name: string;
+  category: string;
+  image_type: ImageType;
+  image_source: string;
+  plu_code: string;
+  barcode: string;
+
+  measurement_types: MeasurementType[]; // ["measurable"], ["count"], or ["measurable", "count"]
+
+  // store statistics by pricing method
+  price_statistics: {
+    measurable?: PriceStatistics;
+    count?: PriceStatistics;
+  };
+
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface UserProduct extends BaseUserProduct {
@@ -94,13 +105,20 @@ export interface ShoppingList extends BaseShoppingList {
 }
 
 // User Price Record (sub-collection of User)
+import type { Unit } from "../constants/units";
+
 export interface BasePriceRecord {
-  user_product_id: string; // references user_products
-  store_id: string; // references stores
-  price: number;
+  user_product_id: string;
+  store_id: string;
+
+  original_price: string;
+  original_quantity: string;
+  original_unit: Unit; // unit type from UNITS
+
+  // standard unit price (for comparison and statistics)
+  standard_unit_price: string; // price per standard unit (g or each)
+
   currency: string;
-  unit_type: string;
-  unit_price: number;
   photo_url: string;
   recorded_at: Date;
 }
@@ -109,7 +127,10 @@ export interface PriceRecord extends BasePriceRecord {
   id: string;
   store?: UserStore;
 }
+
 export type ImageType = "emoji" | "preset_image" | "user_image";
+
+export type MeasurementType = "measurable" | "count";
 
 // Product
 export interface Product {
@@ -137,5 +158,3 @@ export interface Currency {
   symbol: string;
   name: string;
 }
-
-

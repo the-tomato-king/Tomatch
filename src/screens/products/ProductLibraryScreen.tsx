@@ -27,7 +27,7 @@ import { COLLECTIONS } from "../../constants/firebase";
 import {
   getAllProducts,
   filterProductsByCategory,
-} from "../../services/productService";
+} from "../../services/productLibraryService";
 import { useAuth } from "../../contexts/AuthContext";
 
 type ProductLibraryRouteProp = NativeStackScreenProps<

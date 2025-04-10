@@ -35,6 +35,58 @@ type PriceRecordInformationRouteProp = RouteProp<
 type RecordDetailScreenNavigationProp =
   NativeStackNavigationProp<HomeStackParamList>;
 
+const TEST_PRODUCT: UserProduct = {
+  id: "test_id",
+  name: "Test Apple",
+  category: "Fruit",
+  image_type: "emoji",
+  image_source: "🍎",
+  plu_code: "",
+  barcode: "",
+  measurement_types: ["measurable", "count"],
+  price_statistics: {
+    measurable: {
+      total_price: 100,
+      average_price: 2.99,
+      lowest_price: 1.99,
+      highest_price: 3.99,
+      lowest_price_store: {
+        store_id: "test_store",
+        store_name: "Test Store",
+      },
+      total_price_records: 10,
+    },
+    count: {
+      total_price: 50,
+      average_price: 0.99,
+      lowest_price: 0.79,
+      highest_price: 1.29,
+      lowest_price_store: {
+        store_id: "test_store",
+        store_name: "Test Store",
+      },
+      total_price_records: 5,
+    },
+  },
+  created_at: new Date(),
+  updated_at: new Date(),
+};
+
+const TEST_PRICE_RECORDS: PriceRecord[] = [
+  {
+    id: "test_record_1",
+    user_product_id: "test_id",
+    store_id: "test_store",
+    original_price: "5.99",
+    original_quantity: "2",
+    original_unit: "lb",
+    standard_unit_price: "2.99",
+    currency: "$",
+    photo_url: "",
+    recorded_at: new Date(),
+  },
+];
+
 const PriceRecordInformationScreen = () => {
   const navigation = useNavigation<RecordDetailScreenNavigationProp>();
   const route = useRoute<PriceRecordInformationRouteProp>();
@@ -45,6 +97,11 @@ const PriceRecordInformationScreen = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [store, setStore] = useState<UserStore | null>(null);
   const { userId } = useAuth();
+
+  // 临时使用测试数据
+  const [userProduct, setUserProduct] = useState<UserProduct>(TEST_PRODUCT);
+  const [priceRecords, setPriceRecords] =
+    useState<PriceRecord[]>(TEST_PRICE_RECORDS);
 
   useEffect(() => {
     const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
@@ -169,8 +226,12 @@ const PriceRecordInformationScreen = () => {
                   return;
                 }
 
-                const newTotalRecords = userProduct.total_price_records - 1;
-                const newTotalPrice = userProduct.total_price - record.price;
+                const newTotalRecords =
+                  userProduct.price_statistics.measurable
+                    ?.total_price_records! - 1;
+                const newTotalPrice =
+                  userProduct.price_statistics.measurable?.total_price! -
+                  parseFloat(record.original_price);
 
                 // 2. If this is the last record
                 if (newTotalRecords === 0) {
@@ -191,7 +252,8 @@ const PriceRecordInformationScreen = () => {
 
                   let lowestPrice = Infinity;
                   let highestPrice = -Infinity;
-                  let lowestPriceStore = userProduct.lowest_price_store;
+                  let lowestPriceStore =
+                    userProduct.price_statistics.lowest_price_store;
 
                   recordsSnapshot.docs.forEach((doc) => {
                     const recordData = doc.data();
@@ -288,14 +350,14 @@ const PriceRecordInformationScreen = () => {
           <View style={styles.productDetails}>
             <View style={styles.priceValueContainer}>
               <Text style={styles.priceValue}>
-                ${record.price.toFixed(2)}/{record.unit_type}
+                ${record.original_price}/{record.original_unit}
               </Text>
             </View>
           </View>
           {/* Original Price and Record Date */}
           <View style={styles.additionalInfo}>
             <Text style={styles.originalPrice}>
-              Original: ${record.unit_price.toFixed(2)}/{record.unit_type}
+              Original: ${record.original_price}/{record.original_unit}
             </Text>
             <Text style={styles.recordDate}>
               Record on: {formatDateTime(record.recorded_at)}

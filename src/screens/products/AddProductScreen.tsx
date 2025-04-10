@@ -42,6 +42,11 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { uploadProductImage } from "../../services/firebase/storageHelper";
 import { useAuth } from "../../contexts/AuthContext";
+import {
+  createUserProduct,
+  updateUserProduct,
+  deleteUserProduct,
+} from "../../services/userProductService";
 
 const AddProductScreen = () => {
   const route = useRoute<any>();
@@ -133,56 +138,31 @@ const AddProductScreen = () => {
         return;
       }
 
-      const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-
-      let finalImageSource = imageSource;
-      if (localImageUri && imageType === "user_image") {
-        try {
-          finalImageSource = await uploadProductImage(
-            localImageUri,
-            userId as string
-          );
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          Alert.alert(
-            "Warning",
-            "Failed to upload image, but product will be saved"
-          );
-        }
-      }
-
-      const userProductData: BaseUserProduct = {
+      const productData = {
         name,
         category,
         image_type: imageType as ImageType,
         plu_code: pluCode,
-        image_source: finalImageSource,
+        image_source: imageSource,
         barcode: "",
-        total_price: 0,
-        average_price: 0,
-        lowest_price: 0,
-        highest_price: 0,
-        lowest_price_store: {
-          store_id: "",
-          store_name: "",
-        },
-        total_price_records: 0,
-        created_at: new Date(),
-        updated_at: new Date(),
       };
 
       if (isEditMode) {
-        // Update existing user product
-        await updateOneDocInDB(userProductPath, productId, userProductData);
+        await updateUserProduct({
+          userId: userId!,
+          productId: productId!,
+          productData,
+          localImageUri,
+        });
         Alert.alert("Success", "Custom product updated successfully!", [
           { text: "OK", onPress: handleNavigation },
         ]);
       } else {
-        // Create new user customized product
-        const newProductId = await createDoc(userProductPath, userProductData);
-        if (!newProductId) {
-          throw new Error("Failed to create user product");
-        }
+        await createUserProduct({
+          userId: userId!,
+          productData,
+          localImageUri,
+        });
         Alert.alert("Success", "User product created successfully!", [
           { text: "OK", onPress: handleNavigation },
         ]);
@@ -210,25 +190,7 @@ const AddProductScreen = () => {
           style: "destructive",
           onPress: async () => {
             try {
-              const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-
-              // 1. Delete all related price records
-              const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-              const recordsQuery = query(
-                collection(db, recordsPath),
-                where("user_product_id", "==", productId)
-              );
-              const recordsSnapshot = await getDocs(recordsQuery);
-
-              // Delete each record
-              const recordDeletePromises = recordsSnapshot.docs.map((doc) =>
-                deleteOneDocFromDB(recordsPath, doc.id)
-              );
-              await Promise.all(recordDeletePromises);
-
-              // 2. Delete the user product
-              await deleteOneDocFromDB(userProductPath, productId);
-
+              await deleteUserProduct(userId!, productId);
               Alert.alert(
                 "Success",
                 "User product and related records deleted successfully",

@@ -36,9 +36,11 @@ import LoadingLogo from "../../components/loading/LoadingLogo";
 import ProductImage from "../../components/ProductImage";
 import { colors } from "../../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
-import { getProductById } from "../../services/productService";
+import { getProductById } from "../../services/productLibraryService";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts/AuthContext";
+import { formatRecordDateTime } from "../../utils/dateUtils";
+import { listenToUserProduct } from "../../services/userProductService";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
 type ProductDetailScreenNavigationProp =
@@ -56,50 +58,18 @@ const ProductDetailScreen = () => {
   const [productExists, setProductExists] = useState(true);
 
   useEffect(() => {
-    let productUnsubscribe: (() => void) | undefined;
-
-    const fetchProductData = async () => {
-      try {
-        setLoading(true);
-        const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-
-        productUnsubscribe = onSnapshot(
-          doc(db, userProductsPath, userProductId),
-          (doc) => {
-            if (doc.exists()) {
-              const data = doc.data();
-              setUserProduct({
-                id: doc.id,
-                ...data,
-              } as UserProduct);
-              setProductExists(true);
-            } else {
-              setProductExists(false);
-              setUserProduct(null);
-            }
-            setLoading(false);
-          },
-          (error) => {
-            console.error("Error listening to user product:", error);
-            setProductExists(false);
-            setLoading(false);
-          }
-        );
-      } catch (error) {
-        console.error("Error setting up listeners:", error);
-        setProductExists(false);
+    const unsubscribe = listenToUserProduct(
+      userId!,
+      userProductId,
+      ({ userProduct, productExists, error }) => {
+        setUserProduct(userProduct);
+        setProductExists(productExists);
         setLoading(false);
       }
-    };
+    );
 
-    fetchProductData();
-
-    return () => {
-      if (productUnsubscribe) {
-        productUnsubscribe();
-      }
-    };
-  }, [userId, productId, userProductId]);
+    return () => unsubscribe();
+  }, [userId, userProductId]);
 
   useEffect(() => {
     const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
@@ -163,39 +133,6 @@ const ProductDetailScreen = () => {
     return () => unsubscribe();
   }, [userId, userProductId]);
 
-  // Helper function to format date
-  const formatDateTime = (dateValue: any) => {
-    let date;
-
-    if (dateValue && typeof dateValue.toDate === "function") {
-      date = dateValue.toDate();
-    } else if (dateValue instanceof Date) {
-      date = dateValue;
-    } else if (typeof dateValue === "string") {
-      date = new Date(dateValue);
-    } else {
-      // Fallback for unexpected formats
-      console.warn("Unexpected date format:", dateValue);
-      return "Invalid date";
-    }
-
-    // Format date: May 10, 2025
-    const formattedDate = date.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-
-    // Format time: 10:00
-    const formattedTime = date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-
-    return `${formattedDate} at ${formattedTime}`;
-  };
-
   if (loading) {
     return <LoadingLogo />;
   }
@@ -249,9 +186,18 @@ const ProductDetailScreen = () => {
             </View>
             <View style={styles.priceContainer}>
               <Text style={styles.priceValue}>
-                ${userProduct.average_price.toFixed(2)}
+                $
+                {userProduct?.measurement_types?.includes("count")
+                  ? userProduct?.price_statistics?.count?.average_price || 0
+                  : userProduct?.price_statistics?.measurable?.average_price ||
+                    0}
               </Text>
-              <Text style={styles.priceUnit}>/lb</Text>
+              <Text style={styles.priceUnit}>
+                /
+                {userProduct?.measurement_types?.includes("count")
+                  ? "ea"
+                  : "lb"}
+              </Text>
               <Text style={styles.priceLabel}>Average</Text>
             </View>
           </View>
@@ -268,10 +214,10 @@ const ProductDetailScreen = () => {
             </View>
             <View style={styles.priceRangeLabels}>
               <Text style={[styles.minMaxPrice, { color: "#4CAF50" }]}>
-                ${userProduct.lowest_price.toFixed(2)}
+                ${userProduct?.price_statistics?.measurable?.lowest_price || 0}
               </Text>
               <Text style={[styles.minMaxPrice, { color: "#F44336" }]}>
-                ${userProduct.highest_price.toFixed(2)}
+                ${userProduct?.price_statistics?.measurable?.highest_price || 0}
               </Text>
             </View>
           </View>
@@ -302,12 +248,13 @@ const ProductDetailScreen = () => {
                       {record.store?.name || "Unknown Store"}
                     </Text>
                     <Text style={styles.recordDate}>
-                      {formatDateTime(record.recorded_at)}
+                      {formatRecordDateTime(record.recorded_at)}
                     </Text>
                   </View>
                 </View>
                 <Text style={styles.recordPrice}>
-                  ${record.price.toFixed(2)}/{record.unit_type}
+                  ${parseFloat(record.original_price).toFixed(2)}/$
+                  {record.original_unit}
                 </Text>
               </TouchableOpacity>
             ))}

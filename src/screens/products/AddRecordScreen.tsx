@@ -54,8 +54,12 @@ import LoadingLogo from "../../components/loading/LoadingLogo";
 import { uploadImage } from "../../services/firebase/storageHelper";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";
 import AILoadingScreen from "../../components/loading/AILoadingScreen";
-import { getProductById, getAllProducts } from "../../services/productService";
+import {
+  getProductById,
+  getAllProducts,
+} from "../../services/productLibraryService";
 import { useAuth } from "../../contexts/AuthContext";
+import { PriceRecordService } from "../../services/priceRecordService";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -101,21 +105,22 @@ const AddRecordScreen = () => {
 
   const [isAILoading, setIsAILoading] = useState(false);
 
+  const priceRecordService = new PriceRecordService();
+
   // fetch record data if in edit mode
   useEffect(() => {
-    if (isEditMode && recordId) {
-      const fetchRecordData = async () => {
+    if (isEditMode && recordId && userId) {
+      const loadRecordData = async () => {
         try {
           setLoading(true);
-          const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-          const recordData = await readOneDoc<PriceRecord>(
-            recordPath,
+          const recordData = await priceRecordService.getRecord(
+            userId,
             recordId
           );
 
           if (recordData) {
-            setPrice(recordData.price.toString());
-            setUnitType(recordData.unit_type);
+            setPrice(recordData.original_price);
+            setUnitType(recordData.original_unit);
             if (recordData.photo_url) {
               setImage(recordData.photo_url);
             }
@@ -153,14 +158,14 @@ const AddRecordScreen = () => {
             }
           }
         } catch (error) {
-          console.error("Error fetching record data:", error);
+          console.error("Error loading record:", error);
           Alert.alert("Error", "Failed to load record data");
         } finally {
           setLoading(false);
         }
       };
 
-      fetchRecordData();
+      loadRecordData();
     }
   }, [isEditMode, recordId, userId]);
 
