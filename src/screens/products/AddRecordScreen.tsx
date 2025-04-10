@@ -51,7 +51,6 @@ import {
 import { db } from "../../services/firebase/firebaseConfig";
 import StoreSearchInput from "../../components/search/StoreSearchInput";
 import LoadingLogo from "../../components/loading/LoadingLogo";
-import { uploadImage } from "../../services/firebase/storageHelper";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";
 import AILoadingScreen from "../../components/loading/AILoadingScreen";
 import {
@@ -60,6 +59,7 @@ import {
 } from "../../services/productLibraryService";
 import { useAuth } from "../../contexts/AuthContext";
 import { PriceRecordService } from "../../services/priceRecordService";
+import { mediaService } from "../../services/mediaService";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -259,7 +259,6 @@ const AddRecordScreen = () => {
   const takePhoto = async () => {
     try {
       const permissionResult = await requestCameraPermissionsAsync();
-
       if (permissionResult.granted === false) {
         alert("Need camera permission to take photo");
         return;
@@ -272,11 +271,18 @@ const AddRecordScreen = () => {
       });
 
       if (!result.canceled && result.assets[0]) {
-        setImage(result.assets[0].uri);
-        await analyzeImageAndFillForm(
-          result.assets[0].uri,
-          result.assets[0].base64 || ""
+        const uploadResult = await mediaService.uploadProductImage(
+          userId!,
+          result.assets[0].uri
         );
+        setImage(uploadResult.url);
+
+        if (result.assets[0].base64) {
+          await analyzeImageAndFillForm(
+            result.assets[0].uri,
+            result.assets[0].base64
+          );
+        }
       }
     } catch (error) {
       console.error("Error taking photo:", error);
@@ -364,7 +370,8 @@ const AddRecordScreen = () => {
       const imagePath = `price_records/${userId}/${timestamp}.jpg`;
 
       // upload image and get URL
-      photoUrl = await uploadImage(image, imagePath);
+      const result = await mediaService.uploadProductImage(userId, image);
+      photoUrl = result.url;
     }
     return photoUrl;
   };
