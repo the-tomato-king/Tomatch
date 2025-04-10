@@ -14,10 +14,13 @@ import { User, UserLocation } from "../../types";
 import LoadingLogo from "../../components/loading/LoadingLogo";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { SettingStackParamList } from "../../types/navigation";
+import {
+  SettingStackParamList,
+  RootStackParamList,
+} from "../../types/navigation";
 import { COLLECTIONS } from "../../constants/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../../services/firebase/firebaseConfig";
+import { doc, onSnapshot, deleteDoc } from "firebase/firestore";
+import { auth, db } from "../../services/firebase/firebaseConfig";
 import MainPageHeader from "../../components/MainPageHeader";
 import LocationModal from "../../components/modals/LocationModal";
 import { updateOneDocInDB } from "../../services/firebase/firebaseHelper";
@@ -26,6 +29,18 @@ import { CURRENCIES } from "../../constants/currencies";
 import { useUserPreference } from "../../hooks/useUserPreference";
 import UnitModal from "../../components/modals/UnitModal";
 import { UNITS } from "../../constants/units";
+import { useAuth } from "../../contexts/AuthContext";
+import { createUserDocument } from "../../services/userService";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore";
+import { AuthenticatedState } from "../../contexts/AuthContext";
+import { deleteUser, User as FirebaseUser } from "firebase/auth";
+import { AppUser } from "../../types";
 
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
@@ -37,15 +52,21 @@ const getCurrencySymbol = (code: string) => {
 
 const SettingPage = () => {
   const navigation = useNavigation<SettingScreenNavigationProp>();
-  const [user, setUser] = useState<User | null>(null);
+  const rootNavigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [isLocationModalVisible, setIsLocationModalVisible] = useState(false);
   const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
   const [isWeightUnitModalVisible, setIsWeightUnitModalVisible] =
     useState(false);
+  const {
+    userId,
+    user: firebaseUser,
+    logout,
+  } = useAuth() as AuthenticatedState;
+  const [user, setUser] = useState<AppUser | null>(null);
 
-  const userId = "user123"; // TODO: get from auth
   const {
     loading: userPreferenceLoading,
     error: userPreferenceError,
@@ -65,20 +86,26 @@ const SettingPage = () => {
       userDocRef,
       (docSnapshot) => {
         if (docSnapshot.exists()) {
-          const userData = docSnapshot.data() as User;
+          const userData = docSnapshot.data() as AppUser;
           setUser(userData);
         } else {
-          console.error("User document does not exist");
-          Alert.alert(
-            "Error",
-            "User data not found. Please create a user profile first.",
-            [
-              {
-                text: "Go to Profile",
-                onPress: () => navigation.navigate("EditProfile"),
-              },
-              { text: "Cancel" },
-            ]
+          console.log("Creating initial user document...");
+          // if user document does not exist, try to create
+          createUserDocument(userId, auth.currentUser?.email || "").catch(
+            (error) => {
+              console.error("Error creating user document:", error);
+              Alert.alert(
+                "Error",
+                "Failed to create user profile. Please try again.",
+                [
+                  {
+                    text: "Retry",
+                    onPress: () => navigation.navigate("EditProfile"),
+                  },
+                  { text: "Cancel" },
+                ]
+              );
+            }
           );
         }
         setLoading(false);
@@ -91,7 +118,7 @@ const SettingPage = () => {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [userId]);
 
   const toggleDarkMode = () => {
     setDarkMode((previousState) => !previousState);
@@ -99,6 +126,10 @@ const SettingPage = () => {
 
   const navigateToEditProfile = () => {
     navigation.navigate("EditProfile");
+  };
+
+  const navigateToChangePassword = () => {
+    navigation.navigate("ChangePassword");
   };
 
   const handleUpdateLocation = async (newLocation: UserLocation) => {
@@ -153,6 +184,108 @@ const SettingPage = () => {
     );
   }
 
+  const handleLogout = () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error) {
+              console.log(error);
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Confirm Account Deletion",
+      "Are you sure you want to delete your account? This action is irreversible.",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("User canceled the delete operation"),
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: async () => {
+            try {
+              if (!user) {
+                console.log("No user logged in");
+                return;
+              }
+
+              // 1. delete user data in Firestore
+              await deleteDoc(doc(db, COLLECTIONS.USERS, user.uid));
+
+              // 2. delete all user_products data
+              const userProductsRef = collection(
+                db,
+                COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
+              );
+              const q = query(
+                userProductsRef,
+                where("user_id", "==", user.uid)
+              );
+              const querySnapshot = await getDocs(q);
+              const batch = writeBatch(db);
+              querySnapshot.forEach((doc) => {
+                batch.delete(doc.ref);
+              });
+              await batch.commit();
+
+              // 3. delete Auth account
+              await deleteUser(firebaseUser);
+
+              Alert.alert(
+                "Account Deleted",
+                "Your account has been successfully deleted.",
+                [
+                  {
+                    text: "OK",
+                    onPress: () => rootNavigation.navigate("Auth"),
+                  },
+                ]
+              );
+            } catch (error: any) {
+              console.error("Error deleting account:", error);
+              if (error.code === "auth/requires-recent-login") {
+                Alert.alert(
+                  "Re-authentication Required",
+                  "Please log out and log in again before deleting your account.",
+                  [
+                    {
+                      text: "OK",
+                      onPress: () => logout(),
+                    },
+                  ]
+                );
+              } else {
+                Alert.alert(
+                  "Error",
+                  "Failed to delete account. Please try again."
+                );
+              }
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar />
@@ -186,10 +319,26 @@ const SettingPage = () => {
             <Text style={styles.chevron}>{">"}</Text>
           </TouchableOpacity>
 
-          <View style={styles.settingItem}>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={navigateToChangePassword}
+          >
             <Text style={styles.settingLabel}>Change Password</Text>
             <Text style={styles.chevron}>{">"}</Text>
-          </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.settingItem} onPress={handleLogout}>
+            <Text style={styles.settingLabel}>Logout</Text>
+            <Text style={styles.chevron}>{">"}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleDeleteAccount}
+          >
+            <Text style={styles.settingLabel}>Delete My Account</Text>
+            <Text style={styles.chevron}>{">"}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Preference Section */}
@@ -230,9 +379,7 @@ const SettingPage = () => {
           >
             <Text style={styles.settingLabel}>Weight Unit</Text>
             <View style={styles.locationInfo}>
-              <Text style={styles.settingValue}>
-                {user?.preferred_unit}
-              </Text>
+              <Text style={styles.settingValue}>{user?.preferred_unit}</Text>
               <Text style={styles.chevron}>{">"}</Text>
             </View>
           </TouchableOpacity>
@@ -256,7 +403,7 @@ const SettingPage = () => {
           visible={isWeightUnitModalVisible}
           onClose={() => setIsWeightUnitModalVisible(false)}
           onSave={handleUpdateUnit}
-          initialUnit={user?.preferred_unit||""}
+          initialUnit={user?.preferred_unit || ""}
         />
       </ScrollView>
     </SafeAreaView>

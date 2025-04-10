@@ -12,7 +12,7 @@ import { colors } from "../../theme/colors";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import ProductImage from "../../components/ProductImage";
 import CategoryFilter from "../../components/CategoryFilter";
-import SearchBar from "../../components/SearchBar";
+import SearchBar from "../../components/search/SearchBar";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   NativeStackScreenProps,
@@ -28,6 +28,7 @@ import {
   getAllProducts,
   filterProductsByCategory,
 } from "../../services/productService";
+import { useAuth } from "../../contexts/AuthContext";
 
 type ProductLibraryRouteProp = NativeStackScreenProps<
   RootStackParamList,
@@ -47,6 +48,7 @@ const ProductLibraryScreen = () => {
   const navigation = useNavigation<ProductLibraryNavigationProp>();
   const route = useRoute<ProductLibraryRouteProp>();
   const initialSearchText = route.params?.initialSearchText || "";
+  const { userId } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [localProducts, setLocalProducts] = useState<Product[]>([]);
@@ -58,12 +60,9 @@ const ProductLibraryScreen = () => {
   const [searchQuery, setSearchQuery] = useState(initialSearchText);
 
   useEffect(() => {
-    // Get local products
     const allLocalProducts = getAllProducts();
     setLocalProducts(allLocalProducts);
 
-    // Get user products from Firebase
-    const userId = "user123"; // TODO: get user id from auth
     const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
     const unsubscribeUserProducts = onSnapshot(
@@ -86,7 +85,7 @@ const ProductLibraryScreen = () => {
     return () => {
       unsubscribeUserProducts();
     };
-  }, []);
+  }, [userId]);
 
   // Combine local and user products whenever either changes
   useEffect(() => {

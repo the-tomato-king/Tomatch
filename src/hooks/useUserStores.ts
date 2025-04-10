@@ -3,7 +3,7 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../constants/firebase";
 import { BaseUserStore } from "../types";
-
+import { useAuth } from "../contexts/AuthContext";
 export interface UserStore extends BaseUserStore {
   id: string;
   distance?: string; // can be calculated by user's location and store's location
@@ -14,10 +14,9 @@ export function useUserStores() {
   const [allStores, setAllStores] = useState<UserStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { userId } = useAuth();
 
   useEffect(() => {
-    // TODO: get current user id
-    const userId = "user123";
     const userStoresPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
 
     try {
@@ -53,7 +52,7 @@ export function useUserStores() {
       setError("Failed to load stores");
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   return { favoriteStores, allStores, loading, error };
 }

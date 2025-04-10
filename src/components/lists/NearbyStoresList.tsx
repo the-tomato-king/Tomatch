@@ -1,10 +1,10 @@
 import React from "react";
 import { FlatList } from "react-native";
-import { NearbyStore } from "../types/location";
-import StoreCard from "./StoreCard";
-import { calculateDistance, formatDistance } from "../utils/distance";
-import { useLocation } from "../contexts/LocationContext";
-import { UserStore } from "../hooks/useUserStores";
+import { NearbyStore } from "../../types/location";
+import StoreCard from "../StoreCard";
+import { calculateDistance, formatDistance } from "../../utils/distance";
+import { useLocation } from "../../contexts/LocationContext";
+import { UserStore } from "../../types";
 
 interface NearbyStoresListProps {
   stores: NearbyStore[];

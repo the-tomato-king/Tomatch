@@ -12,10 +12,8 @@ import {
 import React, { useState, useLayoutEffect, useEffect } from "react";
 import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import DropDownPicker from "react-native-dropdown-picker";
 import { PRODUCT_CATEGORIES } from "../../data/Product";
-import SearchDropdown from "../../components/SearchDropdown";
+import SearchDropdown from "../../components/search/SearchDropdown";
 import {
   useNavigation,
   useRoute,
@@ -43,10 +41,12 @@ import {
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { uploadProductImage } from "../../services/firebase/storageHelper";
+import { useAuth } from "../../contexts/AuthContext";
 
 const AddProductScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const { userId } = useAuth();
 
   const isEditMode = route.name === "EditProduct";
   const productId = isEditMode ? route.params?.productId : null;
@@ -71,7 +71,6 @@ const AddProductScreen = () => {
   const fetchProductData = async () => {
     try {
       setLoading(true);
-      const userId = "user123"; // TODO: get user id from auth
       const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
       const productData = await readOneDoc<UserProduct>(
@@ -134,13 +133,15 @@ const AddProductScreen = () => {
         return;
       }
 
-      const userId = "user123"; // TODO: get from auth
       const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
       let finalImageSource = imageSource;
       if (localImageUri && imageType === "user_image") {
         try {
-          finalImageSource = await uploadProductImage(localImageUri, userId);
+          finalImageSource = await uploadProductImage(
+            localImageUri,
+            userId as string
+          );
         } catch (error) {
           console.error("Error uploading image:", error);
           Alert.alert(
@@ -209,7 +210,6 @@ const AddProductScreen = () => {
           style: "destructive",
           onPress: async () => {
             try {
-              const userId = "user123"; // TODO: get from auth
               const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
               // 1. Delete all related price records
@@ -326,7 +326,7 @@ const AddProductScreen = () => {
       <View style={styles.cardContainer}>
         {/* Picture */}
         <EditProductImage
-          userId="user123" // TODO: get from auth
+          userId={userId as string}
           imageType={imageType as ImageType}
           imageSource={imageSource}
           localImageUri={localImageUri}

@@ -83,10 +83,10 @@ const ShoppingListScreen = () => {
             <View style={styles.itemContent}>
               <Text style={styles.listName}>{item.name}</Text>
               <Text style={styles.shoppingTime}>
-                Store: {item.location?.name}
+                {item.location?.name}
               </Text>
               <Text style={styles.shoppingTime}>
-                Shopping Time:{" "}
+                {" "}
                 {new Date(item.shoppingTime).toLocaleDateString()}
               </Text>
             </View>
@@ -118,8 +118,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
     backgroundColor: "#fff",
-    borderRadius: 8,
-    marginVertical: 5,
+    borderRadius: 10,
+    marginVertical: 8,
+    marginHorizontal:15
   },
   itemContent: {
     padding: 5,

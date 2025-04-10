@@ -8,15 +8,15 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-import { Product, UserProduct } from "../types";
-import { globalStyles } from "../theme/styles";
-import { colors } from "../theme/colors";
-import GeneralPressable from "./GeneralPressable";
+import { Product, UserProduct } from "../../types";
+import { globalStyles } from "../../theme/styles";
+import { colors } from "../../theme/colors";
+import GeneralPressable from "../buttons/GeneralPressable";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types/navigation";
-import { searchProducts, getAllProducts } from "../services/productService";
+import { RootStackParamList } from "../../types/navigation";
+import { searchProducts, getAllProducts } from "../../services/productService";
 
 type ProductSearchNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;

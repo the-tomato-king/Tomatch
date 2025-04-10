@@ -11,32 +11,29 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { colors } from "../../theme/colors";
-import StoreCard from "../../components/StoreCard";
-import SearchBar from "../../components/SearchBar";
-import { UserStore, useUserStores } from "../../hooks/useUserStores";
-import { updateDoc, doc, setDoc, collection, addDoc } from "firebase/firestore";
+import SearchBar from "../../components/search/SearchBar";
+import { useUserStores } from "../../hooks/useUserStores";
+import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../../constants/firebase";
 import { useNavigation } from "@react-navigation/native";
 import { StoreStackParamList } from "../../types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import MainPageHeader from "../../components/MainPageHeader";
 import MapComponent from "../../components/Map";
 import { NearbyStore } from "../../types/location";
 import LocationSelector from "../../components/LocationSelector";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocation } from "../../contexts/LocationContext";
 import { convertNearbyStoreToUserStore } from "../../utils/storeConverters";
-import NearbyStoresList from "../../components/NearbyStoresList";
-import MyStoresList from "../../components/MyStoresList";
-
+import NearbyStoresList from "../../components/lists/NearbyStoresList";
+import MyStoresList from "../../components/lists/MyStoresList";
+import { useAuth } from "../../contexts/AuthContext";
 type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
 
 const StoreScreen = () => {
   const [activeTab, setActiveTab] = useState("favorites");
   const [address, setAddress] = useState("");
   const { favoriteStores, allStores, loading, error } = useUserStores();
-
+  const { userId } = useAuth();
   const navigation = useNavigation<StoreScreenNavigationProp>();
   const [selectedStore, setSelectedStore] = useState<NearbyStore | null>(null);
   const {
@@ -63,11 +60,10 @@ const StoreScreen = () => {
 
   const handleAddStore = async (store: NearbyStore) => {
     try {
-      const userId = "user123";
       const userStoresRef = collection(
         db,
         COLLECTIONS.USERS,
-        userId,
+        userId as string,
         COLLECTIONS.SUB_COLLECTIONS.USER_STORES
       );
 

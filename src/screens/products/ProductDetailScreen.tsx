@@ -38,6 +38,7 @@ import { colors } from "../../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { getProductById } from "../../services/productService";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useAuth } from "../../contexts/AuthContext";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
 type ProductDetailScreenNavigationProp =
@@ -47,6 +48,7 @@ const ProductDetailScreen = () => {
   const route = useRoute<ProductDetailRouteProp>();
   const { productId, userProductId } = route.params;
   const navigation = useNavigation<ProductDetailScreenNavigationProp>();
+  const { userId } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [userProduct, setUserProduct] = useState<UserProduct | null>(null);
@@ -59,7 +61,6 @@ const ProductDetailScreen = () => {
     const fetchProductData = async () => {
       try {
         setLoading(true);
-        const userId = "user123"; // TODO: get user id from auth
         const userProductsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
         productUnsubscribe = onSnapshot(
@@ -98,10 +99,9 @@ const ProductDetailScreen = () => {
         productUnsubscribe();
       }
     };
-  }, [productId, userProductId]);
+  }, [userId, productId, userProductId]);
 
   useEffect(() => {
-    const userId = "user123"; // TODO: get user id from auth
     const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
 
     const recordsQuery = query(
@@ -161,7 +161,7 @@ const ProductDetailScreen = () => {
     );
 
     return () => unsubscribe();
-  }, [userProductId]);
+  }, [userId, userProductId]);
 
   // Helper function to format date
   const formatDateTime = (dateValue: any) => {

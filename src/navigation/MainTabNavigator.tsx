@@ -8,7 +8,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import HomeStack from "./HomeStack";
 import StoreStack from "./StoreStack";
 import SettingStack from "./SettingStack";
-import { ButtomAddButton } from "../components/ButtomAddButton";
+import { ButtomAddButton } from "../components/buttons/ButtomAddButton";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ShoppingListStack from "./ShoppingListStack";
 

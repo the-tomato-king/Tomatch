@@ -31,6 +31,7 @@ import { UserProduct, Product } from "../../types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import StoreLogo from "../../components/StoreLogo";
 import { StoreBrand } from "../../types";
+import { useAuth } from "../../contexts/AuthContext";
 
 type StoreDetailRouteProp = RouteProp<StoreStackParamList, "StoreDetail">;
 type StoreDetailNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
@@ -52,7 +53,7 @@ const StoreDetailScreen = () => {
   const route = useRoute<StoreDetailRouteProp>();
   const navigation = useNavigation<StoreDetailNavigationProp>();
   const { storeId } = route.params;
-
+  const { userId } = useAuth();
   const [store, setStore] = useState<UserStore | null>(null);
   const [brand, setBrand] = useState<StoreBrand | null>(null);
   const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([]);
@@ -62,7 +63,6 @@ const StoreDetailScreen = () => {
   useEffect(() => {
     const fetchStoreDetails = async () => {
       try {
-        const userId = "user123";
         const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
 
         const storeData = await readOneDoc<UserStore>(storeDocPath, storeId);
@@ -96,8 +96,6 @@ const StoreDetailScreen = () => {
       if (!store) return;
 
       try {
-        // TODO: get user id from auth
-        const userId = "user123";
         const priceRecordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
 
         const q = query(
@@ -126,7 +124,7 @@ const StoreDetailScreen = () => {
 
             if (userProduct && userProduct.product_id) {
               const productData = await readOneDoc<Product>(
-                COLLECTIONS.PRODUCTS,
+                COLLECTIONS.PRODUCTS, //TODO: change to user products
                 userProduct.product_id
               );
               if (productData) {
@@ -157,8 +155,6 @@ const StoreDetailScreen = () => {
     if (!store) return;
 
     try {
-      // TODO: get user id from auth
-      const userId = "user123";
       const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${storeId}`;
 
       await updateDoc(doc(db, storeDocPath), {
@@ -192,7 +188,6 @@ const StoreDetailScreen = () => {
           style: "destructive",
           onPress: async () => {
             try {
-              const userId = "user123"; // TODO: get user id from auth
               const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}/${storeId}`;
 
               await deleteDoc(doc(db, storeDocPath));

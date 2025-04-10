@@ -4,8 +4,8 @@ import ShoppingListScreen from "../screens/shoppinglist/ShoppingListScreen";
 import AddShoppingListScreen from "../screens/shoppinglist/AddShoppingListScreen";
 import ShoppingListDetailScreen from "../screens/shoppinglist/ShoppingListDetailScreen";
 import { Button } from "react-native";
-import BackButton from "../components/BackButton";
-import HeaderAddButton from "../components/HeaderAddButton";
+import BackButton from "../components/buttons/BackButton";
+import HeaderAddButton from "../components/buttons/HeaderAddButton";
 import SupermarketMapScreen from "../screens/shoppinglist/SupermarketMapScreen";
 
 const Stack = createNativeStackNavigator<ShoppingStackParamList>();
@@ -21,7 +21,7 @@ const ShoppingListStack = () => {
           title: "My Shopping Lists",
           headerRight: () => (
             <HeaderAddButton
-              onPress={() => navigation.navigate("AddShoppingList")}
+              onPress={() => navigation.navigate("AddShoppingList", {})}
             />
           ),
         })}
@@ -43,10 +43,10 @@ const ShoppingListStack = () => {
           title: "",
         }}
       />
-      <Stack.Screen 
-        name="SupermarketMap" 
-        component={SupermarketMapScreen} 
-        options={{ title: "Select Supermarket" }} 
+      <Stack.Screen
+        name="SupermarketMap"
+        component={SupermarketMapScreen}
+        options={{ title: "Select Supermarket" }}
       />
     </Stack.Navigator>
   );
