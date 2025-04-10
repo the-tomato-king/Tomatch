@@ -49,6 +49,7 @@ export type RootStackParamList = {
   Auth: undefined;
   
   // Auth related screens
+  Onboarding: undefined;
   Login: undefined;
   Signup: undefined;
   

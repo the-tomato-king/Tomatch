@@ -1,38 +1,11 @@
-// src/screens/auth/SignupScreen.tsx
-import React, { useState } from "react";
-import {
-  View,
-  TextInput,
-  Button,
-  Text,
-  StyleSheet,
-  Alert,
-  TouchableOpacity,
-} from "react-native";
-import { auth } from "../../services/firebase/firebaseConfig";
-import {
-  createUserWithEmailAndPassword,
-  sendEmailVerification,
-  signOut,
-} from "firebase/auth";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../types/navigation";
-import { createUserDocument } from "../../services/userService";
-
-type SignupScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  "Signup"
->;
-
 const SignupScreen = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const navigation = useNavigation<SignupScreenNavigationProp>();
 
   const handleSignup = async () => {
-    if (email === "" || password === "" || confirmPassword === "") {
+    if (email === '' || password === '' || confirmPassword === '') {
       Alert.alert("Please fill out all fields");
       return;
     }
@@ -54,10 +27,10 @@ const SignupScreen = () => {
       // 3. Create user document in Firestore
       await createUserDocument(userCred.user.uid, email);
 
-      // 4. Sign out user, waiting for email verification
+      // 4. Sign out user
       await signOut(auth);
 
-      // 5. Show success message with verification instructions
+      // 5. Show success alert
       Alert.alert(
         "Verification Required",
         "A verification email has been sent to your email address. Please verify your email before logging in.",
@@ -79,6 +52,7 @@ const SignupScreen = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Create a New Account</Text>
       <TextInput
         placeholder="Email"
         value={email}
@@ -99,7 +73,9 @@ const SignupScreen = () => {
         secureTextEntry
         style={styles.input}
       />
-      <Button title="Sign Up" onPress={handleSignup} />
+      <View style={{ marginTop: 20 }}>
+        <Button title="Sign Up" onPress={handleSignup} />
+      </View>
       <TouchableOpacity onPress={loginHandler} style={styles.smallButton}>
         <Text style={styles.smallButtonText}>Already Registered? Login</Text>
       </TouchableOpacity>
@@ -112,6 +88,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 32,
+    color: "#333",
   },
   input: {
     height: 40,
@@ -134,5 +117,3 @@ const styles = StyleSheet.create({
     color: "#007AFF",
   },
 });
-
-export default SignupScreen;
