@@ -43,6 +43,10 @@ import {
   doc,
   getDoc,
   updateDoc as firebaseUpdateDoc,
+  getDocs,
+  where,
+  collection,
+  query,
 } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import StoreSearchInput from "../../components/search/StoreSearchInput";
@@ -61,6 +65,11 @@ type EditRecordScreenRouteProp = RouteProp<
   "EditPriceRecord"
 >;
 
+interface ProductState {
+  selectedProduct: Product | null;
+  productName: string;
+}
+
 const AddRecordScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -70,11 +79,12 @@ const AddRecordScreen = () => {
   const recordId = isEditMode ? route.params?.recordId : null;
 
   const [loading, setLoading] = useState(isEditMode);
-  const [selectedProduct, setSelectedProduct] = useState<BaseUserProduct>();
+  const [productState, setProductState] = useState<ProductState>({
+    selectedProduct: null,
+    productName: "",
+  });
   const [selectedStore, setSelectedStore] = useState<UserStore>();
-
   const [image, setImage] = useState<string | null>(null);
-  const [productName, setProductName] = useState("");
   const [storeName, setStoreName] = useState("");
   const [price, setPrice] = useState("");
   const [unitType, setUnitType] = useState<string>(UNITS.WEIGHT.LB);
@@ -121,26 +131,9 @@ const AddRecordScreen = () => {
                 const productData = getProductById(userProductData.product_id);
 
                 if (productData) {
-                  setProductName(productData.name);
-                  setSelectedProduct({
-                    product_id: productData.id,
-                    name: productData.name,
-                    category: productData.category || "",
-                    image_type: productData.image_type || "emoji",
-                    image_source: productData.image_source || "",
-                    plu_code: productData.plu_code || "",
-                    barcode: productData.barcode || "",
-                    total_price: 0,
-                    average_price: 0,
-                    lowest_price: 0,
-                    highest_price: 0,
-                    lowest_price_store: {
-                      store_id: "",
-                      store_name: "",
-                    },
-                    total_price_records: 0,
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                  setProductState({
+                    selectedProduct: productData,
+                    productName: productData.name,
                   });
                 }
               }
@@ -175,27 +168,41 @@ const AddRecordScreen = () => {
   useEffect(() => {
     // If productName changes and doesn't match selectedProduct.name, clear selectedProduct
     if (
-      selectedProduct &&
-      productName !== selectedProduct.name &&
-      productName.trim() !== ""
+      productState.selectedProduct &&
+      productState.productName !== productState.selectedProduct.name &&
+      productState.productName.trim() !== ""
     ) {
       // User has edited the product name after selecting a product
-      setSelectedProduct(undefined);
+      setProductState({
+        selectedProduct: null,
+        productName: "",
+      });
     }
-  }, [productName]);
+  }, [productState.productName]);
 
   // Modify the ProductSearchInput onChangeInputValue callback
   // to include this logic directly when text changes
   const handleProductNameChange = (text: string) => {
-    setProductName(text);
-    // If product name is changed and doesn't match selected product, clear selection
-    if (
-      selectedProduct &&
-      text !== selectedProduct.name &&
-      text.trim() !== ""
-    ) {
-      setSelectedProduct(undefined);
-    }
+    setProductState({
+      selectedProduct: null,
+      productName: text,
+    });
+  };
+
+  // 处理产品选择
+  const handleProductSelect = (product: Product) => {
+    setProductState({
+      selectedProduct: product,
+      productName: product.name,
+    });
+  };
+
+  // 处理导航到产品库
+  const handleNavigateToLibrary = () => {
+    navigation.navigate("ProductLibrary", {
+      onSelectProduct: handleProductSelect,
+      initialSearchText: productState.productName,
+    });
   };
 
   const analyzeImageAndFillForm = async (
@@ -213,7 +220,10 @@ const AddRecordScreen = () => {
 
       // auto fill form
       if (receiptData.productName) {
-        setProductName(receiptData.productName);
+        setProductState({
+          selectedProduct: null,
+          productName: receiptData.productName,
+        });
       }
       if (receiptData.priceValue) {
         setPrice(receiptData.priceValue);
@@ -321,7 +331,7 @@ const AddRecordScreen = () => {
 
   // Validates basic form inputs
   const validateFormInputs = () => {
-    if (!productName || !storeName || !price || !unitType) {
+    if (!productState.productName || !storeName || !price || !unitType) {
       alert("Please fill in all required fields");
       return false;
     }
@@ -359,16 +369,89 @@ const AddRecordScreen = () => {
     userId: string,
     numericPrice: number
   ) => {
-    // Create a new BaseUserProduct object if user just typed a name without selecting
-    if (!selectedProduct && productName) {
-      // Check if the productName exactly matches a product in the local library
-      const allProducts = getAllProducts(); // Use the correct function to get all products
+    const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+
+    // first check if the product already exists
+    const checkExistingProduct = async (productName: string) => {
+      const existingProducts = await getDocs(
+        query(collection(db, userProductPath), where("name", "==", productName))
+      );
+      if (!existingProducts.empty) {
+        const doc = existingProducts.docs[0];
+        return {
+          id: doc.id,
+          ...doc.data(),
+        } as UserProduct & { id: string };
+      }
+      return undefined;
+    };
+
+    if (productState.selectedProduct) {
+      // first check if the product already exists
+      const existingProductByName = await checkExistingProduct(
+        productState.selectedProduct.name
+      );
+      if (existingProductByName) {
+        return existingProductByName;
+      }
+
+      // if no same name, check product_id
+      const existingProductByProductId = await getDocs(
+        query(
+          collection(db, userProductPath),
+          where("product_id", "==", productState.selectedProduct.id)
+        )
+      );
+
+      if (!existingProductByProductId.empty) {
+        const doc = existingProductByProductId.docs[0];
+        return {
+          id: doc.id,
+          ...doc.data(),
+        } as UserProduct & { id: string };
+      }
+
+      // if no match, create new
+      const baseUserProduct: BaseUserProduct = {
+        product_id: productState.selectedProduct.id,
+        name: productState.selectedProduct.name,
+        category: productState.selectedProduct.category || "",
+        image_type: productState.selectedProduct.image_type,
+        image_source: productState.selectedProduct.image_source,
+        plu_code: productState.selectedProduct.plu_code || "",
+        barcode: productState.selectedProduct.barcode || "",
+        total_price: 0,
+        average_price: 0,
+        lowest_price: 0,
+        highest_price: 0,
+        lowest_price_store: {
+          store_id: "",
+          store_name: "",
+        },
+        total_price_records: 0,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+      return baseUserProduct;
+    } else if (productState.productName) {
+      // if manual input product name
+      // first check if the product already exists
+      const existingProduct = await checkExistingProduct(
+        productState.productName
+      );
+      if (existingProduct) {
+        return existingProduct;
+      }
+
+      // if no same name, check if match library product
+      const allProducts = getAllProducts();
       const matchingProduct = allProducts.find(
-        (product) => product.name.toLowerCase() === productName.toLowerCase()
+        (product) =>
+          product.name.toLowerCase() === productState.productName.toLowerCase()
       );
 
       if (matchingProduct) {
-        // If found a matching product, use its information
+        // if match library product, create corresponding user product
         return {
           product_id: matchingProduct.id,
           name: matchingProduct.name,
@@ -391,13 +474,13 @@ const AddRecordScreen = () => {
         };
       }
 
-      // Create a new product with basic information if no match
+      // if no match, create new custom product
       return {
-        product_id: "", // No product_id as this is a custom product
-        name: productName,
-        category: "", // Default empty category
+        product_id: "", // custom product has no product_id
+        name: productState.productName,
+        category: "", // default empty category
         image_type: image ? "user_image" : "emoji",
-        image_source: image, // Will be updated with photo URL if image exists
+        image_source: image,
         plu_code: "",
         barcode: "",
         total_price: 0,
@@ -413,8 +496,7 @@ const AddRecordScreen = () => {
         updated_at: new Date(),
       };
     }
-
-    return selectedProduct;
+    return null;
   };
 
   // Creates or updates a price record
@@ -537,7 +619,7 @@ const AddRecordScreen = () => {
       const photoUrl = await uploadProductImage(userId as string);
 
       // Get or create user product
-      let userProduct = await getOrCreateUserProduct(
+      const userProduct = await getOrCreateUserProduct(
         userId as string,
         numericPrice
       );
@@ -546,28 +628,21 @@ const AddRecordScreen = () => {
         return;
       }
 
-      // If it's a new product created from text input, save it first
+      const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
       let userProductId;
-      if (selectedProduct === undefined || !("id" in userProduct)) {
-        // Only update the image_source with photoUrl if this is truly a new product
-        // (not matching any existing product) and image_type is "user_image"
-        if (
-          photoUrl &&
-          userProduct.image_type === "user_image" &&
-          !userProduct.product_id
-        ) {
-          userProduct.image_source = photoUrl;
-        }
 
-        const userProductPath = `${userPath}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-        userProductId = await createDoc(userProductPath, userProduct);
-
-        if (!userProductId) {
-          alert("Failed to save user product");
-          return;
-        }
-      } else {
+      // check if the user product already exists
+      if ("id" in userProduct) {
+        // if existing user product, use its id
         userProductId = userProduct.id;
+      } else {
+        // if new user product, create it
+        userProductId = await createDoc(userProductPath, userProduct);
+      }
+
+      if (!userProductId) {
+        alert("Failed to save user product");
+        return;
       }
 
       // Save price record
@@ -651,35 +726,13 @@ const AddRecordScreen = () => {
           </>
         )}
         <View style={globalStyles.inputsContainer}>
-          {!isEditMode && (
-            <ProductSearchInput
-              inputValue={productName}
-              onChangeInputValue={handleProductNameChange}
-              onSelectProduct={(product) => {
-                setProductName(product.name);
-                setSelectedProduct({
-                  product_id: product.id,
-                  name: product.name,
-                  category: product.category || "",
-                  image_type: product.image_type || "emoji",
-                  image_source: product.image_source || "",
-                  plu_code: product.plu_code || "",
-                  barcode: product.barcode || "",
-                  total_price: 0,
-                  average_price: 0,
-                  lowest_price: 0,
-                  highest_price: 0,
-                  lowest_price_store: {
-                    store_id: "",
-                    store_name: "",
-                  },
-                  total_price_records: 0,
-                  created_at: new Date(),
-                  updated_at: new Date(),
-                });
-              }}
-            />
-          )}
+          <ProductSearchInput
+            value={productState.productName}
+            selectedProduct={productState.selectedProduct}
+            onChangeText={handleProductNameChange}
+            onSelectProduct={handleProductSelect}
+            onNavigateToLibrary={handleNavigateToLibrary}
+          />
           {/* TODO: replace with general search dropdown */}
           <StoreSearchInput
             inputValue={storeName}

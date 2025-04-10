@@ -12,7 +12,6 @@ import { UserProduct, Product } from "../types";
 import { COLLECTIONS } from "../constants/firebase";
 import LoadingLogo from "../components/loading/LoadingLogo";
 import { colors } from "../theme/colors";
-import { useFocusEffect } from "@react-navigation/native";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
 import MainPageHeader from "../components/MainPageHeader";

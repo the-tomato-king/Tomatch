@@ -1,13 +1,10 @@
 import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
 import { UserProduct } from "../types";
-import { globalStyles } from "../theme/styles";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../types/navigation";
 import { colors } from "../theme/colors";
-import { readOneDoc } from "../services/firebase/firebaseHelper";
-import { COLLECTIONS } from "../constants/firebase";
 import ProductImage from "./ProductImage";
 import { ImageType } from "../types";
 type ProductNavigationProp = NativeStackNavigationProp<

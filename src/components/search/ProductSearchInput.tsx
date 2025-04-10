@@ -22,114 +22,85 @@ type ProductSearchNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
 interface ProductSearchInputProps {
-  inputValue: string;
-  onChangeInputValue: (text: string) => void;
+  value: string;
+  selectedProduct: Product | null;
+  onChangeText: (text: string) => void;
   onSelectProduct: (product: Product) => void;
+  onNavigateToLibrary?: () => void;
 }
 
-const ProductSearchInput = ({
-  inputValue,
-  onChangeInputValue,
+const ProductSearchInput: React.FC<ProductSearchInputProps> = ({
+  value,
+  selectedProduct,
+  onChangeText,
   onSelectProduct,
-}: ProductSearchInputProps) => {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  onNavigateToLibrary,
+}) => {
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isNewProduct, setIsNewProduct] = useState(false);
-  const navigation = useNavigation<ProductSearchNavigationProp>();
 
-  // Initialize products on mount
+  // search products
   useEffect(() => {
-    const products = getAllProducts();
-    setAllProducts(products);
-  }, []);
-
-  // Handle input changes
-  useEffect(() => {
-    if (inputValue.trim().length > 0) {
-      const results = searchProducts(inputValue);
+    if (value.trim().length > 0) {
+      const results = searchProducts(value);
       setSuggestions(results);
-
-      // Check if there's an exact match
-      const exactMatch = results.some(
-        (product: Product) =>
-          product.name.toLowerCase() === inputValue.toLowerCase()
-      );
-
-      // Only show suggestions if there's no exact match
-      setShowSuggestions(!exactMatch);
-      setIsNewProduct(!exactMatch && results.length === 0);
+      setShowSuggestions(results.length > 0);
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
-      setIsNewProduct(false);
     }
-  }, [inputValue]);
+  }, [value]);
 
   return (
     <TouchableWithoutFeedback onPress={() => setShowSuggestions(false)}>
       <View style={styles.wrapper}>
-        <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-          <View>
-            <View style={[globalStyles.inputContainer]}>
-              <View style={globalStyles.labelContainer}>
-                <Text style={globalStyles.inputLabel}>Product</Text>
-              </View>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={[globalStyles.input]}
-                  value={inputValue}
-                  onChangeText={onChangeInputValue}
-                  placeholder="Search product..."
-                  onFocus={() => setShowSuggestions(true)}
+        <View style={[globalStyles.inputContainer]}>
+          <View style={globalStyles.labelContainer}>
+            <Text style={globalStyles.inputLabel}>Product</Text>
+          </View>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={[globalStyles.input]}
+              value={value}
+              onChangeText={onChangeText}
+              placeholder="Search product..."
+              onFocus={() => setShowSuggestions(true)}
+            />
+            {!selectedProduct && value.length > 0 && onNavigateToLibrary && (
+              <GeneralPressable
+                containerStyle={styles.questionIcon}
+                onPress={onNavigateToLibrary}
+              >
+                <MaterialCommunityIcons
+                  name="help-circle-outline"
+                  size={24}
+                  color={colors.negative}
                 />
-                {isNewProduct && inputValue.length > 0 && (
-                  <GeneralPressable
-                    containerStyle={styles.questionIcon}
-                    onPress={() => {
-                      navigation.navigate("ProductLibrary", {
-                        onSelectProduct: (product: Product) => {
-                          onSelectProduct(product);
-                          setShowSuggestions(false);
-                          setSuggestions([]);
-                        },
-                        initialSearchText: inputValue,
-                      });
-                    }}
-                  >
-                    <MaterialCommunityIcons
-                      name="help-circle-outline"
-                      size={24}
-                      color={colors.negative}
-                    />
-                  </GeneralPressable>
-                )}
-              </View>
-            </View>
-
-            {showSuggestions && suggestions.length > 0 && (
-              <View style={styles.suggestionsContainer}>
-                <FlatList
-                  data={suggestions}
-                  keyExtractor={(item) => item.name}
-                  keyboardShouldPersistTaps="handled"
-                  renderItem={({ item }) => (
-                    <GeneralPressable
-                      containerStyle={styles.suggestionItem}
-                      onPress={() => {
-                        onSelectProduct(item);
-                        setShowSuggestions(false);
-                        setSuggestions([]);
-                      }}
-                    >
-                      <Text style={styles.suggestionText}>{item.name}</Text>
-                    </GeneralPressable>
-                  )}
-                />
-              </View>
+              </GeneralPressable>
             )}
           </View>
-        </TouchableWithoutFeedback>
+        </View>
+
+        {showSuggestions && suggestions.length > 0 && (
+          <View style={styles.suggestionsContainer}>
+            <FlatList
+              data={suggestions}
+              keyExtractor={(item) => item.name}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => (
+                <GeneralPressable
+                  containerStyle={styles.suggestionItem}
+                  onPress={() => {
+                    onSelectProduct(item);
+                    setShowSuggestions(false);
+                  }}
+                >
+                  <Text style={styles.suggestionText}>{item.name}</Text>
+                </GeneralPressable>
+              )}
+            />
+          </View>
+        )}
       </View>
     </TouchableWithoutFeedback>
   );
