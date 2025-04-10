@@ -12,7 +12,7 @@ import { colors } from "../../theme/colors";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import ProductImage from "../../components/ProductImage";
 import CategoryFilter from "../../components/CategoryFilter";
-import SearchBar from "../../components/SearchBar";
+import SearchBar from "../../components/search/SearchBar";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   NativeStackScreenProps,

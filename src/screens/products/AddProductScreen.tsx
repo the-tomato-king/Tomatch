@@ -12,10 +12,8 @@ import {
 import React, { useState, useLayoutEffect, useEffect } from "react";
 import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import DropDownPicker from "react-native-dropdown-picker";
 import { PRODUCT_CATEGORIES } from "../../data/Product";
-import SearchDropdown from "../../components/SearchDropdown";
+import SearchDropdown from "../../components/search/SearchDropdown";
 import {
   useNavigation,
   useRoute,

@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../types/navigation";
 import ProductDetailScreen from "../screens/products/ProductDetailScreen";
 import HomeScreen from "../screens/HomeScreen";
-import BackButton from "../components/BackButton";
+import BackButton from "../components/buttons/BackButton";
 import PriceRecordInformationScreen from "../screens/products/RecordDetailScreen";
 import AddRecordScreen from "../screens/products/AddRecordScreen";
 import AddProductScreen from "../screens/products/AddProductScreen";

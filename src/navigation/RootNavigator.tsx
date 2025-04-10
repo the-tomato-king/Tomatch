@@ -8,8 +8,8 @@ import ProductLibraryScreen from "../screens/products/ProductLibraryScreen";
 import { Text } from "react-native";
 import { globalStyles } from "../theme/styles";
 import AddProductScreen from "../screens/products/AddProductScreen";
-import HeaderAddButton from "../components/HeaderAddButton";
-import BackButton from "../components/BackButton";
+import HeaderAddButton from "../components/buttons/HeaderAddButton";
+import BackButton from "../components/buttons/BackButton";
 import LoginScreen from "../screens/auth/LoginScreen";
 import { useAuth } from "../contexts/AuthContext";
 import SignupScreen from "../screens/auth/SignupScreen";
@@ -23,13 +23,13 @@ const AppStack = createNativeStackNavigator();
 const AuthNavigator = () => {
   return (
     <AuthStack.Navigator initialRouteName="Onboarding">
-      <AuthStack.Screen 
-        name="Onboarding" 
+      <AuthStack.Screen
+        name="Onboarding"
         component={OnboardingScreen}
         options={{ headerShown: false }}
       />
-      <AuthStack.Screen 
-        name="Login" 
+      <AuthStack.Screen
+        name="Login"
         component={LoginScreen}
         options={{ headerShown: false }}
       />

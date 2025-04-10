@@ -1,7 +1,7 @@
 import React from "react";
 import { TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { colors } from "../theme/colors";
+import { colors } from "../../theme/colors";
 
 interface HeaderAddButtonProps {
   onPress: () => void;

@@ -20,7 +20,7 @@ import {
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
 import { BaseUserStore, UserStore } from "../../types";
-import SearchBar from "../../components/SearchBar";
+import SearchBar from "../../components/search/SearchBar";
 import { useBrands } from "../../hooks/useBrands";
 import { StoreBrand } from "../../types";
 import StoreLogo from "../../components/StoreLogo";

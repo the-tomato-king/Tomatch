@@ -4,8 +4,8 @@ import AddStoreScreen from "../screens/stores/EditStoreScreen";
 import StoreDetailScreen from "../screens/stores/StoreDetailScreen";
 import SelectStoreBrandScreen from "../screens/stores/SelectStoreBrandScreen";
 import { StoreStackParamList } from "../types/navigation";
-import BackButton from "../components/BackButton";
-import HeaderAddButton from "../components/HeaderAddButton";
+import BackButton from "../components/buttons/BackButton";
+import HeaderAddButton from "../components/buttons/HeaderAddButton";
 
 const Stack = createNativeStackNavigator<StoreStackParamList>();
 

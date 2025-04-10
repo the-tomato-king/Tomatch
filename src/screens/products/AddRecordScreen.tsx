@@ -38,14 +38,14 @@ import {
   UserProduct,
   UserStore,
 } from "../../types";
-import ProductSearchInput from "../../components/ProductSearchInput";
+import ProductSearchInput from "../../components/search/ProductSearchInput";
 import {
   doc,
   getDoc,
   updateDoc as firebaseUpdateDoc,
 } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
-import StoreSearchInput from "../../components/StoreSearchInput";
+import StoreSearchInput from "../../components/search/StoreSearchInput";
 import LoadingLogo from "../../components/loading/LoadingLogo";
 import { uploadImage } from "../../services/firebase/storageHelper";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";

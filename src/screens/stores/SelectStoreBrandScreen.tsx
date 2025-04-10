@@ -12,7 +12,7 @@ import { StoreStackParamList } from "../../types/navigation";
 import { StoreBrand } from "../../types";
 import { useBrands } from "../../hooks/useBrands";
 import StoreLogo from "../../components/StoreLogo";
-import SearchBar from "../../components/SearchBar";
+import SearchBar from "../../components/search/SearchBar";
 import { Text } from "react-native";
 
 type SelectStoreBrandScreenRouteProp = RouteProp<

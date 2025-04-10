@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { globalStyles } from "../theme/styles";
-import { colors } from "../theme/colors";
-import { COLLECTIONS } from "../constants/firebase";
-import { readAllDocs } from "../services/firebase/firebaseHelper";
-import { UserStore } from "../types";
+import { globalStyles } from "../../theme/styles";
+import { colors } from "../../theme/colors";
+import { COLLECTIONS } from "../../constants/firebase";
+import { readAllDocs } from "../../services/firebase/firebaseHelper";
+import { UserStore } from "../../types";
 import DropDownPicker from "react-native-dropdown-picker";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 interface StoreSearchInputProps {
   inputValue: string;
   onChangeInputValue: (value: string) => void;

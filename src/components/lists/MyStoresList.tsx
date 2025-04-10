@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { FlatList, Text } from "react-native";
-import { UserStore } from "../hooks/useUserStores";
-import StoreCard from "./StoreCard";
+import { UserStore } from "../../types";
+import StoreCard from "../StoreCard";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { StoreStackParamList } from "../types/navigation";
+import { StoreStackParamList } from "../../types/navigation";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../services/firebase/firebaseConfig";
-import { COLLECTIONS } from "../constants/firebase";
-import { useLocation } from "../contexts/LocationContext";
-import { calculateDistance, formatDistance } from "../utils/distance";
-import { StoreBrand } from "../types";
-import { readOneDoc } from "../services/firebase/firebaseHelper";
-import { useAuth } from "../contexts/AuthContext";
+import { db } from "../../services/firebase/firebaseConfig";
+import { COLLECTIONS } from "../../constants/firebase";
+import { useLocation } from "../../contexts/LocationContext";
+import { calculateDistance, formatDistance } from "../../utils/distance";
+import { StoreBrand } from "../../types";
+import { readOneDoc } from "../../services/firebase/firebaseHelper";
+import { useAuth } from "../../contexts/AuthContext";
 interface StoreWithBrand extends UserStore {
   brand?: StoreBrand | null;
 }

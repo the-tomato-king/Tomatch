@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { globalStyles } from "../theme/styles";
-import { colors } from "../theme/colors";
+import { globalStyles } from "../../theme/styles";
+import { colors } from "../../theme/colors";
 import DropDownPicker from "react-native-dropdown-picker";
 
 interface SearchDropdownProps {

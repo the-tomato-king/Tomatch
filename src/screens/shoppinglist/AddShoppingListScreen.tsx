@@ -16,7 +16,7 @@ import { createDoc } from "../../services/firebase/firebaseHelper";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ShoppingStackParamList } from "../../types/navigation";
-import ProductSearchInput from "../../components/ProductSearchInput";
+import ProductSearchInput from "../../components/search/ProductSearchInput";
 import { Product } from "../../types";
 import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
@@ -40,8 +40,9 @@ export interface StoreLocation {
 const AddShoppingListScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<ShoppingStackParamList>>();
-  const route = useRoute<RouteProp<ShoppingStackParamList, "AddShoppingList">>();
-  
+  const route =
+    useRoute<RouteProp<ShoppingStackParamList, "AddShoppingList">>();
+
   const [listName, setListName] = useState<string>("");
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   const [itemName, setItemName] = useState<string>("");
@@ -50,7 +51,8 @@ const AddShoppingListScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<StoreLocation | null>(null);
+  const [selectedLocation, setSelectedLocation] =
+    useState<StoreLocation | null>(null);
   const auth = getAuth();
   const userId = auth.currentUser?.uid;
 
@@ -67,17 +69,17 @@ const AddShoppingListScreen = () => {
         shouldSetBadge: true,
       }),
     });
-  
+
     // Set up Android channel
-    if (Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('shopping-reminders', {
-        name: 'Shopping Reminders',
+    if (Platform.OS === "android") {
+      Notifications.setNotificationChannelAsync("shopping-reminders", {
+        name: "Shopping Reminders",
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
+        lightColor: "#FF231F7C",
       });
     }
-  
+
     // Request permissions
     const requestPermissions = async () => {
       const { status } = await Notifications.requestPermissionsAsync();
@@ -86,9 +88,9 @@ const AddShoppingListScreen = () => {
       }
     };
     requestPermissions();
-    
-    // ONLY add these listeners if you need to respond to notifications 
-    // while the app is open - they can be moved to a separate component 
+
+    // ONLY add these listeners if you need to respond to notifications
+    // while the app is open - they can be moved to a separate component
     // or commented out during development
     /*
     const subscription = Notifications.addNotificationReceivedListener(notification => {
@@ -166,65 +168,71 @@ const AddShoppingListScreen = () => {
   // Function to select location
   const handleSelectLocation = () => {
     navigation.navigate("SupermarketMap", {
-      onSelectStore: handleStoreSelect
+      onSelectStore: handleStoreSelect,
     });
   };
 
   const scheduleNotification = async (shoppingTime: Date) => {
     try {
-        const now = new Date();
-        
-        // Make sure we're comparing valid dates
-        if (!shoppingTime || isNaN(shoppingTime.getTime())) {
-            console.log("Invalid shopping time provided");
-            return false;
-        }
-        
-        // Calculate time difference in milliseconds, then convert to seconds
-        const timeDiff = Math.max(
-            Math.floor((shoppingTime.getTime() - now.getTime()) / 1000),
-            1 // Ensure at least 1 second in the future
-        );
-        
-        // Add validation to prevent past notifications
-        if (timeDiff <= 0) {
-            console.log("Cannot schedule notification for past time");
-            return false;
-        }
-        
-        // Log the exact time being scheduled
-        console.log("Scheduling notification for:", shoppingTime.toLocaleString());
-        console.log("Current time:", now.toLocaleString());
-        console.log("Time difference in seconds:", timeDiff);
-        
-        // Cancel any existing notifications before scheduling a new one
-        await Notifications.cancelAllScheduledNotificationsAsync();
-        
-        // Schedule the new notification
-        const identifier = await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "Shopping Reminder 🛒",
-            body: `Don't forget to go shopping today! (${shoppingTime.toLocaleTimeString()})`,
-            sound: "default",
-            data: {
-              type: "shopping_reminder",
-              scheduledFor: shoppingTime.toISOString(),
-            },
-          },
-          trigger: {
-            seconds: timeDiff,
-            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-            repeats: false,
-          } as Notifications.TimeIntervalTriggerInput,
-        });
+      const now = new Date();
 
-        console.log(`Notification scheduled with ID ${identifier} for:`, shoppingTime.toLocaleString());
-        return true;
-    } catch (error) {
-        console.error("Error scheduling notification:", error);
+      // Make sure we're comparing valid dates
+      if (!shoppingTime || isNaN(shoppingTime.getTime())) {
+        console.log("Invalid shopping time provided");
         return false;
+      }
+
+      // Calculate time difference in milliseconds, then convert to seconds
+      const timeDiff = Math.max(
+        Math.floor((shoppingTime.getTime() - now.getTime()) / 1000),
+        1 // Ensure at least 1 second in the future
+      );
+
+      // Add validation to prevent past notifications
+      if (timeDiff <= 0) {
+        console.log("Cannot schedule notification for past time");
+        return false;
+      }
+
+      // Log the exact time being scheduled
+      console.log(
+        "Scheduling notification for:",
+        shoppingTime.toLocaleString()
+      );
+      console.log("Current time:", now.toLocaleString());
+      console.log("Time difference in seconds:", timeDiff);
+
+      // Cancel any existing notifications before scheduling a new one
+      await Notifications.cancelAllScheduledNotificationsAsync();
+
+      // Schedule the new notification
+      const identifier = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Shopping Reminder 🛒",
+          body: `Don't forget to go shopping today! (${shoppingTime.toLocaleTimeString()})`,
+          sound: "default",
+          data: {
+            type: "shopping_reminder",
+            scheduledFor: shoppingTime.toISOString(),
+          },
+        },
+        trigger: {
+          seconds: timeDiff,
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          repeats: false,
+        } as Notifications.TimeIntervalTriggerInput,
+      });
+
+      console.log(
+        `Notification scheduled with ID ${identifier} for:`,
+        shoppingTime.toLocaleString()
+      );
+      return true;
+    } catch (error) {
+      console.error("Error scheduling notification:", error);
+      return false;
     }
-};
+  };
 
   // Function to save shopping list after notification confirmation
   const saveShoppingList = async (setNotification: boolean) => {
@@ -241,16 +249,19 @@ const AddShoppingListScreen = () => {
 
     if (docId) {
       console.log("Shopping list created with ID:", docId);
-      
+
       if (setNotification && shoppingTime) {
         const scheduledSuccessfully = await scheduleNotification(shoppingTime);
         if (scheduledSuccessfully) {
-            console.log("Notification scheduled for:", shoppingTime.toLocaleString());
+          console.log(
+            "Notification scheduled for:",
+            shoppingTime.toLocaleString()
+          );
         } else {
-            console.log("Failed to schedule notification");
+          console.log("Failed to schedule notification");
         }
-    }
-      
+      }
+
       navigation.navigate("ShoppingList");
     } else {
       console.error("Error creating shopping list.");
@@ -277,18 +288,18 @@ const AddShoppingListScreen = () => {
 
     // Ask user about notification
     Alert.alert(
-      "Shopping Reminder", 
-      `Would you like to receive a reminder notification on ${shoppingTime.toLocaleDateString()}?`, 
+      "Shopping Reminder",
+      `Would you like to receive a reminder notification on ${shoppingTime.toLocaleDateString()}?`,
       [
         {
-          text: "No", 
+          text: "No",
           onPress: () => saveShoppingList(false),
-          style: "cancel"
+          style: "cancel",
         },
-        { 
-          text: "Yes", 
-          onPress: () => saveShoppingList(true)
-        }
+        {
+          text: "Yes",
+          onPress: () => saveShoppingList(true),
+        },
       ],
       { cancelable: false }
     );
@@ -367,7 +378,7 @@ const AddShoppingListScreen = () => {
           onPress={() => handleOpenDatePicker("date")}
           style={styles.selectLocationButton}
         >
-          <Text  style={styles.selectLocationText}>
+          <Text style={styles.selectLocationText}>
             {shoppingTime
               ? shoppingTime.toLocaleDateString()
               : "Select Shopping Date"}
@@ -378,7 +389,7 @@ const AddShoppingListScreen = () => {
           onPress={() => handleOpenDatePicker("time")}
           style={styles.selectLocationButton}
         >
-          <Text  style={styles.selectLocationText}>
+          <Text style={styles.selectLocationText}>
             {shoppingTime
               ? shoppingTime.toLocaleTimeString()
               : "Select Shopping Time"}
@@ -425,9 +436,11 @@ const AddShoppingListScreen = () => {
           <View style={styles.selectedLocationContainer}>
             <View style={styles.locationInfo}>
               <Text style={styles.locationName}>{selectedLocation.name}</Text>
-              <Text style={styles.locationAddress}>{selectedLocation.address}</Text>
+              <Text style={styles.locationAddress}>
+                {selectedLocation.address}
+              </Text>
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.changeLocationButton}
               onPress={handleSelectLocation}
             >
