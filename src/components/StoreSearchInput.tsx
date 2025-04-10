@@ -6,8 +6,7 @@ import { COLLECTIONS } from "../constants/firebase";
 import { readAllDocs } from "../services/firebase/firebaseHelper";
 import { UserStore } from "../types";
 import DropDownPicker from "react-native-dropdown-picker";
-import { useFocusEffect } from "@react-navigation/native";
-
+import { useAuth } from "../contexts/AuthContext";
 interface StoreSearchInputProps {
   inputValue: string;
   onChangeInputValue: (value: string) => void;
@@ -27,12 +26,10 @@ const StoreSearchInput = ({
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string | null>(initialStoreId || null);
   const [items, setItems] = useState([]);
-
+  const { userId } = useAuth();
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        // TODO: get user id from auth
-        const userId = "user123";
         const storesPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
         const storesData = await readAllDocs<UserStore>(storesPath);
         setStores(storesData);
@@ -54,8 +51,7 @@ const StoreSearchInput = ({
             onSelectStore(selectedStore);
             onChangeInputValue(selectedStore.name);
           }
-        }
-        else if (inputValue) {
+        } else if (inputValue) {
           const selectedStore = storesData.find(
             (store) => store.name === inputValue
           );
@@ -70,7 +66,7 @@ const StoreSearchInput = ({
     };
 
     fetchStores();
-  }, [initialStoreId]);
+  }, [initialStoreId, userId]);
 
   const handleValueChange = (itemValue: string | null) => {
     if (!itemValue) return;

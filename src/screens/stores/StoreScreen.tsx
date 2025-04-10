@@ -29,14 +29,14 @@ import { useLocation } from "../../contexts/LocationContext";
 import { convertNearbyStoreToUserStore } from "../../utils/storeConverters";
 import NearbyStoresList from "../../components/NearbyStoresList";
 import MyStoresList from "../../components/MyStoresList";
-
+import { useAuth } from "../../contexts/AuthContext";
 type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
 
 const StoreScreen = () => {
   const [activeTab, setActiveTab] = useState("favorites");
   const [address, setAddress] = useState("");
   const { favoriteStores, allStores, loading, error } = useUserStores();
-
+  const { userId } = useAuth();
   const navigation = useNavigation<StoreScreenNavigationProp>();
   const [selectedStore, setSelectedStore] = useState<NearbyStore | null>(null);
   const {
@@ -63,11 +63,10 @@ const StoreScreen = () => {
 
   const handleAddStore = async (store: NearbyStore) => {
     try {
-      const userId = "user123";
       const userStoresRef = collection(
         db,
         COLLECTIONS.USERS,
-        userId,
+        userId as string,
         COLLECTIONS.SUB_COLLECTIONS.USER_STORES
       );
 

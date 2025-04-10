@@ -19,7 +19,13 @@ import {
   updateOneDocInDB,
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  updateEmail,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  verifyBeforeUpdateEmail,
+} from "firebase/auth";
 
 const EditProfileScreen = () => {
   const navigation = useNavigation();
@@ -90,31 +96,100 @@ const EditProfileScreen = () => {
     try {
       setSaving(true);
 
-      const updatedUserData = {
-        name,
-        email,
-        phone_number: phone,
-        updated_at: new Date(),
-      };
+      // check if email is modified
+      if (email !== user?.email) {
+        Alert.alert(
+          "Email Update",
+          "We will send a verification link to your new email address. You must click that link to complete the email change.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Send Verification",
+              onPress: async () => {
+                try {
+                  if (!auth.currentUser) return;
 
-      const success = await updateOneDocInDB(
-        COLLECTIONS.USERS,
-        userId as string,
-        updatedUserData
-      );
+                  // send verification email to new email
+                  await verifyBeforeUpdateEmail(auth.currentUser, email);
 
-      if (success) {
-        Alert.alert("Success", "Profile updated successfully", [
-          { text: "OK", onPress: () => navigation.goBack() },
-        ]);
-      } else {
-        Alert.alert("Error", "Failed to update profile");
+                  // update other information first
+                  const updatedUserData = {
+                    name,
+                    phone_number: phone,
+                    email,
+                    updated_at: new Date(),
+                  };
+
+                  const success = await updateOneDocInDB(
+                    COLLECTIONS.USERS,
+                    userId as string,
+                    updatedUserData
+                  );
+
+                  if (success) {
+                    Alert.alert(
+                      "Verification Email Sent",
+                      "Please check your new email inbox and click the verification link to complete the email change. Your other information has been updated.",
+                      [{ text: "OK", onPress: () => navigation.goBack() }]
+                    );
+                  } else {
+                    Alert.alert(
+                      "Error",
+                      "Failed to update profile information"
+                    );
+                  }
+                } catch (error: any) {
+                  console.error("Error updating email:", error);
+                  let errorMessage = "Failed to update email";
+
+                  if (error.code === "auth/email-already-in-use") {
+                    errorMessage =
+                      "This email is already registered to another account.";
+                  } else if (error.code === "auth/requires-recent-login") {
+                    errorMessage =
+                      "For security reasons, please log out and log back in before changing your email.";
+                  }
+
+                  Alert.alert("Error", errorMessage);
+                }
+              },
+            },
+          ]
+        );
+        return;
       }
+
+      // if email is not modified, update other information directly
+      await updateUserDocument();
     } catch (error) {
       console.error("Error updating user data:", error);
       Alert.alert("Error", "Failed to update profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const updateUserDocument = async () => {
+    const updatedUserData = {
+      name,
+      phone_number: phone,
+      email,
+      updated_at: new Date(),
+    };
+
+    // note: no longer update email here, email update will be handled by Firebase after verification
+    const success = await updateOneDocInDB(
+      COLLECTIONS.USERS,
+      userId as string,
+      updatedUserData
+    );
+
+    if (success) {
+      Alert.alert("Success", "Profile updated successfully", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+    } else {
+      Alert.alert("Error", "Failed to update profile");
     }
   };
 
