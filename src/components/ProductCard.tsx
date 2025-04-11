@@ -27,6 +27,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     navigation.navigate("ProductDetail", {
       productId: product.product_id || product.id,
       userProductId: product.id,
+      productName: product.name,
     });
   };
 

@@ -350,14 +350,16 @@ const PriceRecordInformationScreen = () => {
           <View style={styles.productDetails}>
             <View style={styles.priceValueContainer}>
               <Text style={styles.priceValue}>
-                ${record.original_price}/{record.original_unit}
+                ${record.original_price}/{record.original_quantity}
+                {record.original_unit}
               </Text>
             </View>
           </View>
           {/* Original Price and Record Date */}
           <View style={styles.additionalInfo}>
             <Text style={styles.originalPrice}>
-              Original: ${record.original_price}/{record.original_unit}
+              Original: ${record.original_price}/{record.original_quantity}
+              {record.original_unit}
             </Text>
             <Text style={styles.recordDate}>
               Record on: {formatDateTime(record.recorded_at)}

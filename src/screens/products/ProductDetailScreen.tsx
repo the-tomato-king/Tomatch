@@ -46,6 +46,7 @@ import {
 import { UNITS } from "../../constants/units";
 import { useUserPreference } from "../../hooks/useUserPreference";
 import { PriceDisplay } from "../../components/PriceDisplay";
+import { ProductPriceRecordList } from "../../components/lists/ProductPriceRecordList";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
 type ProductDetailScreenNavigationProp =
@@ -229,45 +230,49 @@ const ProductDetailScreen = () => {
         }
       >
         <View style={styles.basicInfoContainer}>
-          <ProductImage
-            imageType={userProduct.image_type as ImageType}
-            imageSource={userProduct.image_source as string}
-          />
+          <View style={styles.imageContainer}>
+            <ProductImage
+              imageType={userProduct.image_type as ImageType}
+              imageSource={userProduct.image_source as string}
+            />
+          </View>
           <View style={styles.contentContainer}>
             <View style={styles.titleContainer}>
-              <Text style={styles.sectionTitle}>{userProduct.name}</Text>
-              <View style={styles.categoryContainer}>
-                <Text style={styles.category}>{userProduct.category}</Text>
+              <View style={styles.priceSection}>
+                <View style={styles.priceDisplay}>
+                  <PriceDisplay
+                    standardPrice={
+                      showMeasurablePrice
+                        ? userProduct?.price_statistics?.measurable
+                            ?.average_price || 0
+                        : userProduct?.price_statistics?.count?.average_price ||
+                          0
+                    }
+                    style={styles.priceValue}
+                    measurementType={userProduct.display_preference}
+                  />
+                  <Text style={styles.priceUnit}>
+                    /{showMeasurablePrice ? preferences?.unit || "kg" : "ea"}
+                  </Text>
+                </View>
+                {canToggle && (
+                  <View style={styles.priceHeader}>
+                    <TouchableOpacity
+                      style={styles.toggleButton}
+                      onPress={handleToggleDisplay}
+                    >
+                      <Text style={styles.toggleText}>
+                        {showMeasurablePrice
+                          ? "Show Unit Price"
+                          : "Show Weight Price"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
-            </View>
-            <View style={styles.priceSection}>
-              <View style={styles.priceDisplay}>
-                <PriceDisplay
-                  standardPrice={
-                    showMeasurablePrice
-                      ? userProduct?.price_statistics?.measurable
-                          ?.average_price || 0
-                      : userProduct?.price_statistics?.count?.average_price || 0
-                  }
-                  style={styles.priceValue}
-                  measurementType={userProduct.display_preference}
-                />
-                <Text style={styles.priceUnit}>
-                  /{showMeasurablePrice ? preferences?.unit || "kg" : "ea"}
-                </Text>
-              </View>
-              {canToggle && (
-                <View style={styles.priceHeader}>
-                  <TouchableOpacity
-                    style={styles.toggleButton}
-                    onPress={handleToggleDisplay}
-                  >
-                    <Text style={styles.toggleText}>
-                      {showMeasurablePrice
-                        ? "Show Unit Price"
-                        : "Show Weight Price"}
-                    </Text>
-                  </TouchableOpacity>
+              {userProduct.category && (
+                <View style={styles.categoryContainer}>
+                  <Text style={styles.category}>{userProduct.category}</Text>
                 </View>
               )}
             </View>
@@ -322,42 +327,10 @@ const ProductDetailScreen = () => {
 
       {/* Price Records */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          Price Records ({priceRecords.length})
-        </Text>
-        {priceRecords.length > 0 ? (
-          <ScrollView style={styles.recordsContainer}>
-            {priceRecords.map((record, index) => (
-              <TouchableOpacity
-                key={record.id}
-                style={styles.recordItem}
-                onPress={() =>
-                  navigation.navigate("PriceRecordInformation", {
-                    recordId: record.id,
-                  })
-                }
-              >
-                <View style={styles.recordLeftSection}>
-                  <View style={styles.storeCircle} />
-                  <View style={styles.recordInfo}>
-                    <Text style={styles.storeName}>
-                      {record.store?.name || "Unknown Store"}
-                    </Text>
-                    <Text style={styles.recordDate}>
-                      {formatRecordDateTime(record.recorded_at)}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.recordPrice}>
-                  ${parseFloat(record.original_price).toFixed(2)}/$
-                  {record.original_unit}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        ) : (
-          <Text>No price records available</Text>
-        )}
+        <ProductPriceRecordList
+          priceRecords={priceRecords}
+          navigation={navigation}
+        />
       </View>
     </View>
   );
@@ -377,6 +350,10 @@ const styles = StyleSheet.create({
   },
   basicInfoContainer: {
     flexDirection: "row",
+  },
+  imageContainer: {
+    alignItems: "center",
+    justifyContent: "center",
   },
   contentContainer: {
     flex: 1,
