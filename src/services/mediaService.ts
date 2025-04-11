@@ -1,4 +1,5 @@
-import { storageHelper } from "./firebase/storageHelper";
+import { storage } from "./firebase/firebaseConfig";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ImageType } from "../types";
 
 export interface ReceiptAnalysisResult {
@@ -13,75 +14,82 @@ export interface ImageUploadResult {
   path: string;
 }
 
-export class MediaService {
-  /**
-   * Upload a product image to Firebase Storage
-   */
-  async uploadProductImage(
-    userId: string,
-    uri: string
-  ): Promise<ImageUploadResult> {
-    try {
-      const timestamp = new Date().getTime();
-      const imageName = `${timestamp}.jpg`;
-      const imagePath = `product_image/${userId}/${imageName}`;
+/**
+ * Uploads a product image to Firebase Storage
+ * @param {string} userId - The ID of the user
+ * @param {string} imageUri - The local URI of the image to upload
+ * @returns {Promise<ImageUploadResult>} The upload result containing the URL
+ * @throws {Error} When upload fails
+ */
+export const uploadProductImage = async (
+  userId: string,
+  imageUri: string
+): Promise<ImageUploadResult> => {
+  try {
+    // Convert URI to blob
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
 
-      // 转换图片
-      const response = await fetch(uri);
-      const blob = await response.blob();
+    // Generate unique image name using timestamp
+    const timestamp = new Date().getTime();
+    const imagePath = `products/${userId}/${timestamp}.jpg`;
+    const imageRef = ref(storage, imagePath);
 
-      // 使用 helper 上传
-      const url = await storageHelper.uploadBlob(imagePath, blob);
+    // Upload blob
+    await uploadBytes(imageRef, blob);
+    const url = await getDownloadURL(imageRef);
 
-      return {
-        url,
-        path: imagePath,
-      };
-    } catch (error: any) {
-      console.error("Error uploading product image:", error);
-      throw new Error(`Failed to upload product image: ${error.message}`);
-    }
+    return { url, path: imagePath };
+  } catch (error) {
+    console.error("Error uploading product image:", error);
+    throw error;
   }
+};
 
-  /**
-   * Get the URL of a product image
-   */
-  async getProductImage(
-    imageName: string,
-    imageType: ImageType,
-    userId?: string
-  ): Promise<string> {
-    try {
-      let imagePath;
-
-      if (imageType === "preset_image") {
-        imagePath = `product_image/${imageName}.png`;
-      } else if (imageType === "user_image" && userId) {
-        imagePath = `product_image/${userId}/${imageName}`;
-      } else {
-        throw new Error("Invalid image type or missing userId for user image");
-      }
-
-      return await storageHelper.getDownloadUrl(imagePath);
-    } catch (error: any) {
-      console.error("Error getting product image:", error);
-      throw new Error(`Failed to get product image: ${error.message}`);
-    }
+/**
+ * Gets the URL of a product image
+ * @param {string} imageName - The name of the image
+ * @param {string} imageType - The type of image (preset or user)
+ * @returns {Promise<string>} The download URL of the image
+ */
+export const getProductImage = async (
+  imageName: string,
+  imageType: "preset" | "user"
+): Promise<string> => {
+  try {
+    const path =
+      imageType === "preset" ? `products/preset/${imageName}` : imageName;
+    const imageRef = ref(storage, path);
+    return await getDownloadURL(imageRef);
+  } catch (error) {
+    console.error("Error getting product image:", error);
+    throw error;
   }
+};
 
-  /**
-   * Get the URL of a store logo
-   */
-  async getStoreLogo(brand: string): Promise<string> {
-    try {
-      const logoPath = `store_logos/${brand}.png`;
-      return await storageHelper.getDownloadUrl(logoPath);
-    } catch (error: any) {
-      console.error("Error getting store logo:", error);
-      throw new Error(`Failed to get store logo: ${error.message}`);
-    }
+/**
+ * Gets the URL of a store logo
+ * @param {string} brandName - The name of the brand
+ * @returns {Promise<string>} The download URL of the logo
+ */
+export const getStoreLogo = async (brandName: string): Promise<string> => {
+  try {
+    const logoRef = ref(storage, `brands/${brandName}/logo.png`);
+    return await getDownloadURL(logoRef);
+  } catch (error) {
+    console.error("Error getting store logo:", error);
+    throw error;
   }
-}
+};
 
-// 导出单例
-export const mediaService = new MediaService();
+/**
+ * Analyzes a receipt image using OpenAI
+ * @param {string} imageBase64 - The base64 encoded image data
+ * @returns {Promise<ReceiptAnalysisResult>} The analysis result
+ * @throws {Error} When analysis fails or is not implemented
+ */
+export const analyzeReceiptImage = async (
+  imageBase64: string
+): Promise<ReceiptAnalysisResult> => {
+  throw new Error("Receipt analysis not implemented yet");
+};

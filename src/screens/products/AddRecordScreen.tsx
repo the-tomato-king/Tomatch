@@ -23,32 +23,9 @@ import {
 } from "expo-image-picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, HomeStackParamList } from "../../types/navigation";
-
-import {
-  createDoc,
-  readOneDoc,
-  updateOneDocInDB,
-} from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
-import {
-  BasePriceRecord,
-  BaseUserProduct,
-  PriceRecord,
-  Product,
-  UserProduct,
-  UserStore,
-} from "../../types";
+import { BasePriceRecord, Product, UserProduct, UserStore } from "../../types";
 import ProductSearchInput from "../../components/search/ProductSearchInput";
-import {
-  doc,
-  getDoc,
-  updateDoc as firebaseUpdateDoc,
-  getDocs,
-  where,
-  collection,
-  query,
-} from "firebase/firestore";
-import { db } from "../../services/firebase/firebaseConfig";
 import StoreSearchInput from "../../components/search/StoreSearchInput";
 import LoadingLogo from "../../components/loading/LoadingLogo";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";
@@ -58,8 +35,28 @@ import {
   getAllProducts,
 } from "../../services/productLibraryService";
 import { useAuth } from "../../contexts/AuthContext";
-import { PriceRecordService } from "../../services/priceRecordService";
-import { mediaService } from "../../services/mediaService";
+import {
+  getPriceRecord,
+  createPriceRecord,
+  updatePriceRecord,
+} from "../../services/priceRecordService";
+import {
+  createUserProduct,
+  BasicProductData,
+} from "../../services/userProductService";
+import { Unit } from "../../constants/units";
+import {
+  uploadProductImage,
+  getProductImage,
+  getStoreLogo,
+} from "../../services/mediaService";
+import {
+  findUserProductByName,
+  findUserProductByLibraryId,
+} from "../../services/userProductService";
+import { updateUserProductStats } from "../../services/userProductService";
+import { getUserProductById } from "../../services/userProductService";
+import { getUserStoreById } from "../../services/userStoreService";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -105,18 +102,13 @@ const AddRecordScreen = () => {
 
   const [isAILoading, setIsAILoading] = useState(false);
 
-  const priceRecordService = new PriceRecordService();
-
   // fetch record data if in edit mode
   useEffect(() => {
     if (isEditMode && recordId && userId) {
       const loadRecordData = async () => {
         try {
           setLoading(true);
-          const recordData = await priceRecordService.getRecord(
-            userId,
-            recordId
-          );
+          const recordData = await getPriceRecord(userId, recordId);
 
           if (recordData) {
             setPrice(recordData.original_price);
@@ -126,9 +118,8 @@ const AddRecordScreen = () => {
             }
 
             if (recordData.user_product_id) {
-              const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-              const userProductData = await readOneDoc<UserProduct>(
-                userProductPath,
+              const userProductData = await getUserProductById(
+                userId,
                 recordData.user_product_id
               );
 
@@ -145,12 +136,10 @@ const AddRecordScreen = () => {
             }
 
             if (recordData.store_id) {
-              const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
-              const storeData = await readOneDoc<UserStore>(
-                storePath,
+              const storeData = await getUserStoreById(
+                userId,
                 recordData.store_id
               );
-
               if (storeData) {
                 setStoreName(storeData.name);
                 setSelectedStore(storeData);
@@ -194,7 +183,6 @@ const AddRecordScreen = () => {
     });
   };
 
-  // 处理产品选择
   const handleProductSelect = (product: Product) => {
     setProductState({
       selectedProduct: product,
@@ -202,7 +190,6 @@ const AddRecordScreen = () => {
     });
   };
 
-  // 处理导航到产品库
   const handleNavigateToLibrary = () => {
     navigation.navigate("ProductLibrary", {
       onSelectProduct: handleProductSelect,
@@ -271,12 +258,10 @@ const AddRecordScreen = () => {
       });
 
       if (!result.canceled && result.assets[0]) {
-        const uploadResult = await mediaService.uploadProductImage(
-          userId!,
-          result.assets[0].uri
-        );
-        setImage(uploadResult.url);
+        // only preview the image
+        setImage(result.assets[0].uri);
 
+        // AI analysis
         if (result.assets[0].base64) {
           await analyzeImageAndFillForm(
             result.assets[0].uri,
@@ -362,15 +347,10 @@ const AddRecordScreen = () => {
   };
 
   // Uploads image and returns URL
-  const uploadProductImage = async (userId: string) => {
+  const handleImageUpload = async (userId: string) => {
     let photoUrl = "";
     if (image) {
-      // use timestamp as unique identifier
-      const timestamp = new Date().getTime();
-      const imagePath = `price_records/${userId}/${timestamp}.jpg`;
-
-      // upload image and get URL
-      const result = await mediaService.uploadProductImage(userId, image);
+      const result = await uploadProductImage(userId, image);
       photoUrl = result.url;
     }
     return photoUrl;
@@ -383,24 +363,10 @@ const AddRecordScreen = () => {
   ) => {
     const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
 
-    // first check if the product already exists
-    const checkExistingProduct = async (productName: string) => {
-      const existingProducts = await getDocs(
-        query(collection(db, userProductPath), where("name", "==", productName))
-      );
-      if (!existingProducts.empty) {
-        const doc = existingProducts.docs[0];
-        return {
-          id: doc.id,
-          ...doc.data(),
-        } as UserProduct & { id: string };
-      }
-      return undefined;
-    };
-
     if (productState.selectedProduct) {
       // first check if the product already exists
-      const existingProductByName = await checkExistingProduct(
+      const existingProductByName = await findUserProductByName(
+        userId,
         productState.selectedProduct.name
       );
       if (existingProductByName) {
@@ -408,47 +374,39 @@ const AddRecordScreen = () => {
       }
 
       // if no same name, check product_id
-      const existingProductByProductId = await getDocs(
-        query(
-          collection(db, userProductPath),
-          where("product_id", "==", productState.selectedProduct.id)
-        )
+      const existingProductByProductId = await findUserProductByLibraryId(
+        userId,
+        productState.selectedProduct.id
       );
-
-      if (!existingProductByProductId.empty) {
-        const doc = existingProductByProductId.docs[0];
-        return {
-          id: doc.id,
-          ...doc.data(),
-        } as UserProduct & { id: string };
+      if (existingProductByProductId) {
+        return existingProductByProductId;
       }
 
       // if no match, create new
-      const baseUserProduct: BaseUserProduct = {
-        product_id: productState.selectedProduct.id,
+      const productData: BasicProductData = {
         name: productState.selectedProduct.name,
         category: productState.selectedProduct.category || "",
         image_type: productState.selectedProduct.image_type,
         image_source: productState.selectedProduct.image_source,
         plu_code: productState.selectedProduct.plu_code || "",
         barcode: productState.selectedProduct.barcode || "",
-        total_price: 0,
-        average_price: 0,
-        lowest_price: 0,
-        highest_price: 0,
-        lowest_price_store: {
-          store_id: "",
-          store_name: "",
-        },
-        total_price_records: 0,
-        created_at: new Date(),
-        updated_at: new Date(),
       };
-      return baseUserProduct;
+
+      const userProductId = await createUserProduct({
+        userId,
+        productData,
+        localImageUri: image || undefined,
+      });
+
+      return {
+        id: userProductId,
+        ...productData,
+      } as UserProduct & { id: string };
     } else if (productState.productName) {
       // if manual input product name
       // first check if the product already exists
-      const existingProduct = await checkExistingProduct(
+      const existingProduct = await findUserProductByName(
+        userId,
         productState.productName
       );
       if (existingProduct) {
@@ -487,26 +445,25 @@ const AddRecordScreen = () => {
       }
 
       // if no match, create new custom product
-      return {
-        product_id: "", // custom product has no product_id
+      const productData: BasicProductData = {
         name: productState.productName,
-        category: "", // default empty category
+        category: "",
         image_type: image ? "user_image" : "emoji",
-        image_source: image,
+        image_source: "",
         plu_code: "",
         barcode: "",
-        total_price: 0,
-        average_price: 0,
-        lowest_price: 0,
-        highest_price: 0,
-        lowest_price_store: {
-          store_id: "",
-          store_name: "",
-        },
-        total_price_records: 0,
-        created_at: new Date(),
-        updated_at: new Date(),
       };
+
+      const userProductId = await createUserProduct({
+        userId,
+        productData,
+        localImageUri: image || undefined,
+      });
+
+      return {
+        id: userProductId,
+        ...productData,
+      } as UserProduct & { id: string };
     }
     return null;
   };
@@ -520,37 +477,31 @@ const AddRecordScreen = () => {
   ) => {
     if (isEditMode && recordId) {
       // Update existing record
-      const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
       const updatedRecord = {
-        price: numericPrice,
-        unit_type: unitType,
-        unit_price: numericPrice,
+        original_price: numericPrice.toString(),
+        original_quantity: unitValue || "1", // if no quantity, default to 1
+        original_unit: unitType as Unit,
         photo_url: photoUrl || "",
         store_id: selectedStore!.id,
-        updated_at: new Date(),
       };
 
-      const success = await updateOneDocInDB(
-        recordPath,
-        recordId,
-        updatedRecord
-      );
+      const success = await updatePriceRecord(userId, recordId, updatedRecord);
       return { success, recordId: recordId };
     } else {
       // Create new price record
       const priceRecord: BasePriceRecord = {
         user_product_id: userProductId,
         store_id: selectedStore!.id,
-        price: numericPrice,
-        unit_type: unitType,
-        unit_price: numericPrice,
+        original_price: numericPrice.toString(),
+        original_quantity: unitValue || "1", // if no quantity, default to 1
+        original_unit: unitType as Unit,
+        standard_unit_price: "", // will be calculated in service
         photo_url: photoUrl,
         currency: "$", // TODO: Get from user settings
         recorded_at: new Date(),
       };
 
-      const priceRecordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-      const newRecordId = await createDoc(priceRecordPath, priceRecord);
+      const newRecordId = await createPriceRecord(userId, priceRecord);
       return { success: !!newRecordId, recordId: newRecordId };
     }
   };
@@ -561,62 +512,16 @@ const AddRecordScreen = () => {
     userProductId: string,
     numericPrice: number
   ) => {
-    const userProductRef = doc(
-      db,
-      COLLECTIONS.USERS,
+    return await updateUserProductStats(
       userId,
-      COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS,
-      userProductId
+      userProductId,
+      numericPrice,
+      {
+        id: selectedStore!.id,
+        name: selectedStore!.name,
+      },
+      unitType === "each" ? "count" : "measurable" // measurement type depends on unit type
     );
-
-    const userProductDoc = await getDoc(userProductRef);
-
-    if (userProductDoc.exists()) {
-      const existingProduct = userProductDoc.data() as UserProduct;
-
-      // Calculate new stats
-      const newTotalPrice = (existingProduct.total_price || 0) + numericPrice;
-      const newTotalRecords = (existingProduct.total_price_records || 0) + 1;
-      const newAveragePrice = newTotalPrice / newTotalRecords;
-
-      // Determine if it's the lowest price
-      const isLowestPrice =
-        !existingProduct.lowest_price ||
-        numericPrice < existingProduct.lowest_price;
-
-      // Determine if it's the highest price
-      const isHighestPrice =
-        !existingProduct.highest_price ||
-        numericPrice > existingProduct.highest_price;
-
-      // Prepare update data
-      const updateData = {
-        total_price: newTotalPrice,
-        average_price: newAveragePrice,
-        lowest_price: isLowestPrice
-          ? numericPrice
-          : existingProduct.lowest_price,
-        highest_price: isHighestPrice
-          ? numericPrice
-          : existingProduct.highest_price,
-        lowest_price_store: isLowestPrice
-          ? { store_id: selectedStore!.id, store_name: selectedStore!.name }
-          : existingProduct.lowest_price_store,
-        total_price_records: newTotalRecords,
-        updated_at: new Date(),
-      };
-
-      // Update user product data
-      await updateOneDocInDB(
-        `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`,
-        userProductId,
-        updateData
-      );
-
-      return true;
-    }
-
-    return false;
   };
 
   const handleSave = async () => {
@@ -628,7 +533,7 @@ const AddRecordScreen = () => {
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
 
       // Upload image if exists
-      const photoUrl = await uploadProductImage(userId as string);
+      const photoUrl = await handleImageUpload(userId as string);
 
       // Get or create user product
       const userProduct = await getOrCreateUserProduct(
@@ -649,7 +554,18 @@ const AddRecordScreen = () => {
         userProductId = userProduct.id;
       } else {
         // if new user product, create it
-        userProductId = await createDoc(userProductPath, userProduct);
+        userProductId = await createUserProduct({
+          userId: userId as string,
+          productData: {
+            name: userProduct.name,
+            category: userProduct.category,
+            image_type: userProduct.image_type,
+            plu_code: userProduct.plu_code,
+            image_source: userProduct.image_source,
+            barcode: userProduct.barcode,
+          },
+          localImageUri: image || undefined,
+        });
       }
 
       if (!userProductId) {
@@ -732,7 +648,7 @@ const AddRecordScreen = () => {
                     color={colors.mediumGray}
                   />
                 </View>
-                <Text style={styles.uploadText}>Click to take photo</Text>
+                <Text style={styles.uploadText}>Take photo and auto-fill</Text>
               </View>
             </TouchableOpacity>
           </>

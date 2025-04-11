@@ -54,7 +54,7 @@ export interface UserStore extends BaseUserStore {
 }
 
 // User Products (sub-collection of User)
-interface PriceStatistics {
+export interface PriceStatistics {
   total_price: number;
   average_price: number;
   lowest_price: number;

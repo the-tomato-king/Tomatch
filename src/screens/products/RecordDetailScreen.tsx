@@ -253,7 +253,7 @@ const PriceRecordInformationScreen = () => {
                   let lowestPrice = Infinity;
                   let highestPrice = -Infinity;
                   let lowestPriceStore =
-                    userProduct.price_statistics.lowest_price_store;
+                    userProduct.price_statistics.measurable?.lowest_price_store;
 
                   recordsSnapshot.docs.forEach((doc) => {
                     const recordData = doc.data();

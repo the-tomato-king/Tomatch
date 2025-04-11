@@ -20,39 +20,32 @@ import {
   searchProducts,
   getAllProducts,
 } from "../../services/productLibraryService";
+import { useProductSearch } from "../../hooks/useProductSearch";
 
 type ProductSearchNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
 interface ProductSearchInputProps {
   value: string;
-  selectedProduct: Product | null;
   onChangeText: (text: string) => void;
-  onSelectProduct: (product: Product) => void;
+  selectedProduct?: Product | null;
+  onSelectProduct?: (product: Product) => void;
   onNavigateToLibrary?: () => void;
 }
 
 const ProductSearchInput: React.FC<ProductSearchInputProps> = ({
   value,
-  selectedProduct,
   onChangeText,
+  selectedProduct,
   onSelectProduct,
   onNavigateToLibrary,
 }) => {
-  const [suggestions, setSuggestions] = useState<Product[]>([]);
+  const { suggestions } = useProductSearch();
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // search products
-  useEffect(() => {
-    if (value.trim().length > 0) {
-      const results = searchProducts(value);
-      setSuggestions(results);
-      setShowSuggestions(results.length > 0);
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
-  }, [value]);
+  const handleInputChange = (text: string) => {
+    onChangeText(text);
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => setShowSuggestions(false)}>
@@ -65,7 +58,7 @@ const ProductSearchInput: React.FC<ProductSearchInputProps> = ({
             <TextInput
               style={[globalStyles.input]}
               value={value}
-              onChangeText={onChangeText}
+              onChangeText={handleInputChange}
               placeholder="Search product..."
               onFocus={() => setShowSuggestions(true)}
             />
@@ -94,7 +87,7 @@ const ProductSearchInput: React.FC<ProductSearchInputProps> = ({
                 <GeneralPressable
                   containerStyle={styles.suggestionItem}
                   onPress={() => {
-                    onSelectProduct(item);
+                    onSelectProduct && onSelectProduct(item);
                     setShowSuggestions(false);
                   }}
                 >

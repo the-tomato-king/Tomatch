@@ -38,9 +38,6 @@ import {
   launchCameraAsync,
   MediaTypeOptions,
 } from "expo-image-picker";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../../services/firebase/firebaseConfig";
-import { uploadProductImage } from "../../services/firebase/storageHelper";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   createUserProduct,

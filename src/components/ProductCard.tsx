@@ -36,6 +36,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
     return `/${unit}`;
   };
 
+  const priceToShow = product.measurement_types.includes("measurable")
+    ? product.price_statistics.measurable?.average_price
+    : product.price_statistics.count?.average_price;
+
   return (
     <TouchableOpacity onPress={handlePress}>
       <View style={styles.productItem}>
@@ -49,10 +53,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </View>
         <View style={styles.priceContainer}>
           <Text style={styles.priceText}>
-            {formatPrice(product.average_price)}
-              <Text style={styles.unitText}>/lb</Text>
-              {/* TODO: use user preferred unit */}
-            </Text>
+            {formatPrice(priceToShow || 0)}
+            <Text style={styles.unitText}>/lb</Text>
+            {/* TODO: use user preferred unit */}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>

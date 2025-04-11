@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 import React, { useState, useEffect } from "react";
 import { colors } from "../theme/colors";
-import { getProductImage } from "../services/firebase/storageHelper";
+import { getProductImage } from "../services/mediaService";
 import { ImageType } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 
