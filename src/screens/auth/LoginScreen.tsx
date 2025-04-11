@@ -101,6 +101,10 @@ const LoginScreen = () => {
     navigation.navigate("Signup");
   };
 
+  const forgetPasswordHandler = () => {
+    navigation.navigate("ForgotPassword");
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Scalor!</Text>
@@ -125,7 +129,7 @@ const LoginScreen = () => {
         <Button title="Login" onPress={handleLogin} />
       )}
       <View style={styles.bottomContainer}>
-        <TouchableOpacity onPress={signupHandler} style={styles.smallButton}>
+        <TouchableOpacity onPress={forgetPasswordHandler} style={styles.smallButton}>
           <Text style={styles.smallButtonText}>Forget Password?</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={signupHandler} style={styles.smallButton}>
