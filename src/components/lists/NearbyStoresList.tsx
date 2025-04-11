@@ -50,7 +50,6 @@ const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
             name={store.name}
             distance={getDistance(store)}
             address={store.address}
-            city={store.address.split(",").slice(1).join(",").trim()}
             showAddButton={!added}
             onAdd={() => onFavorite(store)}
             onPress={() => {}}

@@ -9,7 +9,6 @@ interface StoreCardProps {
   name: string;
   distance: string | null;
   address: string;
-  city: string;
   showAddButton?: boolean;
   onAdd?: () => void;
   onPress: () => void;
@@ -22,7 +21,6 @@ const StoreCard: React.FC<StoreCardProps> = ({
   name,
   distance,
   address,
-  city,
   showAddButton,
   onAdd,
   onPress,
@@ -47,7 +45,6 @@ const StoreCard: React.FC<StoreCardProps> = ({
         <View style={styles.storeUpperContainer}>
           <View style={styles.storeAddressContainer}>
             <Text style={styles.storeAddress}>{address}</Text>
-            <Text style={styles.storeCity}>{city}</Text>
           </View>
           {showAddButton !== undefined ? (
             showAddButton && (
