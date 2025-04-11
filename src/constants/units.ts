@@ -1,3 +1,5 @@
+export const STANDARD_WEIGHT_UNIT = "g";
+
 export const UNITS = {
   WEIGHT: {
     G: "g",
@@ -16,18 +18,31 @@ export const UNITS = {
   },
 } as const;
 
-export const UNIT_CONVERSIONS = {
-  WEIGHT: {
-    G: 1,
-    KG: 1000,
-    LB: 453.6,
-    OZ: 28.35,
-  },
-  VOLUME: {
-    ML: 1,
-    L: 1000,
-  },
-} as const;
+// export unit types
+export type WeightUnit = (typeof UNITS.WEIGHT)[keyof typeof UNITS.WEIGHT];
+export type VolumeUnit = (typeof UNITS.VOLUME)[keyof typeof UNITS.VOLUME];
+export type CountUnit = (typeof UNITS.COUNT)[keyof typeof UNITS.COUNT];
+
+// measurable unit includes weight and volume
+export type MeasurableUnit = WeightUnit | VolumeUnit;
+export type Unit = MeasurableUnit | CountUnit;
+
+// helper functions for type checking
+export const isWeightUnit = (unit: Unit): unit is WeightUnit => {
+  return Object.values(UNITS.WEIGHT).includes(unit as WeightUnit);
+};
+
+export const isVolumeUnit = (unit: Unit): unit is VolumeUnit => {
+  return Object.values(UNITS.VOLUME).includes(unit as VolumeUnit);
+};
+
+export const isCountUnit = (unit: Unit): unit is CountUnit => {
+  return Object.values(UNITS.COUNT).includes(unit as CountUnit);
+};
+
+export const isMeasurableUnit = (unit: Unit): unit is MeasurableUnit => {
+  return isWeightUnit(unit) || isVolumeUnit(unit);
+};
 
 // the flat array of all units for dropdown
 export const ALL_UNITS = [

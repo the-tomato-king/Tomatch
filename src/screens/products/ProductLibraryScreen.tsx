@@ -27,7 +27,7 @@ import { COLLECTIONS } from "../../constants/firebase";
 import {
   getAllProducts,
   filterProductsByCategory,
-} from "../../services/productService";
+} from "../../services/productLibraryService";
 import { useAuth } from "../../contexts/AuthContext";
 
 type ProductLibraryRouteProp = NativeStackScreenProps<
@@ -89,15 +89,35 @@ const ProductLibraryScreen = () => {
 
   // Combine local and user products whenever either changes
   useEffect(() => {
-    // Convert local products to LibraryProduct format
-    const formattedLocalProducts: LibraryProduct[] = localProducts.map(
+    // 1. get all user added product info
+    const userProductNames = new Set(
+      userProducts.map((product) => product.name.toLowerCase())
+    );
+
+    const userAddedProductIds = new Set(
+      userProducts
+        .filter((product) => product.product_id)
+        .map((product) => product.product_id)
+    );
+
+    // 2. filter local products list, remove:
+    // - products added by user through product_id
+    // - products with the same name as user products
+    const availableLocalProducts = localProducts.filter(
+      (product) =>
+        !userAddedProductIds.has(product.id) &&
+        !userProductNames.has(product.name.toLowerCase())
+    );
+
+    // 3. format available local products
+    const formattedLocalProducts: LibraryProduct[] = availableLocalProducts.map(
       (product) => ({
         ...product,
         isUserProduct: false,
       })
     );
 
-    // Convert user products to LibraryProduct format
+    // 4. format user products
     const formattedUserProducts: LibraryProduct[] = userProducts.map(
       (product) => ({
         id: product.product_id || product.id,
@@ -112,8 +132,11 @@ const ProductLibraryScreen = () => {
       })
     );
 
-    // Combine and set
-    setCombinedProducts([...formattedLocalProducts, ...formattedUserProducts]);
+    // 5. combine and set
+    setCombinedProducts([
+      ...formattedLocalProducts, // local products not added by user
+      ...formattedUserProducts, // all user products
+    ]);
   }, [localProducts, userProducts]);
 
   const handleCategorySelect = (category: string) => {

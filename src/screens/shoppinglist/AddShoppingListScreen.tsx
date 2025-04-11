@@ -337,8 +337,9 @@ const AddShoppingListScreen = () => {
       <View style={styles.row}>
         <View style={styles.productInput}>
           <ProductSearchInput
-            inputValue={itemName}
-            onChangeInputValue={setItemName}
+            value={itemName}
+            onChangeText={setItemName}
+            selectedProduct={selectedProduct}
             onSelectProduct={(product) => {
               setItemName(product.name);
               setSelectedProduct(product);

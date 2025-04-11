@@ -15,39 +15,25 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import { COLLECTIONS } from "../../constants/firebase";
 import { db } from "../../services/firebase/firebaseConfig";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  updateDoc,
-  deleteDoc,
-} from "firebase/firestore";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { StoreStackParamList } from "../../types/navigation";
 import { readOneDoc } from "../../services/firebase/firebaseHelper";
 import { UserStore } from "../../hooks/useUserStores";
-import { UserProduct, Product } from "../../types";
+import { PriceRecord } from "../../types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import StoreLogo from "../../components/StoreLogo";
 import { StoreBrand } from "../../types";
 import { useAuth } from "../../contexts/AuthContext";
+import { StorePriceRecordList } from "../../components/lists/StorePriceRecordList";
+import {
+  getUserStoreById,
+  getStorePriceRecords,
+  toggleStoreFavorite,
+  deleteStore,
+} from "../../services/userStoreService";
 
 type StoreDetailRouteProp = RouteProp<StoreStackParamList, "StoreDetail">;
 type StoreDetailNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
-
-interface PriceRecord {
-  id: string;
-  user_product_id: string;
-  store_id: string;
-  price: number;
-  unit_type: string;
-  recorded_at: Date;
-  product?: {
-    name: string;
-    category: string;
-  };
-}
 
 const StoreDetailScreen = () => {
   const route = useRoute<StoreDetailRouteProp>();
@@ -61,85 +47,44 @@ const StoreDetailScreen = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchStoreDetails = async () => {
+    const loadStoreData = async () => {
       try {
-        const storeDocPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
-
-        const storeData = await readOneDoc<UserStore>(storeDocPath, storeId);
-        if (storeData) {
-          setStore(storeData);
-
-          if (storeData.brand_id) {
-            const brandPath = `${COLLECTIONS.STORE_BRANDS}`;
-            const brandData = await readOneDoc<StoreBrand>(
-              brandPath,
-              storeData.brand_id
-            );
-            if (brandData) {
-              setBrand(brandData);
-            }
-          }
-        } else {
+        setLoading(true);
+        const storeData = await getUserStoreById(userId!, storeId);
+        if (!storeData) {
           setError("Store not found");
+          return;
+        }
+        setStore(storeData);
+
+        if (storeData.brand_id) {
+          const brandPath = `${COLLECTIONS.STORE_BRANDS}`;
+          const brandData = await readOneDoc<StoreBrand>(
+            brandPath,
+            storeData.brand_id
+          );
+          if (brandData) {
+            setBrand(brandData);
+          }
         }
       } catch (err) {
-        console.error("Error fetching store details:", err);
-        setError("Failed to load store details");
+        console.error("Error loading store data:", err);
+        setError("Failed to load store data");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchStoreDetails();
-  }, [storeId]);
+    loadStoreData();
+  }, [userId, storeId]);
 
   useEffect(() => {
     const fetchPriceRecords = async () => {
-      if (!store) return;
+      if (!store || !userId) return;
 
       try {
-        const priceRecordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-
-        const q = query(
-          collection(db, priceRecordsPath),
-          where("store_id", "==", storeId)
-        );
-
-        const querySnapshot = await getDocs(q);
-        const recordPromises = querySnapshot.docs.map(async (doc) => {
-          const data = doc.data();
-          const record: PriceRecord = {
-            id: doc.id,
-            user_product_id: data.user_product_id,
-            store_id: data.store_id,
-            price: data.price || 0,
-            unit_type: data.unit_type || "each",
-            recorded_at: data.recorded_at?.toDate() || new Date(),
-          };
-
-          if (record.user_product_id) {
-            const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-            const userProduct = await readOneDoc<UserProduct>(
-              userProductPath,
-              record.user_product_id
-            );
-
-            if (userProduct && userProduct.product_id) {
-              const productData = await readOneDoc<Product>(
-                COLLECTIONS.PRODUCTS, //TODO: change to user products
-                userProduct.product_id
-              );
-              if (productData) {
-                record.product = {
-                  name: productData.name,
-                  category: productData.category,
-                };
-              }
-            }
-          }
-
-          return record;
-        });
-
-        const records = await Promise.all(recordPromises);
+        setLoading(true);
+        const records = await getStorePriceRecords(userId, storeId);
         setPriceRecords(records);
       } catch (err) {
         console.error("Error fetching price records:", err);
@@ -149,7 +94,7 @@ const StoreDetailScreen = () => {
     };
 
     fetchPriceRecords();
-  }, [store, storeId]);
+  }, [store, storeId, userId]);
 
   const handleToggleFavorite = async () => {
     if (!store) return;
@@ -279,41 +224,11 @@ const StoreDetailScreen = () => {
         <View style={styles.storeDetails}>
           <Text style={styles.storeName}>{store.name}</Text>
           <Text style={styles.storeAddress}>{store.address}</Text>
-          <Text style={styles.storeCity}>
-            {store.address.split(",").slice(1).join(",").trim()}
-          </Text>
         </View>
       </View>
 
       <View style={styles.recordsSection}>
-        <View style={styles.recordsHeader}>
-          <Text style={styles.recordsTitle}>Records</Text>
-          <TouchableOpacity style={styles.sortButton}>
-            <MaterialCommunityIcons name="sort" size={24} color="black" />
-            <Text style={styles.sortText}>Sort by</Text>
-          </TouchableOpacity>
-        </View>
-
-        {priceRecords.length === 0 ? (
-          <Text style={styles.emptyRecordsText}>
-            No price records for this store yet
-          </Text>
-        ) : (
-          <FlatList
-            data={priceRecords}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.recordItem}>
-                <Text style={styles.productName}>
-                  {item.product?.name || "Unknown Product"}
-                </Text>
-                <Text style={styles.priceText}>
-                  ${item.price.toFixed(2)}/{item.unit_type}
-                </Text>
-              </View>
-            )}
-          />
-        )}
+        <StorePriceRecordList records={priceRecords} loading={loading} />
       </View>
     </SafeAreaView>
   );
@@ -358,7 +273,6 @@ const styles = StyleSheet.create({
   storeInfoCard: {
     flexDirection: "row",
     padding: 16,
-    borderBottomWidth: 1,
     borderBottomColor: colors.lightGray2,
   },
   storeLogoContainer: {
@@ -398,45 +312,6 @@ const styles = StyleSheet.create({
   recordsSection: {
     flex: 1,
     padding: 16,
-  },
-  recordsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  recordsTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  sortButton: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  sortText: {
-    marginLeft: 4,
-    fontSize: 16,
-  },
-  recordItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.lightGray2,
-  },
-  productName: {
-    fontSize: 18,
-  },
-  priceText: {
-    fontSize: 18,
-    fontWeight: "500",
-  },
-  emptyRecordsText: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-    color: colors.secondaryText,
   },
   errorText: {
     textAlign: "center",

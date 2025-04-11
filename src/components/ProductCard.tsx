@@ -1,15 +1,15 @@
 import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
 import { UserProduct } from "../types";
-import { globalStyles } from "../theme/styles";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../types/navigation";
 import { colors } from "../theme/colors";
-import { readOneDoc } from "../services/firebase/firebaseHelper";
-import { COLLECTIONS } from "../constants/firebase";
 import ProductImage from "./ProductImage";
 import { ImageType } from "../types";
+import { PriceDisplay } from "./PriceDisplay";
+import { useUnitDisplay } from "../hooks/useUnitDisplay";
+
 type ProductNavigationProp = NativeStackNavigationProp<
   HomeStackParamList,
   "HomeScreen"
@@ -21,23 +21,21 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const navigation = useNavigation<ProductNavigationProp>();
+  const { preferredUnit } = useUnitDisplay();
 
   const handlePress = () => {
     navigation.navigate("ProductDetail", {
       productId: product.product_id || product.id,
       userProductId: product.id,
+      productName: product.name,
     });
   };
 
-  // Format price
-  const formatPrice = (price: number) => {
-    return `$${price.toFixed(2)}`;
-  };
-
-  // Format unit
-  const formatUnit = (unit: string) => {
-    return `/${unit}`;
-  };
+  // show different price based on display preference
+  const priceToShow =
+    product.display_preference === "count"
+      ? product.price_statistics.count?.average_price
+      : product.price_statistics.measurable?.average_price;
 
   return (
     <TouchableOpacity onPress={handlePress}>
@@ -51,11 +49,23 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <Text style={styles.productCategory}>{product.category}</Text>
         </View>
         <View style={styles.priceContainer}>
-          <Text style={styles.priceText}>
-            {formatPrice(product.average_price)}
-              <Text style={styles.unitText}>/lb</Text>
-              {/* TODO: use user preferred unit */}
-            </Text>
+          <View style={styles.priceWrapper}>
+            {priceToShow !== undefined && (
+              <>
+                <PriceDisplay
+                  standardPrice={priceToShow}
+                  style={styles.priceText}
+                  measurementType={product.display_preference}
+                />
+                <Text style={styles.unitText}>
+                  /
+                  {product.display_preference === "count"
+                    ? "ea"
+                    : preferredUnit}
+                </Text>
+              </>
+            )}
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -104,6 +114,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 10,
   },
+  priceWrapper: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
   priceText: {
     fontSize: 20,
     fontWeight: "bold",
@@ -112,5 +126,6 @@ const styles = StyleSheet.create({
   unitText: {
     fontSize: 12,
     color: colors.secondaryText,
+    marginLeft: 2,
   },
 });

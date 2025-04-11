@@ -12,12 +12,14 @@ import { UserProduct, Product } from "../types";
 import { COLLECTIONS } from "../constants/firebase";
 import LoadingLogo from "../components/loading/LoadingLogo";
 import { colors } from "../theme/colors";
-import { useFocusEffect } from "@react-navigation/native";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
 import MainPageHeader from "../components/MainPageHeader";
 import SearchBar from "../components/search/SearchBar";
-import { getAllProducts, getProductById } from "../services/productService";
+import {
+  getAllProducts,
+  getProductById,
+} from "../services/productLibraryService";
 import { useAuth } from "../contexts/AuthContext";
 
 const HomeScreen = () => {
@@ -63,8 +65,11 @@ const HomeScreen = () => {
 
   // Filter products with price records
   const productsWithStats = userProducts.filter((product) => {
-    // Only keep products that have price records (total_price_records > 0)
-    return product.total_price_records > 0;
+    // check if there is any type of price record
+    return (
+      (product.price_statistics.measurable?.total_price_records ?? 0) > 0 ||
+      (product.price_statistics.count?.total_price_records ?? 0) > 0
+    );
   });
 
   // Then apply search filter

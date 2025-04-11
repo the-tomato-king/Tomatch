@@ -23,10 +23,11 @@ const HomeStack = () => {
       <Stack.Screen
         name="ProductDetail"
         component={ProductDetailScreen}
-        options={{
+        options={({ route }) => ({
           headerShown: true,
           headerLeft: () => <BackButton />,
-        }}
+          title: route.params?.productName || "Product Detail",
+        })}
       />
       <Stack.Screen
         name="PriceRecordInformation"

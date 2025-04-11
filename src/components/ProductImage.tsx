@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 import React, { useState, useEffect } from "react";
 import { colors } from "../theme/colors";
-import { getProductImage } from "../services/firebase/storageHelper";
+import { getProductImage } from "../services/mediaService";
 import { ImageType } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -46,7 +46,10 @@ const ProductImage = ({
 
     setLoading(true);
 
-    getProductImage(imageSource, imageType, userId as string)
+    getProductImage(
+      imageSource,
+      imageType === "preset_image" ? "preset" : "user"
+    )
       .then((url) => {
         console.log("Successfully loaded image URL:", url);
         setImageUrl(url);

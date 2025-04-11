@@ -96,7 +96,6 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
           name={item.name}
           distance={getDistance(item)}
           address={item.address}
-          city={item.address.split(",").slice(1).join(",").trim()}
           isFavorite={item.is_favorite}
           brand={item.brand}
           onToggleFavorite={() =>

@@ -27,6 +27,7 @@ import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { deletePriceRecordAndUpdateStats } from "../../services/priceRecordService";
 type PriceRecordInformationRouteProp = RouteProp<
   HomeStackParamList,
   "PriceRecordInformation"
@@ -34,6 +35,58 @@ type PriceRecordInformationRouteProp = RouteProp<
 
 type RecordDetailScreenNavigationProp =
   NativeStackNavigationProp<HomeStackParamList>;
+
+const TEST_PRODUCT: UserProduct = {
+  id: "test_id",
+  name: "Test Apple",
+  category: "Fruit",
+  image_type: "emoji",
+  image_source: "🍎",
+  plu_code: "",
+  barcode: "",
+  measurement_types: ["measurable", "count"],
+  price_statistics: {
+    measurable: {
+      total_price: 100,
+      average_price: 2.99,
+      lowest_price: 1.99,
+      highest_price: 3.99,
+      lowest_price_store: {
+        store_id: "test_store",
+        store_name: "Test Store",
+      },
+      total_price_records: 10,
+    },
+    count: {
+      total_price: 50,
+      average_price: 0.99,
+      lowest_price: 0.79,
+      highest_price: 1.29,
+      lowest_price_store: {
+        store_id: "test_store",
+        store_name: "Test Store",
+      },
+      total_price_records: 5,
+    },
+  },
+  created_at: new Date(),
+  updated_at: new Date(),
+};
+
+const TEST_PRICE_RECORDS: PriceRecord[] = [
+  {
+    id: "test_record_1",
+    user_product_id: "test_id",
+    store_id: "test_store",
+    original_price: "5.99",
+    original_quantity: "2",
+    original_unit: "lb",
+    standard_unit_price: "2.99",
+    currency: "$",
+    photo_url: "",
+    recorded_at: new Date(),
+  },
+];
 
 const PriceRecordInformationScreen = () => {
   const navigation = useNavigation<RecordDetailScreenNavigationProp>();
@@ -45,6 +98,11 @@ const PriceRecordInformationScreen = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [store, setStore] = useState<UserStore | null>(null);
   const { userId } = useAuth();
+
+  // 临时使用测试数据
+  const [userProduct, setUserProduct] = useState<UserProduct>(TEST_PRODUCT);
+  const [priceRecords, setPriceRecords] =
+    useState<PriceRecord[]>(TEST_PRICE_RECORDS);
 
   useEffect(() => {
     const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
@@ -156,81 +214,15 @@ const PriceRecordInformationScreen = () => {
             text: "Delete",
             style: "destructive",
             onPress: async () => {
+              if (!userId) {
+                console.error("User ID is not available");
+                return;
+              }
               try {
-                // 1. Get user product
-                const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-                const userProduct = await readOneDoc<UserProduct>(
-                  userProductPath,
-                  record.user_product_id
+                const success = await deletePriceRecordAndUpdateStats(
+                  userId,
+                  recordId
                 );
-
-                if (!userProduct) {
-                  console.error("User product not found");
-                  return;
-                }
-
-                const newTotalRecords = userProduct.total_price_records - 1;
-                const newTotalPrice = userProduct.total_price - record.price;
-
-                // 2. If this is the last record
-                if (newTotalRecords === 0) {
-                  // Delete user product
-                  await deleteOneDocFromDB(
-                    userProductPath,
-                    record.user_product_id
-                  );
-                } else {
-                  // 3. Update user product stats
-                  // Get all remaining records to recalculate min/max
-                  const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-                  const recordsQuery = query(
-                    collection(db, recordsPath),
-                    where("user_product_id", "==", record.user_product_id)
-                  );
-                  const recordsSnapshot = await getDocs(recordsQuery);
-
-                  let lowestPrice = Infinity;
-                  let highestPrice = -Infinity;
-                  let lowestPriceStore = userProduct.lowest_price_store;
-
-                  recordsSnapshot.docs.forEach((doc) => {
-                    const recordData = doc.data();
-                    if (doc.id !== recordId) {
-                      // Skip current record
-                      if (recordData.price < lowestPrice) {
-                        lowestPrice = recordData.price;
-                        lowestPriceStore = {
-                          store_id: recordData.store_id,
-                          store_name: store?.name || "",
-                        };
-                      }
-                      if (recordData.price > highestPrice) {
-                        highestPrice = recordData.price;
-                      }
-                    }
-                  });
-
-                  const updatedUserProduct = {
-                    total_price: newTotalPrice,
-                    average_price: newTotalPrice / newTotalRecords,
-                    lowest_price: lowestPrice,
-                    highest_price: highestPrice,
-                    lowest_price_store: lowestPriceStore,
-                    total_price_records: newTotalRecords,
-                    updated_at: new Date(),
-                  };
-
-                  await updateOneDocInDB(
-                    userProductPath,
-                    record.user_product_id,
-                    updatedUserProduct
-                  );
-                }
-
-                // 4. Delete the price record
-                const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-                const success = await deleteOneDocFromDB(recordPath, recordId);
-
                 if (success) {
                   Alert.alert("Success", "Record deleted successfully");
                   navigation.goBack();
@@ -288,14 +280,16 @@ const PriceRecordInformationScreen = () => {
           <View style={styles.productDetails}>
             <View style={styles.priceValueContainer}>
               <Text style={styles.priceValue}>
-                ${record.price.toFixed(2)}/{record.unit_type}
+                ${record.original_price}/{record.original_quantity}
+                {record.original_unit}
               </Text>
             </View>
           </View>
           {/* Original Price and Record Date */}
           <View style={styles.additionalInfo}>
             <Text style={styles.originalPrice}>
-              Original: ${record.unit_price.toFixed(2)}/{record.unit_type}
+              Original: ${record.original_price}/{record.original_quantity}
+              {record.original_unit}
             </Text>
             <Text style={styles.recordDate}>
               Record on: {formatDateTime(record.recorded_at)}
