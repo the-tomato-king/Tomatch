@@ -102,9 +102,14 @@ const SignupScreen = () => {
         secureTextEntry
         style={styles.input}
       />
-      <View style={{ marginTop: 20 }}>
-        <Button title="Sign Up" onPress={handleSignup} />
-      </View>
+
+      <TouchableOpacity
+          style={styles.button}
+          onPress={handleSignup}
+        >
+        <Text style={styles.buttonText}>Sign Up</Text>
+        </TouchableOpacity>
+
       <TouchableOpacity onPress={loginHandler} style={styles.smallButton}>
         <Text style={styles.smallButtonText}>Already Registered? Login</Text>
       </TouchableOpacity>
@@ -149,6 +154,15 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 12,
     color: "#666", 
+  },
+  button: {
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#007AFF',
+    fontSize: 16,
   },
 });
 

@@ -123,11 +123,19 @@ const LoginScreen = () => {
         secureTextEntry
         style={styles.input}
       />
-      {isCheckingVerification ? (
-        <ActivityIndicator size="small" color="#0000ff" />
-      ) : (
-        <Button title="Login" onPress={handleLogin} />
-      )}
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleLogin}
+        >
+          {isCheckingVerification ?  (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.buttonText}>Login</Text>
+          )}
+        </TouchableOpacity>
+      
+
       <View style={styles.bottomContainer}>
         <TouchableOpacity onPress={forgetPasswordHandler} style={styles.smallButton}>
           <Text style={styles.smallButtonText}>Forget Password?</Text>
@@ -177,6 +185,15 @@ const styles = StyleSheet.create({
   smallButtonText: {
     fontSize: 14,
     color: "#007AFF",
+  },
+  button: {
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#007AFF',
+    fontSize: 16,
   },
 });
 
