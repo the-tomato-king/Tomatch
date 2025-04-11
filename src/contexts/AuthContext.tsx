@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { auth } from "../services/firebase/firebaseConfig";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   onAuthStateChanged,
   User,
@@ -13,19 +14,24 @@ import {
 } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
 
-// 定义两种不同状态的类型
+const ONBOARDING_COMPLETE_KEY = 'onboarding_complete';
+
 export type UnauthenticatedState = {
   user: null;
   userId: null;
   isLoading: boolean;
   isEmailVerified: false;
+  hasCompletedOnboarding: boolean;
+  markOnboardingComplete: () => Promise<void>;
 };
 
 export type AuthenticatedState = {
-  user: User; // 不是 User | null，是确定的 User
-  userId: string; // 不是 string | null，是确定的 string
+  user: User;
+  userId: string;
   isLoading: boolean;
   isEmailVerified: true;
+  hasCompletedOnboarding: boolean;
+  markOnboardingComplete: () => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -36,6 +42,8 @@ export const AuthContext = createContext<AuthContextType>({
   userId: null,
   isLoading: true,
   isEmailVerified: false,
+  hasCompletedOnboarding: false,
+  markOnboardingComplete: async () => {},
 });
 
 // type guard function
@@ -63,6 +71,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [previousEmail, setPreviousEmail] = useState<string | null>(null);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+
+  // Check if onboarding has been completed
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      try {
+        const value = await AsyncStorage.getItem(ONBOARDING_COMPLETE_KEY);
+        setHasCompletedOnboarding(value === 'true');
+      } catch (error) {
+        console.error("Error reading onboarding status:", error);
+      }
+    };
+    
+    checkOnboardingStatus();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -97,6 +120,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => unsubscribe();
   }, []);
 
+  const markOnboardingComplete = async () => {
+    try {
+      await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
+      setHasCompletedOnboarding(true);
+    } catch (error) {
+      console.error("Error saving onboarding status:", error);
+    }
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -115,6 +147,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         userId: user.uid,
         isLoading,
         isEmailVerified: true,
+        hasCompletedOnboarding,
+        markOnboardingComplete,
         logout,
       }
     : {
@@ -123,6 +157,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         userId: null,
         isLoading,
         isEmailVerified: false,
+        hasCompletedOnboarding,
+        markOnboardingComplete,
       };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
