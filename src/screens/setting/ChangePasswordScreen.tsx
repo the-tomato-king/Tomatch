@@ -37,10 +37,6 @@ const ChangePasswordScreen = () => {
       return;
     }
 
-    if (newPassword.length < 6) {
-      Alert.alert("Error", "Password should be at least 6 characters");
-      return;
-    }
 
     try {
       setLoading(true);
@@ -101,6 +97,9 @@ const ChangePasswordScreen = () => {
               secureTextEntry
               style={styles.input}
             />
+            <Text style={styles.passwordHint}>
+                New password must be 6-30 characters, including uppercase, lowercase letters, and numbers.
+            </Text>
           </View>
 
           <View style={styles.inputContainer}>
@@ -176,6 +175,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  passwordHint: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 4,
   },
 });
 
