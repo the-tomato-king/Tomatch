@@ -89,19 +89,27 @@ const ProductLibraryScreen = () => {
 
   // Combine local and user products whenever either changes
   useEffect(() => {
-    // get all preset product ids that have been added by user
+    // 1. get all user added product info
+    const userProductNames = new Set(
+      userProducts.map((product) => product.name.toLowerCase())
+    );
+
     const userAddedProductIds = new Set(
       userProducts
         .filter((product) => product.product_id)
         .map((product) => product.product_id)
     );
 
-    // filter out preset products that have been added by user
+    // 2. filter local products list, remove:
+    // - products added by user through product_id
+    // - products with the same name as user products
     const availableLocalProducts = localProducts.filter(
-      (product) => !userAddedProductIds.has(product.id)
+      (product) =>
+        !userAddedProductIds.has(product.id) &&
+        !userProductNames.has(product.name.toLowerCase())
     );
 
-    // format local products
+    // 3. format available local products
     const formattedLocalProducts: LibraryProduct[] = availableLocalProducts.map(
       (product) => ({
         ...product,
@@ -109,7 +117,7 @@ const ProductLibraryScreen = () => {
       })
     );
 
-    // format user products
+    // 4. format user products
     const formattedUserProducts: LibraryProduct[] = userProducts.map(
       (product) => ({
         id: product.product_id || product.id,
@@ -124,8 +132,11 @@ const ProductLibraryScreen = () => {
       })
     );
 
-    // combine and set
-    setCombinedProducts([...formattedLocalProducts, ...formattedUserProducts]);
+    // 5. combine and set
+    setCombinedProducts([
+      ...formattedLocalProducts, // local products not added by user
+      ...formattedUserProducts, // all user products
+    ]);
   }, [localProducts, userProducts]);
 
   const handleCategorySelect = (category: string) => {
