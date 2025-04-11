@@ -89,15 +89,27 @@ const ProductLibraryScreen = () => {
 
   // Combine local and user products whenever either changes
   useEffect(() => {
-    // Convert local products to LibraryProduct format
-    const formattedLocalProducts: LibraryProduct[] = localProducts.map(
+    // get all preset product ids that have been added by user
+    const userAddedProductIds = new Set(
+      userProducts
+        .filter((product) => product.product_id)
+        .map((product) => product.product_id)
+    );
+
+    // filter out preset products that have been added by user
+    const availableLocalProducts = localProducts.filter(
+      (product) => !userAddedProductIds.has(product.id)
+    );
+
+    // format local products
+    const formattedLocalProducts: LibraryProduct[] = availableLocalProducts.map(
       (product) => ({
         ...product,
         isUserProduct: false,
       })
     );
 
-    // Convert user products to LibraryProduct format
+    // format user products
     const formattedUserProducts: LibraryProduct[] = userProducts.map(
       (product) => ({
         id: product.product_id || product.id,
@@ -112,7 +124,7 @@ const ProductLibraryScreen = () => {
       })
     );
 
-    // Combine and set
+    // combine and set
     setCombinedProducts([...formattedLocalProducts, ...formattedUserProducts]);
   }, [localProducts, userProducts]);
 

@@ -46,7 +46,10 @@ const ProductImage = ({
 
     setLoading(true);
 
-    getProductImage(imageSource, imageType, userId as string)
+    getProductImage(
+      imageSource,
+      imageType === "preset_image" ? "preset" : "user"
+    )
       .then((url) => {
         console.log("Successfully loaded image URL:", url);
         setImageUrl(url);

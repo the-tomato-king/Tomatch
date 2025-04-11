@@ -58,7 +58,9 @@ export const getProductImage = async (
 ): Promise<string> => {
   try {
     const path =
-      imageType === "preset" ? `products/preset/${imageName}` : imageName;
+      imageType === "preset"
+        ? `product_image/${imageName}.png`
+        : imageName;
     const imageRef = ref(storage, path);
     return await getDownloadURL(imageRef);
   } catch (error) {
