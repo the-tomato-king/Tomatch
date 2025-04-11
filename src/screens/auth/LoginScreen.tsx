@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   smallButton: {
-    marginVertical: 5,
+    marginTop:20,
   },  
   smallButtonText: {
     fontSize: 14,

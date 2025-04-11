@@ -97,7 +97,7 @@ export default ForgotPasswordScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#9f9f9',
   },
   content: {
     flex: 1,
@@ -131,21 +131,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
   },
   button: {
-    backgroundColor: colors.primary,
     borderRadius: 8,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
-    marginTop: 16,
   },
    buttonDisabled: {
     backgroundColor: '#cccccc',
   },
   buttonText: {
-    color: '#fff',
+    color: '#007AFF',
     fontSize: 16,
-    fontWeight: 'bold',
   },
 }); 
