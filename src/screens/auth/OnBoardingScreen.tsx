@@ -4,7 +4,6 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  Dimensions, 
   FlatList, 
   TouchableOpacity, 
   Image, 
@@ -14,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import { ViewToken } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
 
 type OnboardingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
 
@@ -41,13 +41,13 @@ const onboardingData: OnboardingItem[] = [
       id: '3',
       title: 'Smart Comparisons 🆚',
       description: 'Compare prices across different stores with automatic unit conversions',
-      image: 'https://via.placeholder.com/300',
+      image: require('../../../assets/WechatIMG137.jpg'),
     },
     {
       id: '4',
       title: 'Shopping Lists 🛒',
       description: 'Create and manage your grocery lists in one place',
-      image: 'https://via.placeholder.com/300',
+      image: require('../../../assets/WechatIMG136.jpg'),
     }
   ]
 
@@ -56,6 +56,7 @@ const OnboardingScreen = () => {
   const { width } = useWindowDimensions();
   const flatListRef = useRef<FlatList>(null);
   const navigation = useNavigation<OnboardingScreenNavigationProp>();
+  const { markOnboardingComplete } = useAuth();
 
   const viewConfigRef = { viewAreaCoveragePercentThreshold: 50 };
   
@@ -65,12 +66,22 @@ const OnboardingScreen = () => {
     }
   }).current;
 
-  const goToLogin = () => {
+  const goToLogin = async () => {
+    // Mark onboarding as complete when user navigates to login
+    await markOnboardingComplete();
     navigation.navigate('Login');
   };
 
-  const goToSignup = () => {
+  const goToSignup = async () => {
+    // Mark onboarding as complete when user navigates to signup
+    await markOnboardingComplete();
     navigation.navigate('Signup');
+  };
+
+  const skipOnboarding = async () => {
+    // Mark onboarding as complete when user skips
+    await markOnboardingComplete();
+    navigation.navigate('Login');
   };
 
   const nextSlide = () => {
@@ -84,7 +95,7 @@ const OnboardingScreen = () => {
       <View style={[styles.slide, { width }]}>
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: item.image }}
+            source={typeof item.image === 'string' ? { uri: item.image } : item.image}
             style={styles.image}
           />
         </View>
@@ -125,7 +136,7 @@ const OnboardingScreen = () => {
       <View style={styles.buttonContainer}>
         {currentIndex < onboardingData.length - 1 ? (
           <>
-            <TouchableOpacity style={styles.skipButton} onPress={goToLogin}>
+            <TouchableOpacity style={styles.skipButton} onPress={skipOnboarding}>
               <Text style={styles.skipButtonText}>Skip</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.nextButton} onPress={nextSlide}>

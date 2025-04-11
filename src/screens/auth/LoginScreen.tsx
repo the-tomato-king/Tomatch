@@ -101,6 +101,10 @@ const LoginScreen = () => {
     navigation.navigate("Signup");
   };
 
+  const forgetPasswordHandler = () => {
+    navigation.navigate("ForgotPassword");
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Scalor!</Text>
@@ -124,9 +128,14 @@ const LoginScreen = () => {
       ) : (
         <Button title="Login" onPress={handleLogin} />
       )}
-      <TouchableOpacity onPress={signupHandler} style={styles.smallButton}>
-        <Text style={styles.smallButtonText}>New User? Create An Account</Text>
-      </TouchableOpacity>
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity onPress={forgetPasswordHandler} style={styles.smallButton}>
+          <Text style={styles.smallButtonText}>Forget Password?</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={signupHandler} style={styles.smallButton}>
+          <Text style={styles.smallButtonText}>New User? Create An Account</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -135,6 +144,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
+    alignItems: 'center',
     padding: 16,
   },
   title: {
@@ -145,6 +155,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   input: {
+    width:"100%",
     height: 48,
     borderColor: "gray",
     borderWidth: 1,
@@ -155,11 +166,14 @@ const styles = StyleSheet.create({
   error: {
     color: "red",
   },
-  smallButton: {
-    position: "absolute",
+  bottomContainer: {
+    position: 'absolute',
     bottom: 30,
-    alignSelf: "center",
+    alignItems: 'center',
   },
+  smallButton: {
+    marginTop:20,
+  },  
   smallButtonText: {
     fontSize: 14,
     color: "#007AFF",

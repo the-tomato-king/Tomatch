@@ -53,7 +53,7 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Login: undefined;
   Signup: undefined;
-  
+  ForgotPassword: undefined;
   // App related screens
   Main: {
     screen?: string;

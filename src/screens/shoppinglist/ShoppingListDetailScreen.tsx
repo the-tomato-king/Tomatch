@@ -7,13 +7,15 @@ import {
   ActivityIndicator,
   StyleSheet,
   FlatList,
+  Alert,
 } from "react-native";
 import { CheckBox } from "react-native-elements";
 import { ShoppingStackParamList } from "../../types/navigation";
 import { ShoppingItem } from "./AddShoppingListScreen";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { useNavigation } from "@react-navigation/native";
+import { getAuth } from "firebase/auth";
 
 type ShoppingListDetailRouteProp = RouteProp<
   ShoppingStackParamList,
@@ -25,6 +27,7 @@ export interface ShoppingListDetails {
   name: string;
   items: ShoppingItem[];
   shoppingTime: string;
+  userId: string;
   location: {
     name: string;
     address: string;
@@ -36,6 +39,8 @@ export interface ShoppingListDetails {
 const ShoppingListDetailScreen = () => {
   const route = useRoute<ShoppingListDetailRouteProp>();
   const { id } = route.params;
+  const auth = getAuth();
+  const currentUserId = auth.currentUser?.uid;
 
   const navigation = useNavigation();
 
@@ -46,14 +51,39 @@ const ShoppingListDetailScreen = () => {
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>(
     {}
   );
+  const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
     const fetchShoppingList = async () => {
       try {
-        const list = await readOneDoc<ShoppingListDetails>("shoppingLists", id);
-        setShoppingList(list);
-        if (list) {
-          const initialCheckedState = list.items.reduce((acc, item) => {
+        if (!currentUserId) {
+          setUnauthorized(true);
+          setLoading(false);
+          return;
+        }
+
+        // 直接获取文档以检查所有权
+        const docRef = doc(db, "shoppingLists", id);
+        const docSnap = await getDoc(docRef);
+        
+        if (!docSnap.exists()) {
+          setLoading(false);
+          return;
+        }
+        
+        const listData = docSnap.data() as ShoppingListDetails;
+        listData.id = docSnap.id;
+        
+        // 检查是否是当前用户的购物清单
+        if (listData.userId !== currentUserId) {
+          setUnauthorized(true);
+          setLoading(false);
+          return;
+        }
+        
+        setShoppingList(listData);
+        if (listData.items) {
+          const initialCheckedState = listData.items.reduce((acc, item) => {
             acc[item.id] = item.checked || false;
             return acc;
           }, {} as { [key: string]: boolean });
@@ -61,13 +91,14 @@ const ShoppingListDetailScreen = () => {
         }
       } catch (error) {
         console.error("Error fetching shopping list:", error);
+        Alert.alert("Error", "Failed to load shopping list details");
       } finally {
         setLoading(false);
       }
     };
 
     fetchShoppingList();
-  }, [id]);
+  }, [id, currentUserId]);
 
   useEffect(() => {
     if (shoppingList) {
@@ -79,7 +110,7 @@ const ShoppingListDetailScreen = () => {
 
   const handleCheck = useCallback(
     async (itemId: string) => {
-      if (!shoppingList) return;
+      if (!shoppingList || !currentUserId) return;
 
       try {
         const newCheckedState = !checkedItems[itemId];
@@ -99,17 +130,36 @@ const ShoppingListDetailScreen = () => {
         );
       } catch (error) {
         console.error("Error updating checkbox:", error);
+        Alert.alert("Error", "Failed to update item status");
       }
     },
-    [shoppingList, checkedItems, id]
+    [shoppingList, checkedItems, id, currentUserId]
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (unauthorized) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>
+          You don't have permission to view this shopping list
+        </Text>
+      </View>
+    );
   }
 
   if (!shoppingList) {
-    return <Text style={styles.errorText}>Shopping list not found</Text>;
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>Shopping list not found</Text>
+      </View>
+    );
   }
 
   return (
@@ -169,6 +219,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#f8f9fa",
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   title: {
     fontSize: 26,

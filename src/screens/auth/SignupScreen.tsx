@@ -92,6 +92,9 @@ const SignupScreen = () => {
         secureTextEntry
         style={styles.input}
       />
+        <Text style={styles.passwordHint}>
+          Password must be 6-30 characters, including uppercase, lowercase letters, and numbers.
+        </Text>
       <TextInput
         placeholder="Confirm Password"
         value={confirmPassword}
@@ -126,7 +129,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderColor: "gray",
     borderWidth: 1,
-    marginBottom: 12,
+    marginTop: 12,
     paddingHorizontal: 8,
     borderRadius: 12,
   },
@@ -141,6 +144,11 @@ const styles = StyleSheet.create({
   smallButtonText: {
     fontSize: 14,
     color: "#007AFF",
+  },
+  passwordHint: {
+    marginLeft: 6,
+    fontSize: 12,
+    color: "#666", 
   },
 });
 
