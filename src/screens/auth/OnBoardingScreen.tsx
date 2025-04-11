@@ -41,13 +41,13 @@ const onboardingData: OnboardingItem[] = [
       id: '3',
       title: 'Smart Comparisons 🆚',
       description: 'Compare prices across different stores with automatic unit conversions',
-      image: 'https://via.placeholder.com/300',
+      image: require('../../../assets/WechatIMG137.jpg'),
     },
     {
       id: '4',
       title: 'Shopping Lists 🛒',
       description: 'Create and manage your grocery lists in one place',
-      image: 'https://via.placeholder.com/300',
+      image: require('../../../assets/WechatIMG136.jpg'),
     }
   ]
 
