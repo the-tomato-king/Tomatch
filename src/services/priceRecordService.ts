@@ -35,17 +35,9 @@ export const createPriceRecord = async (
   data: BasePriceRecord
 ): Promise<string> => {
   try {
-    // calculate standard unit price
-    const standardUnitPrice = UnitConverter.calculateStandardPrice(
-      parseFloat(data.original_price),
-      parseFloat(data.original_quantity),
-      data.original_unit
-    ).toString();
-
     const priceRecordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
     const newRecordId = await createDoc(priceRecordPath, {
       ...data,
-      standard_unit_price: standardUnitPrice,
       recorded_at: new Date(),
     });
 
@@ -74,28 +66,6 @@ export const updatePriceRecord = async (
   data: Partial<BasePriceRecord>
 ): Promise<boolean> => {
   try {
-    // if updated price related fields, recalculate standard unit price
-    if (
-      data.original_price !== undefined ||
-      data.original_quantity !== undefined ||
-      data.original_unit !== undefined
-    ) {
-      const record = await getPriceRecord(userId, recordId);
-      if (!record) {
-        throw new Error("Record not found");
-      }
-
-      const price = data.original_price || record.original_price;
-      const quantity = data.original_quantity || record.original_quantity;
-      const unit = data.original_unit || record.original_unit;
-
-      data.standard_unit_price = UnitConverter.calculateStandardPrice(
-        parseFloat(price),
-        parseFloat(quantity),
-        unit
-      ).toString();
-    }
-
     const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
     return await updateOneDocInDB(recordPath, recordId, {
       ...data,

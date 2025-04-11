@@ -57,6 +57,7 @@ import {
 import { updateUserProductStats } from "../../services/userProductService";
 import { getUserProductById } from "../../services/userProductService";
 import { getUserStoreById } from "../../services/userStoreService";
+import { UnitConverter } from "../../utils/unitConverter";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -473,16 +474,18 @@ const AddRecordScreen = () => {
     userId: string,
     userProductId: string,
     numericPrice: number,
-    photoUrl: string
+    photoUrl: string,
+    standardUnitPrice: number
   ) => {
     if (isEditMode && recordId) {
       // Update existing record
       const updatedRecord = {
         original_price: numericPrice.toString(),
-        original_quantity: unitValue || "1", // if no quantity, default to 1
+        original_quantity: unitValue || "1",
         original_unit: unitType as Unit,
         photo_url: photoUrl || "",
         store_id: selectedStore!.id,
+        standard_unit_price: standardUnitPrice.toString(),
       };
 
       const success = await updatePriceRecord(userId, recordId, updatedRecord);
@@ -493,11 +496,11 @@ const AddRecordScreen = () => {
         user_product_id: userProductId,
         store_id: selectedStore!.id,
         original_price: numericPrice.toString(),
-        original_quantity: unitValue || "1", // if no quantity, default to 1
+        original_quantity: unitValue || "1",
         original_unit: unitType as Unit,
-        standard_unit_price: "", // will be calculated in service
+        standard_unit_price: standardUnitPrice.toString(),
         photo_url: photoUrl,
-        currency: "$", // TODO: Get from user settings
+        currency: "$",
         recorded_at: new Date(),
       };
 
@@ -510,7 +513,8 @@ const AddRecordScreen = () => {
   const updateProductStats = async (
     userId: string,
     userProductId: string,
-    numericPrice: number
+    numericPrice: number,
+    standardUnitPrice: number
   ) => {
     return await updateUserProductStats(
       userId,
@@ -520,7 +524,8 @@ const AddRecordScreen = () => {
         id: selectedStore!.id,
         name: selectedStore!.name,
       },
-      unitType === "each" ? "count" : "measurable" // measurement type depends on unit type
+      unitType === "each" ? "count" : "measurable",
+      standardUnitPrice
     );
   };
 
@@ -573,21 +578,30 @@ const AddRecordScreen = () => {
         return;
       }
 
+      // 获取标准化价格
+      const standardUnitPrice = UnitConverter.calculateStandardPrice(
+        numericPrice,
+        parseFloat(unitValue || "1"),
+        unitType as Unit
+      );
+
       // Save price record
       const { success, recordId } = await savePriceRecord(
         userId as string,
         userProductId as string,
         numericPrice,
-        photoUrl
+        photoUrl,
+        standardUnitPrice
       );
 
       if (success) {
-        // Update product stats (skip in edit mode)
+        // 更新产品统计数据
         if (!isEditMode) {
           await updateProductStats(
             userId as string,
             userProductId as string,
-            numericPrice
+            numericPrice,
+            standardUnitPrice
           );
         }
 

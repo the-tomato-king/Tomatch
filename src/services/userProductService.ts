@@ -349,6 +349,7 @@ export const findUserProductByLibraryId = async (
  * @param {number} newPrice - The new price to include in statistics
  * @param {object} store - The store information
  * @param {MeasurementType} measurementType - The type of measurement (measurable or count)
+ * @param {number} standardUnitPrice - The standard unit price for the measurement type
  * @returns {Promise<boolean>} - Whether the update was successful
  */
 export const updateUserProductStats = async (
@@ -356,7 +357,8 @@ export const updateUserProductStats = async (
   productId: string,
   newPrice: number,
   store: { id: string; name: string },
-  measurementType: MeasurementType
+  measurementType: MeasurementType,
+  standardUnitPrice: number
 ): Promise<boolean> => {
   const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
   const userProductRef = doc(db, userProductPath, productId);
@@ -377,14 +379,16 @@ export const updateUserProductStats = async (
     };
 
     // Calculate new stats
-    const newTotalPrice = (currentStats.total_price || 0) + newPrice;
+    const newTotalPrice = (currentStats.total_price || 0) + standardUnitPrice;
     const newTotalRecords = (currentStats.total_price_records || 0) + 1;
     const newAveragePrice = newTotalPrice / newTotalRecords;
 
     const isLowestPrice =
-      !currentStats.lowest_price || newPrice < currentStats.lowest_price;
+      !currentStats.lowest_price ||
+      standardUnitPrice < currentStats.lowest_price;
     const isHighestPrice =
-      !currentStats.highest_price || newPrice > currentStats.highest_price;
+      !currentStats.highest_price ||
+      standardUnitPrice > currentStats.highest_price;
 
     // Update measurement types array if needed
     const measurementTypes = existingProduct.measurement_types || [];
@@ -396,8 +400,12 @@ export const updateUserProductStats = async (
     const newStats: PriceStatistics = {
       total_price: newTotalPrice,
       average_price: newAveragePrice,
-      lowest_price: isLowestPrice ? newPrice : currentStats.lowest_price,
-      highest_price: isHighestPrice ? newPrice : currentStats.highest_price,
+      lowest_price: isLowestPrice
+        ? standardUnitPrice
+        : currentStats.lowest_price,
+      highest_price: isHighestPrice
+        ? standardUnitPrice
+        : currentStats.highest_price,
       lowest_price_store: isLowestPrice
         ? { store_id: store.id, store_name: store.name }
         : currentStats.lowest_price_store,
