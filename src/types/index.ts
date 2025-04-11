@@ -82,6 +82,7 @@ export interface BaseUserProduct {
     measurable?: PriceStatistics;
     count?: PriceStatistics;
   };
+  display_preference?: "measurable" | "count" | undefined;
 
   created_at: Date;
   updated_at: Date;

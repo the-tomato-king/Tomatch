@@ -32,6 +32,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import StoreLogo from "../../components/StoreLogo";
 import { StoreBrand } from "../../types";
 import { useAuth } from "../../contexts/AuthContext";
+import { UNITS } from "../../constants/units";
 
 type StoreDetailRouteProp = RouteProp<StoreStackParamList, "StoreDetail">;
 type StoreDetailNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
@@ -111,7 +112,7 @@ const StoreDetailScreen = () => {
             user_product_id: data.user_product_id,
             store_id: data.store_id,
             price: data.price || 0,
-            unit_type: data.unit_type || "each",
+            unit_type: data.unit_type || UNITS.COUNT.EACH,
             recorded_at: data.recorded_at?.toDate() || new Date(),
           };
 

@@ -36,26 +36,59 @@ import LoadingLogo from "../../components/loading/LoadingLogo";
 import ProductImage from "../../components/ProductImage";
 import { colors } from "../../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
-import { getProductById } from "../../services/productLibraryService";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { formatRecordDateTime } from "../../utils/dateUtils";
-import { listenToUserProduct } from "../../services/userProductService";
+import {
+  listenToUserProduct,
+  updateUserProductDisplayPreference,
+} from "../../services/userProductService";
+import { UNITS } from "../../constants/units";
+import { useUserPreference } from "../../hooks/useUserPreference";
+import { PriceDisplay } from "../../components/PriceDisplay";
 
 type ProductDetailRouteProp = RouteProp<HomeStackParamList, "ProductDetail">;
 type ProductDetailScreenNavigationProp =
   NativeStackNavigationProp<HomeStackParamList>;
+
+const PriceToggle = ({
+  showMeasurablePrice,
+  onToggle,
+  hasMeasurable,
+  hasCount,
+}: {
+  showMeasurablePrice: boolean;
+  onToggle: () => void;
+  hasMeasurable: boolean;
+  hasCount: boolean;
+}) => {
+  if (!hasMeasurable || !hasCount) return null;
+
+  return (
+    <TouchableOpacity style={styles.toggleButton} onPress={onToggle}>
+      <Text style={styles.toggleText}>
+        {showMeasurablePrice ? "Show Unit Price" : "Show Weight Price"}
+      </Text>
+    </TouchableOpacity>
+  );
+};
 
 const ProductDetailScreen = () => {
   const route = useRoute<ProductDetailRouteProp>();
   const { productId, userProductId } = route.params;
   const navigation = useNavigation<ProductDetailScreenNavigationProp>();
   const { userId } = useAuth();
+  const { preferences } = useUserPreference(userId!);
 
   const [loading, setLoading] = useState(true);
   const [userProduct, setUserProduct] = useState<UserProduct | null>(null);
   const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([]);
   const [productExists, setProductExists] = useState(true);
+  const [showMeasurablePrice, setShowMeasurablePrice] = useState<boolean>(
+    () => {
+      return userProduct?.display_preference !== "count";
+    }
+  );
 
   useEffect(() => {
     const unsubscribe = listenToUserProduct(
@@ -133,6 +166,25 @@ const ProductDetailScreen = () => {
     return () => unsubscribe();
   }, [userId, userProductId]);
 
+  useEffect(() => {
+    if (userProduct?.display_preference) {
+      setShowMeasurablePrice(userProduct.display_preference === "measurable");
+    }
+  }, [userProduct?.display_preference]);
+
+  const handleToggleDisplay = async () => {
+    const newValue = !showMeasurablePrice;
+    setShowMeasurablePrice(newValue);
+
+    if (userId && userProductId) {
+      await updateUserProductDisplayPreference(
+        userId,
+        userProductId,
+        newValue ? "measurable" : "count"
+      );
+    }
+  };
+
   if (loading) {
     return <LoadingLogo />;
   }
@@ -163,6 +215,10 @@ const ProductDetailScreen = () => {
     return <LoadingLogo />;
   }
 
+  const hasMeasurable = userProduct.measurement_types.includes("measurable");
+  const hasCount = userProduct.measurement_types.includes("count");
+  const canToggle = hasMeasurable && hasCount;
+
   return (
     <View style={styles.container}>
       {/* Product Information */}
@@ -184,21 +240,36 @@ const ProductDetailScreen = () => {
                 <Text style={styles.category}>{userProduct.category}</Text>
               </View>
             </View>
-            <View style={styles.priceContainer}>
-              <Text style={styles.priceValue}>
-                $
-                {userProduct?.measurement_types?.includes("count")
-                  ? userProduct?.price_statistics?.count?.average_price || 0
-                  : userProduct?.price_statistics?.measurable?.average_price ||
-                    0}
-              </Text>
-              <Text style={styles.priceUnit}>
-                /
-                {userProduct?.measurement_types?.includes("count")
-                  ? "ea"
-                  : "lb"}
-              </Text>
-              <Text style={styles.priceLabel}>Average</Text>
+            <View style={styles.priceSection}>
+              <View style={styles.priceDisplay}>
+                <PriceDisplay
+                  standardPrice={
+                    showMeasurablePrice
+                      ? userProduct?.price_statistics?.measurable
+                          ?.average_price || 0
+                      : userProduct?.price_statistics?.count?.average_price || 0
+                  }
+                  style={styles.priceValue}
+                  measurementType={userProduct.display_preference}
+                />
+                <Text style={styles.priceUnit}>
+                  /{showMeasurablePrice ? preferences?.unit || "kg" : "ea"}
+                </Text>
+              </View>
+              {canToggle && (
+                <View style={styles.priceHeader}>
+                  <TouchableOpacity
+                    style={styles.toggleButton}
+                    onPress={handleToggleDisplay}
+                  >
+                    <Text style={styles.toggleText}>
+                      {showMeasurablePrice
+                        ? "Show Unit Price"
+                        : "Show Weight Price"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -213,12 +284,37 @@ const ProductDetailScreen = () => {
               />
             </View>
             <View style={styles.priceRangeLabels}>
-              <Text style={[styles.minMaxPrice, { color: "#4CAF50" }]}>
-                ${userProduct?.price_statistics?.measurable?.lowest_price || 0}
-              </Text>
-              <Text style={[styles.minMaxPrice, { color: "#F44336" }]}>
-                ${userProduct?.price_statistics?.measurable?.highest_price || 0}
-              </Text>
+              {userProduct.display_preference === "count" ? (
+                <>
+                  <PriceDisplay
+                    standardPrice={
+                      userProduct?.price_statistics?.count?.lowest_price
+                    }
+                    style={[styles.minMaxPrice, { color: "#4CAF50" }]}
+                  />
+                  <PriceDisplay
+                    standardPrice={
+                      userProduct?.price_statistics?.count?.highest_price
+                    }
+                    style={[styles.minMaxPrice, { color: "#F44336" }]}
+                  />
+                </>
+              ) : (
+                <>
+                  <PriceDisplay
+                    standardPrice={
+                      userProduct?.price_statistics?.measurable?.lowest_price
+                    }
+                    style={[styles.minMaxPrice, { color: "#4CAF50" }]}
+                  />
+                  <PriceDisplay
+                    standardPrice={
+                      userProduct?.price_statistics?.measurable?.highest_price
+                    }
+                    style={[styles.minMaxPrice, { color: "#F44336" }]}
+                  />
+                </>
+              )}
             </View>
           </View>
         </View>
@@ -304,28 +400,49 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.white,
   },
-  priceContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 10,
+  priceSection: {
+    marginTop: 16,
   },
-  priceLabel: {
-    flex: 1,
-    textAlign: "right",
-    marginRight: 10,
+  priceHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  priceTitle: {
     fontSize: 14,
     color: colors.secondaryText,
+  },
+  toggleButton: {
+    backgroundColor: colors.lightGray2,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  toggleText: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: "500",
+  },
+  priceDisplay: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  currencySymbol: {
+    fontSize: 20,
+    color: colors.primary,
+    fontWeight: "600",
   },
   priceValue: {
-    fontSize: 25,
-    fontWeight: "bold",
+    fontSize: 32,
     color: colors.primary,
-    marginRight: 10,
+    fontWeight: "bold",
+    marginLeft: 2,
   },
   priceUnit: {
-    fontSize: 14,
+    fontSize: 16,
     color: colors.secondaryText,
+    marginLeft: 4,
   },
   priceRangeSection: {
     backgroundColor: colors.white,

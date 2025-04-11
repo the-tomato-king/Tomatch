@@ -9,7 +9,6 @@ import { db } from "../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../constants/firebase";
 import { doc, getDoc, addDoc, collection } from "firebase/firestore";
 import { createDoc, updateOneDocInDB } from "./firebase/firebaseHelper";
-import { UnitConverter } from "../utils/unitConverter";
 
 /**
  * Creates a new price record for a user

@@ -57,7 +57,7 @@ import {
 import { updateUserProductStats } from "../../services/userProductService";
 import { getUserProductById } from "../../services/userProductService";
 import { getUserStoreById } from "../../services/userStoreService";
-import { UnitConverter } from "../../utils/unitConverter";
+import { calculateStandardPrice } from "../../utils/unitConverter";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -524,7 +524,7 @@ const AddRecordScreen = () => {
         id: selectedStore!.id,
         name: selectedStore!.name,
       },
-      unitType === "each" ? "count" : "measurable",
+      unitType === UNITS.COUNT.EACH ? "count" : "measurable",
       standardUnitPrice
     );
   };
@@ -578,8 +578,8 @@ const AddRecordScreen = () => {
         return;
       }
 
-      // 获取标准化价格
-      const standardUnitPrice = UnitConverter.calculateStandardPrice(
+      // calculate standard unit price
+      const standardUnitPrice = calculateStandardPrice(
         numericPrice,
         parseFloat(unitValue || "1"),
         unitType as Unit
@@ -595,7 +595,7 @@ const AddRecordScreen = () => {
       );
 
       if (success) {
-        // 更新产品统计数据
+        // update product stats
         if (!isEditMode) {
           await updateProductStats(
             userId as string,

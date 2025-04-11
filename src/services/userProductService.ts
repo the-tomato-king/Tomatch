@@ -412,10 +412,15 @@ export const updateUserProductStats = async (
       total_price_records: newTotalRecords,
     };
 
+    // if the first record, set the display preference
+    const isFirstRecord = currentStats.total_price_records === 0;
+
     // Prepare the update data
     const updateData = {
       [`price_statistics.${measurementType}`]: newStats,
       measurement_types: measurementTypes,
+      // only set the display preference if it's the first record
+      ...(isFirstRecord && { display_preference: measurementType }),
       updated_at: new Date(),
     };
 
@@ -423,4 +428,24 @@ export const updateUserProductStats = async (
     return true;
   }
   return false;
+};
+
+/**
+ * Updates the display preference of a user product
+ * @param {string} userId - The ID of the user
+ * @param {string} productId - The ID of the product
+ * @param {string} preference - The display preference ("measurable" or "count")
+ * @returns {Promise<void>}
+ */
+export const updateUserProductDisplayPreference = async (
+  userId: string,
+  productId: string,
+  preference: "measurable" | "count"
+): Promise<void> => {
+  const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+
+  await updateOneDocInDB(userProductPath, productId, {
+    display_preference: preference,
+    updated_at: new Date(),
+  });
 };

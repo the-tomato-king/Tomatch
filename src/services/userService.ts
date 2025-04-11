@@ -2,6 +2,7 @@ import { db } from "../services/firebase/firebaseConfig";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { BaseUser, User } from "../types";
 import { COLLECTIONS } from "../constants/firebase";
+import { UNITS } from "../constants/units";
 
 // Create a new user document
 export const createUserDocument = async (
@@ -28,7 +29,7 @@ export const createUserDocument = async (
         province: "",
         city: "",
       },
-      preferred_unit: "each",
+      preferred_unit: UNITS.WEIGHT.KG,
       preferred_currency: "USD",
       created_at: new Date(),
       updated_at: new Date(),
