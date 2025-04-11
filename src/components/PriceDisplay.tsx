@@ -17,7 +17,7 @@ export function PriceDisplay({
 
   if (standardPrice === undefined) return null;
 
-  // 只有 measurable 类型才需要转换
+  // only convert to preferred unit on measurable type
   const displayPrice =
     measurementType === "measurable"
       ? convertToPreferredUnit(standardPrice)

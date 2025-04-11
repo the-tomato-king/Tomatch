@@ -27,6 +27,7 @@ import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { deletePriceRecordAndUpdateStats } from "../../services/priceRecordService";
 type PriceRecordInformationRouteProp = RouteProp<
   HomeStackParamList,
   "PriceRecordInformation"
@@ -213,86 +214,15 @@ const PriceRecordInformationScreen = () => {
             text: "Delete",
             style: "destructive",
             onPress: async () => {
+              if (!userId) {
+                console.error("User ID is not available");
+                return;
+              }
               try {
-                // 1. Get user product
-                const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-                const userProduct = await readOneDoc<UserProduct>(
-                  userProductPath,
-                  record.user_product_id
+                const success = await deletePriceRecordAndUpdateStats(
+                  userId,
+                  recordId
                 );
-
-                if (!userProduct) {
-                  console.error("User product not found");
-                  return;
-                }
-
-                const newTotalRecords =
-                  userProduct.price_statistics.measurable
-                    ?.total_price_records! - 1;
-                const newTotalPrice =
-                  userProduct.price_statistics.measurable?.total_price! -
-                  parseFloat(record.original_price);
-
-                // 2. If this is the last record
-                if (newTotalRecords === 0) {
-                  // Delete user product
-                  await deleteOneDocFromDB(
-                    userProductPath,
-                    record.user_product_id
-                  );
-                } else {
-                  // 3. Update user product stats
-                  // Get all remaining records to recalculate min/max
-                  const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-                  const recordsQuery = query(
-                    collection(db, recordsPath),
-                    where("user_product_id", "==", record.user_product_id)
-                  );
-                  const recordsSnapshot = await getDocs(recordsQuery);
-
-                  let lowestPrice = Infinity;
-                  let highestPrice = -Infinity;
-                  let lowestPriceStore =
-                    userProduct.price_statistics.measurable?.lowest_price_store;
-
-                  recordsSnapshot.docs.forEach((doc) => {
-                    const recordData = doc.data();
-                    if (doc.id !== recordId) {
-                      // Skip current record
-                      if (recordData.price < lowestPrice) {
-                        lowestPrice = recordData.price;
-                        lowestPriceStore = {
-                          store_id: recordData.store_id,
-                          store_name: store?.name || "",
-                        };
-                      }
-                      if (recordData.price > highestPrice) {
-                        highestPrice = recordData.price;
-                      }
-                    }
-                  });
-
-                  const updatedUserProduct = {
-                    total_price: newTotalPrice,
-                    average_price: newTotalPrice / newTotalRecords,
-                    lowest_price: lowestPrice,
-                    highest_price: highestPrice,
-                    lowest_price_store: lowestPriceStore,
-                    total_price_records: newTotalRecords,
-                    updated_at: new Date(),
-                  };
-
-                  await updateOneDocInDB(
-                    userProductPath,
-                    record.user_product_id,
-                    updatedUserProduct
-                  );
-                }
-
-                // 4. Delete the price record
-                const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-                const success = await deleteOneDocFromDB(recordPath, recordId);
-
                 if (success) {
                   Alert.alert("Success", "Record deleted successfully");
                   navigation.goBack();

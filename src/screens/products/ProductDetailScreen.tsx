@@ -296,12 +296,14 @@ const ProductDetailScreen = () => {
                       userProduct?.price_statistics?.count?.lowest_price
                     }
                     style={[styles.minMaxPrice, { color: "#4CAF50" }]}
+                    measurementType="count"
                   />
                   <PriceDisplay
                     standardPrice={
                       userProduct?.price_statistics?.count?.highest_price
                     }
                     style={[styles.minMaxPrice, { color: "#F44336" }]}
+                    measurementType="count"
                   />
                 </>
               ) : (

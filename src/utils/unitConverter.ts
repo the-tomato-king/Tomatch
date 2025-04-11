@@ -41,10 +41,7 @@ export function convertFromStandard(
   targetUnit: string
 ): number {
   // if the unit is count unit, return the standard value
-  if (
-    targetUnit.toUpperCase() === UNITS.COUNT.EACH ||
-    targetUnit.toUpperCase() === UNITS.COUNT.PACK
-  ) {
+  if (isCountUnit(targetUnit)) {
     return standardValue;
   }
 
@@ -52,8 +49,7 @@ export function convertFromStandard(
   if (!rate) {
     throw new Error(`Unsupported unit: ${targetUnit}`);
   }
-
-  return Number((standardValue / rate).toFixed(2));
+  return Number((standardValue * rate).toFixed(2));
 }
 
 // format price display

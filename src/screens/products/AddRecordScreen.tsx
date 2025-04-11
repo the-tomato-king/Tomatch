@@ -118,20 +118,34 @@ const AddRecordScreen = () => {
               setImage(recordData.photo_url);
             }
 
-            if (recordData.user_product_id) {
-              const userProductData = await getUserProductById(
-                userId,
-                recordData.user_product_id
-              );
+if (recordData.user_product_id) {
+  const userProductData = await getUserProductById(
+    userId,
+    recordData.user_product_id
+  );
 
-              if (userProductData && userProductData.product_id) {
-                const productData = getProductById(userProductData.product_id);
+              if (userProductData) {
+                // set product name
+                setProductState({
+                  selectedProduct: null, // set null if need library product
+                  productName: userProductData.name, // use user product name directly
+                });
 
-                if (productData) {
-                  setProductState({
-                    selectedProduct: productData,
-                    productName: productData.name,
-                  });
+                // if has product_id, try to get library product
+                if (userProductData.product_id) {
+                  try {
+                    const productData = await getProductById(
+                      userProductData.product_id
+                    );
+                    if (productData) {
+                      setProductState((prev) => ({
+                        selectedProduct: productData,
+                        productName: productData.name,
+                      }));
+                    }
+                  } catch (error) {
+                    console.error("Error loading library product:", error);
+                  }
                 }
               }
             }
