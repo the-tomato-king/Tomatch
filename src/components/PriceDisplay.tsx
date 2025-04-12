@@ -1,11 +1,13 @@
 import React from "react";
 import { Text, StyleProp, TextStyle } from "react-native";
 import { useUnitDisplay } from "../hooks/useUnitDisplay";
+import { useUserPreference } from "../hooks/useUserPreference";
+import { useAuth } from "../contexts/AuthContext";
 
 interface PriceDisplayProps {
   standardPrice: number | undefined;
   style?: StyleProp<TextStyle>;
-  measurementType?: "measurable" | "count"; // 添加这个参数来区分类型
+  measurementType?: "measurable" | "count";
 }
 
 export function PriceDisplay({
@@ -13,9 +15,11 @@ export function PriceDisplay({
   style,
   measurementType = "measurable",
 }: PriceDisplayProps) {
+  const { userId } = useAuth();
   const { convertToPreferredUnit } = useUnitDisplay();
+  const { preferences, getCurrencySymbol } = useUserPreference(userId!);
 
-  if (standardPrice === undefined) return null;
+  if (standardPrice === undefined || !preferences) return null;
 
   // only convert to preferred unit on measurable type
   const displayPrice =
@@ -23,5 +27,10 @@ export function PriceDisplay({
       ? convertToPreferredUnit(standardPrice)
       : standardPrice;
 
-  return <Text style={style}>${displayPrice.toFixed(2)}</Text>;
+  return (
+    <Text style={style}>
+      {getCurrencySymbol(preferences.currency)}
+      {displayPrice.toFixed(2)}
+    </Text>
+  );
 }
