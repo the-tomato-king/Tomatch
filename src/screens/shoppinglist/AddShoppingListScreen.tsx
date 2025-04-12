@@ -48,8 +48,8 @@ const AddShoppingListScreen = () => {
   const [itemName, setItemName] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("1");
   const [shoppingTime, setShoppingTime] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
-  const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
+  const [showDateTimePicker, setShowDateTimePicker] = useState<boolean>(false);
+  const [pickerMode, setPickerMode] = useState<"date" | "time">("date");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedLocation, setSelectedLocation] =
     useState<StoreLocation | null>(null);
@@ -88,62 +88,74 @@ const AddShoppingListScreen = () => {
       }
     };
     requestPermissions();
-
-    // ONLY add these listeners if you need to respond to notifications
-    // while the app is open - they can be moved to a separate component
-    // or commented out during development
-    /*
-    const subscription = Notifications.addNotificationReceivedListener(notification => {
-      console.log('Notification received:', notification);
-    });
-    
-    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log('Notification response received:', response);
-    });
-  
-    return () => {
-      subscription.remove();
-      responseSubscription.remove();
-    };
-    */
   }, []);
 
-  // Function to handle opening date picker
-  const handleOpenDatePicker = (type: "date" | "time") => {
+  // Function to handle opening date-time picker
+  const handleOpenDateTimePicker = () => {
     if (Platform.OS === "android") {
-      if (type === "date") {
-        DateTimePickerAndroid.open({
-          mode: "date",
-          is24Hour: true,
-          value: shoppingTime || new Date(),
-          onChange: (event, selectedDate) => {
-            if (event.type === "set" && selectedDate) {
-              setShoppingTime(selectedDate);
-            } else {
-              console.log("User canceled the date picker.");
-            }
-          },
-        });
-      } else if (type === "time") {
-        DateTimePickerAndroid.open({
-          mode: "time",
-          is24Hour: true,
-          value: shoppingTime || new Date(),
-          onChange: (event, selectedDate) => {
-            if (event.type === "set" && selectedDate) {
-              setShoppingTime(selectedDate);
-            } else {
-              console.log("User canceled the time picker.");
-            }
-          },
-        });
+      // For Android, open date picker first
+      DateTimePickerAndroid.open({
+        mode: "date",
+        is24Hour: true,
+        value: shoppingTime || new Date(),
+        onChange: (event, selectedDate) => {
+          if (event.type === "set" && selectedDate) {
+            // Save the date part
+            const newDateTime = selectedDate;
+            
+            // Then open time picker
+            DateTimePickerAndroid.open({
+              mode: "time",
+              is24Hour: true,
+              value: newDateTime,
+              onChange: (timeEvent, selectedTime) => {
+                if (timeEvent.type === "set" && selectedTime) {
+                  setShoppingTime(selectedTime);
+                }
+              }
+            });
+          }
+        },
+      });
+    } else {
+      // For iOS, we'll use a sequence approach with our existing picker
+      setPickerMode("date");
+      setShowDateTimePicker(true);
+    }
+  };
+
+  // iOS picker mode change handler
+  const handleDateTimePickerChange = (event: any, selectedValue: Date | undefined) => {
+    if (event.type === "dismissed") {
+      setShowDateTimePicker(false);
+      return;
+    }
+    
+    if (selectedValue) {
+      if (pickerMode === "date") {
+        // If in date mode, save the date and switch to time mode
+        const currentTime = shoppingTime || new Date();
+        const newDate = new Date(selectedValue);
+        newDate.setHours(currentTime.getHours(), currentTime.getMinutes());
+        setShoppingTime(newDate);
+        
+        // Switch to time mode
+        setPickerMode("time");
+      } else {
+        // If in time mode, combine with existing date and save
+        if (shoppingTime) {
+          const finalDateTime = new Date(shoppingTime);
+          finalDateTime.setHours(selectedValue.getHours(), selectedValue.getMinutes());
+          setShoppingTime(finalDateTime);
+        } else {
+          setShoppingTime(selectedValue);
+        }
+        
+        // Close the picker
+        setShowDateTimePicker(false);
       }
     } else {
-      if (type === "date") {
-        setShowDatePicker(true);
-      } else {
-        setShowTimePicker(true);
-      }
+      setShowDateTimePicker(false);
     }
   };
 
@@ -209,7 +221,7 @@ const AddShoppingListScreen = () => {
       const identifier = await Notifications.scheduleNotificationAsync({
         content: {
           title: "Shopping Reminder 🛒",
-          body: `Don't forget to go shopping today! (${shoppingTime.toLocaleTimeString()})`,
+          body: `Don't forget to go shopping today! (${shoppingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`,
           sound: "default",
           data: {
             type: "shopping_reminder",
@@ -318,6 +330,15 @@ const AddShoppingListScreen = () => {
     });
   }, [navigation, listName, shoppingItems, shoppingTime, selectedLocation]);
 
+  // Format date and time for display
+  const formatShoppingDateTime = () => {
+    if (!shoppingTime) return "Select Shopping Date & Time";
+    
+    const dateStr = shoppingTime.toLocaleDateString();
+    const timeStr = shoppingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `${dateStr} at ${timeStr}`;
+  };
+
   return (
     <View style={styles.container}>
       {/* Shopping List Name */}
@@ -357,7 +378,9 @@ const AddShoppingListScreen = () => {
             onChangeText={setQuantity}
           />
         </View>
-        <Button title="Add" onPress={handleAddItem} />
+        <TouchableOpacity onPress={handleAddItem} style={styles.smallButton}>
+          <Text style={styles.smallButtonText}>+</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Product List */}
@@ -373,61 +396,25 @@ const AddShoppingListScreen = () => {
         )}
       />
 
-      {/* Expected Shopping Time Picker */}
-      <View style={styles.timePicker}>
+      {/* Combined Date/Time Picker Button */}
+      <View style={styles.dateTimePickerContainer}>
         <TouchableOpacity
-          onPress={() => handleOpenDatePicker("date")}
-          style={styles.selectLocationButton}
+          onPress={handleOpenDateTimePicker}
+          style={styles.dateTimePickerButton}
         >
-          <Text style={styles.selectLocationText}>
-            {shoppingTime
-              ? shoppingTime.toLocaleDateString()
-              : "Select Shopping Date"}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => handleOpenDatePicker("time")}
-          style={styles.selectLocationButton}
-        >
-          <Text style={styles.selectLocationText}>
-            {shoppingTime
-              ? shoppingTime.toLocaleTimeString()
-              : "Select Shopping Time"}
+          <Text style={styles.dateTimePickerText}>
+            {formatShoppingDateTime()}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* DateTime Picker for iOS (Date and Time separately) */}
-      {showDatePicker && (
+      {/* DateTime Picker for iOS (Date and Time sequentially) */}
+      {Platform.OS === "ios" && showDateTimePicker && (
         <DateTimePicker
           value={shoppingTime || new Date()}
-          mode="date"
+          mode={pickerMode}
           display="spinner"
-          onChange={(event, selectedDate) => {
-            setShowDatePicker(false);
-            if (event.type === "set" && selectedDate) {
-              setShoppingTime(selectedDate);
-            } else {
-              console.log("User canceled the date picker.");
-            }
-          }}
-        />
-      )}
-
-      {showTimePicker && (
-        <DateTimePicker
-          value={shoppingTime || new Date()}
-          mode="time"
-          display="spinner"
-          onChange={(event, selectedDate) => {
-            setShowTimePicker(false);
-            if (event.type === "set" && selectedDate) {
-              setShoppingTime(selectedDate);
-            } else {
-              console.log("User canceled the time picker.");
-            }
-          }}
+          onChange={handleDateTimePickerChange}
         />
       )}
 
@@ -494,15 +481,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 20,
   },
-  timePicker: {
-    flexDirection: "row",
+  dateTimePickerContainer: {
+    marginVertical: 15,
     alignItems: "center",
-    justifyContent: "center",
+  },
+  dateTimePickerButton: {
+    flexDirection: "row",
+    backgroundColor: "#f0f8ff",
+    alignItems:"center",
+    justifyContent:"center",
+    borderRadius: 5,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#d0e0f0",
+    width:"90%"
+  },
+  dateTimePickerText: {
+    color: "#1a73e8",
+    fontSize: 16,
+    fontWeight: "500",
   },
   locationContainer: {
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    minWidth: 250,
+    alignItems: "center",
   },
   sectionTitle: {
     fontSize: 16,
@@ -510,13 +514,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   selectLocationButton: {
-    padding: 12,
+    flexDirection: "row",
+    backgroundColor: "#f0f8ff",
+    alignItems:"center",
+    justifyContent:"center",
     borderRadius: 5,
-    alignItems: "center",
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#d0e0f0",
+    width:"100%"
   },
   selectLocationText: {
     color: "#1a73e8",
     fontSize: 16,
+    fontWeight: "500",
   },
   selectedLocationContainer: {
     flexDirection: "row",
@@ -548,5 +559,14 @@ const styles = StyleSheet.create({
   changeLocationText: {
     color: "#333",
     fontWeight: "bold",
+  },
+  smallButton: {
+    marginLeft:10,
+    alignSelf: "center",
+  },
+  smallButtonText: {
+    fontSize: 24,
+    fontWeight:"bold",
+    color: "#007AFF",
   },
 });
