@@ -310,14 +310,6 @@ const SettingPage = () => {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={navigateToEditProfile}
-          >
-            <Text style={styles.settingLabel}>Edit Profile</Text>
-            <Text style={styles.chevron}>{">"}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.settingItem}
             onPress={navigateToChangePassword}
           >
             <Text style={styles.settingLabel}>Change Password</Text>
