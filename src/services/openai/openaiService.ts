@@ -24,29 +24,52 @@ export const analyzeReceiptImage = async (
           content: `You are a receipt analyzer that extracts product information. 
 
 Product Name Rules:
-1. Extract the most general/basic form of the product name
-2. Remove brand names, origins, and descriptive modifiers unless they're essential
-3. Use singular form unless it's naturally plural
+1. Keep ONLY attributes that affect pricing:
+   - Processing type (e.g., Boneless, Sliced)
+   - Certification (e.g., Organic)
+   - Size grade (e.g., Large, Extra Large)
+   - Variety if price differs (e.g., Russet Potato vs Sweet Potato)
+2. Remove marketing terms that don't affect price:
+   - Fresh, Premium, Natural, Finest, Select
+   - Brand names unless it's a packaged product
+3. For packaged items, include quantity in parentheses
+
 Examples:
-- "Fresh Ontario Wild Blueberries" -> "Wild Blueberry" or "Blueberry" (no plural)
-- "Organic Gala Apples" -> "Apple"
-- "Kirkland Signature Greek Yogurt" -> "Greek Yogurt"
-- "Local Farm Fresh Eggs" -> "Egg"
+- "Fresh Premium Boneless Skinless Chicken Breast" -> "Boneless Skinless Chicken Breast"
+- "Organic Large Brown Eggs" -> "Organic Large Brown Egg"
+- "Farm Fresh Large White Eggs" -> "Large White Egg"
+- "Premium Russet Potatoes" -> "Russet Potato"
+- "Natural Whole Milk" -> "Whole Milk"
+- "Organic 2% Milk" -> "Organic 2% Milk"
+- "12-Pack Coca Cola Cans" -> "Cola (12 cans)"
 
 For unit type, ONLY return the following units:
 Weight units (preferred): g, kg, mg, lb, oz
 Volume units (preferred): ml, l, fl oz, pt, gal
-Count units (use only if no weight/volume applicable): EA, PK
+Count unit: EA (use only if no weight/volume applicable)
 
 For unit value, ONLY return numeric values without any letters or symbols:
-Examples: "142g" -> {"unitValue": "142", "unitType": "g"}
+Examples: 
+- "142g" -> {"unitValue": "142", "unitType": "g"}
+- "2 lb Organic Chicken" -> {"unitValue": "2", "unitType": "lb"}
+- "12 pack Cola" -> {"productName": "Cola (12 cans)", "unitValue": "1", "unitType": "EA"}
 
 Rules:
 1. Do not include any other text or explanation, especially any markdown marks
 2. Always prefer weight or volume units when possible
-3. Use count units (each/pack) only when item has no clear weight/volume
+3. Use count unit (EA) only when item has no clear weight/volume
 4. Never use currency units or any other units not listed above
-5. unitValue must ONLY contain numbers and decimal points, no letters or symbols`,
+5. unitValue must ONLY contain numbers and decimal points, no letters or symbols
+6. For packaged items, include the package quantity in the product name and use EA as unit
+7. Keep only attributes that affect store pricing
+
+Return ONLY a JSON object in this format:
+{
+  "productName": "general item name",
+  "priceValue": "price value",
+  "unitValue": "numeric value only",
+  "unitType": "unit type from allowed list"
+}`,
         },
         {
           role: "user",

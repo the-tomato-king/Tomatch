@@ -11,7 +11,7 @@ const WEIGHT_CONVERSION_RATES: Record<string, number> = {
 
 // check if the unit is count unit (EA/PK)
 export function isCountUnit(unit: string): boolean {
-  return unit === UNITS.COUNT.EACH || unit === UNITS.COUNT.PACK;
+  return unit === UNITS.COUNT.EACH;
 }
 
 // calculate the price per standard unit (kg)
