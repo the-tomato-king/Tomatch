@@ -158,6 +158,7 @@ const StoreScreen = () => {
                 }
                 onFavorite={handleAddStore}
                 favoriteStores={allStores}
+                selectedStore={selectedStore}
               />
             )}
           </View>
