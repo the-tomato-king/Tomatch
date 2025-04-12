@@ -14,12 +14,8 @@ import LoadingLogo from "../components/loading/LoadingLogo";
 import { colors } from "../theme/colors";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
-import MainPageHeader from "../components/MainPageHeader";
 import SearchBar from "../components/search/SearchBar";
-import {
-  getAllProducts,
-  getProductById,
-} from "../services/productLibraryService";
+import { getAllProducts } from "../services/productLibraryService";
 import { useAuth } from "../contexts/AuthContext";
 
 const HomeScreen = () => {
@@ -87,8 +83,7 @@ const HomeScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <MainPageHeader title="All Products" />
+    <View style={styles.container}>
       <View style={styles.searchContainer}>
         <SearchBar
           value={searchQuery}
@@ -110,23 +105,24 @@ const HomeScreen = () => {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.lightGray2,
+    backgroundColor: colors.ios.systemGroupedBackground,
+    paddingTop: 16,
   },
   list: {
     flex: 1,
     marginHorizontal: 16,
   },
   listContent: {
-    borderRadius: 12,
+    borderRadius: 10,
     overflow: "hidden",
-    backgroundColor: colors.white,
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
   },
   emptyContainer: {
     flex: 1,
@@ -135,12 +131,12 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   emptyText: {
-    fontSize: 16,
-    color: colors.darkGray,
+    fontSize: 17,
+    color: colors.ios.secondaryLabel,
   },
   separator: {
-    height: 1,
-    backgroundColor: colors.lightGray2,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.ios.separator,
     marginHorizontal: 16,
   },
   searchContainer: {

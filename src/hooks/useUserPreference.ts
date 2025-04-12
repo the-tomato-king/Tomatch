@@ -23,6 +23,8 @@ interface UseUserPreferenceReturn {
   updateCurrency: (currency: string) => Promise<void>;
   updateLocation: (location: UserLocation) => Promise<void>;
   updateWeightUnit: (unit: string) => Promise<void>;
+
+  getCurrencySymbol: (code: string) => string;
 }
 
 export const useUserPreference = (userId: string): UseUserPreferenceReturn => {
@@ -96,6 +98,11 @@ export const useUserPreference = (userId: string): UseUserPreferenceReturn => {
   const updateWeightUnit = (unit: string) =>
     updatePreference("preferred_unit", unit);
 
+  const getCurrencySymbol = (code: string) => {
+    const currency = CURRENCIES.find((c) => c.code === code);
+    return currency?.symbol || "$";
+  };
+
   return {
     loading,
     error,
@@ -105,5 +112,6 @@ export const useUserPreference = (userId: string): UseUserPreferenceReturn => {
     updateCurrency,
     updateLocation,
     updateWeightUnit,
+    getCurrencySymbol,
   };
 };

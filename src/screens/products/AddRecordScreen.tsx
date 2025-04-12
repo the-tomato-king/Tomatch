@@ -45,11 +45,7 @@ import {
   BasicProductData,
 } from "../../services/userProductService";
 import { Unit } from "../../constants/units";
-import {
-  uploadProductImage,
-  getProductImage,
-  getStoreLogo,
-} from "../../services/mediaService";
+import { uploadProductImage } from "../../services/mediaService";
 import {
   findUserProductByName,
   findUserProductByLibraryId,
@@ -58,6 +54,7 @@ import { updateUserProductStats } from "../../services/userProductService";
 import { getUserProductById } from "../../services/userProductService";
 import { getUserStoreById } from "../../services/userStoreService";
 import { calculateStandardPrice } from "../../utils/unitConverter";
+import { useUserPreference } from "../../hooks/useUserPreference";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -76,6 +73,9 @@ const AddRecordScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { userId } = useAuth();
+  const { preferences, getCurrencySymbol } = useUserPreference(
+    userId as string
+  );
 
   const isEditMode = route.name === "EditPriceRecord";
   const recordId = isEditMode ? route.params?.recordId : null;
@@ -118,11 +118,11 @@ const AddRecordScreen = () => {
               setImage(recordData.photo_url);
             }
 
-if (recordData.user_product_id) {
-  const userProductData = await getUserProductById(
-    userId,
-    recordData.user_product_id
-  );
+            if (recordData.user_product_id) {
+              const userProductData = await getUserProductById(
+                userId,
+                recordData.user_product_id
+              );
 
               if (userProductData) {
                 // set product name
@@ -514,7 +514,7 @@ if (recordData.user_product_id) {
         original_unit: unitType as Unit,
         standard_unit_price: standardUnitPrice.toString(),
         photo_url: photoUrl,
-        currency: "$",
+        currency: preferences!.currency,
         recorded_at: new Date(),
       };
 
@@ -707,7 +707,9 @@ if (recordData.user_product_id) {
               style={[styles.priceContainer, { backgroundColor: colors.white }]}
             >
               <View style={styles.priceInputContainer}>
-                <Text style={styles.currencySymbol}>$</Text>
+                <Text style={styles.currencySymbol}>
+                  {getCurrencySymbol(preferences?.currency || "USD")}
+                </Text>
                 <TextInput
                   style={[globalStyles.input, styles.priceInput]}
                   placeholder="0.00"

@@ -9,7 +9,6 @@ import { Text } from "react-native";
 import { globalStyles } from "../theme/styles";
 import AddProductScreen from "../screens/products/AddProductScreen";
 import HeaderAddButton from "../components/buttons/HeaderAddButton";
-import BackButton from "../components/buttons/BackButton";
 import LoginScreen from "../screens/auth/LoginScreen";
 import { useAuth } from "../contexts/AuthContext";
 import SignupScreen from "../screens/auth/SignupScreen";
@@ -61,17 +60,9 @@ const AppNavigator = () => {
       <AppStack.Screen
         name="AddRecordModal"
         component={AddRecordScreen}
-        options={({ navigation }) => ({
+        options={() => ({
           presentation: "modal",
           title: "Add Record",
-          headerLeft: () => (
-            <Text
-              style={globalStyles.headerButton}
-              onPress={() => navigation.goBack()}
-            >
-              Cancel
-            </Text>
-          ),
         })}
       />
       <AppStack.Screen
@@ -80,14 +71,6 @@ const AppNavigator = () => {
         options={({ navigation }) => ({
           presentation: "modal",
           title: "Product Library",
-          headerLeft: () => (
-            <Text
-              style={globalStyles.headerButton}
-              onPress={() => navigation.goBack()}
-            >
-              Cancel
-            </Text>
-          ),
           headerRight: () => (
             <HeaderAddButton
               onPress={() => navigation.navigate("AddProduct")}
@@ -100,14 +83,6 @@ const AppNavigator = () => {
         component={AddProductScreen}
         options={({ navigation }) => ({
           headerTitle: "Add Product",
-          headerLeft: () => (
-            <Text
-              style={globalStyles.headerButton}
-              onPress={() => navigation.goBack()}
-            >
-              Cancel
-            </Text>
-          ),
         })}
       />
       <AppStack.Screen
@@ -115,7 +90,6 @@ const AppNavigator = () => {
         component={AddProductScreen}
         options={{
           headerTitle: "Edit Product",
-          headerLeft: () => <BackButton />,
         }}
       />
     </AppStack.Navigator>

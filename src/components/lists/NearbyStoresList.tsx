@@ -1,5 +1,5 @@
-import React from "react";
-import { FlatList } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { FlatList, ViewToken } from "react-native";
 import { NearbyStore } from "../../types/location";
 import StoreCard from "../StoreCard";
 import { calculateDistance, formatDistance } from "../../utils/distance";
@@ -10,14 +10,36 @@ interface NearbyStoresListProps {
   stores: NearbyStore[];
   onFavorite: (store: NearbyStore) => Promise<void>;
   favoriteStores: UserStore[];
+  selectedStore: NearbyStore | null;
 }
 
 const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
   stores,
   onFavorite,
   favoriteStores,
+  selectedStore,
 }) => {
   const { userLocation } = useLocation();
+  const flatListRef = useRef<FlatList>(null);
+
+  // 当选中的商店变化时，滚动到该商店
+  useEffect(() => {
+    if (selectedStore && flatListRef.current) {
+      const index = stores.findIndex(store => 
+        store.id === selectedStore.id || 
+        (store.name === selectedStore.name && 
+         store.address === selectedStore.address));
+      
+      if (index !== -1) {
+        flatListRef.current.scrollToIndex({
+          index,
+          animated: true,
+          viewOffset: 0,
+          viewPosition: 0
+        });
+      }
+    }
+  }, [selectedStore, stores]);
 
   const isStoreAdded = (store: NearbyStore): boolean => {
     return favoriteStores.some(
@@ -39,12 +61,39 @@ const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
     return formatDistance(distance);
   };
 
+  const isSelected = (store: NearbyStore): boolean => {
+    if (!selectedStore) return false;
+    return store.id === selectedStore.id || 
+           (store.name === selectedStore.name && 
+            store.address === selectedStore.address);
+  };
+
+  const handleScrollToIndexFailed = (info: {
+    index: number;
+    highestMeasuredFrameIndex: number;
+    averageItemLength: number;
+  }) => {
+    // 如果滚动失败，延迟后重试
+    setTimeout(() => {
+      if (flatListRef.current) {
+        flatListRef.current.scrollToIndex({
+          index: info.index,
+          animated: true,
+          viewPosition: 0
+        });
+      }
+    }, 100);
+  };
+
   return (
     <FlatList
+      ref={flatListRef}
       data={stores}
-      keyExtractor={(store) => store.id}
+      keyExtractor={(store) => store.id || `${store.name}-${store.address}`}
+      onScrollToIndexFailed={handleScrollToIndexFailed}
       renderItem={({ item: store }) => {
         const added = isStoreAdded(store);
+        const selected = isSelected(store);
         return (
           <StoreCard
             name={store.name}
@@ -55,6 +104,7 @@ const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
             onPress={() => {}}
             isFavorite={false}
             onToggleFavorite={() => {}}
+            isHighlighted={selected}
           />
         );
       }}

@@ -8,8 +8,11 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  Dimensions,
+  PanResponder,
+  Animated,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { colors } from "../../theme/colors";
 import SearchBar from "../../components/search/SearchBar";
 import { useUserStores } from "../../hooks/useUserStores";
@@ -27,14 +30,20 @@ import { convertNearbyStoreToUserStore } from "../../utils/storeConverters";
 import NearbyStoresList from "../../components/lists/NearbyStoresList";
 import MyStoresList from "../../components/lists/MyStoresList";
 import { useAuth } from "../../contexts/AuthContext";
+
 type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
+
+const { height, width } = Dimensions.get("window");
+
+const SMALL_HEIGHT = height * 0.25;
+const MEDIUM_HEIGHT = height * 0.5;
+const LARGE_HEIGHT = height * 0.75;
 
 const StoreScreen = () => {
   const [activeTab, setActiveTab] = useState("favorites");
   const [address, setAddress] = useState("");
   const { favoriteStores, allStores, loading, error } = useUserStores();
   const { userId } = useAuth();
-  const navigation = useNavigation<StoreScreenNavigationProp>();
   const [selectedStore, setSelectedStore] = useState<NearbyStore | null>(null);
   const {
     userLocation,
@@ -44,6 +53,46 @@ const StoreScreen = () => {
     lastSavedLocation,
     lastSavedStores,
   } = useLocation();
+
+  const panelHeight = useRef(new Animated.Value(SMALL_HEIGHT)).current;
+  const [currentHeight, setCurrentHeight] = useState(SMALL_HEIGHT);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (evt, gestureState) => {
+        const newHeight = currentHeight - gestureState.dy;
+        if (newHeight >= SMALL_HEIGHT && newHeight <= LARGE_HEIGHT) {
+          panelHeight.setValue(newHeight);
+        }
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        let targetHeight = currentHeight;
+
+        if (gestureState.dy < 0) {
+          if (currentHeight < MEDIUM_HEIGHT) {
+            targetHeight = MEDIUM_HEIGHT;
+          } else {
+            targetHeight = LARGE_HEIGHT;
+          }
+        } else if (gestureState.dy > 0) {
+          if (currentHeight > MEDIUM_HEIGHT) {
+            targetHeight = MEDIUM_HEIGHT;
+          } else {
+            targetHeight = SMALL_HEIGHT;
+          }
+        }
+
+        Animated.spring(panelHeight, {
+          toValue: targetHeight,
+          useNativeDriver: false,
+          friction: 8,
+        }).start();
+
+        setCurrentHeight(targetHeight);
+      },
+    })
+  ).current;
 
   const handleStoreSelect = (store: NearbyStore) => {
     setSelectedStore(store);
@@ -75,9 +124,45 @@ const StoreScreen = () => {
     }
   };
 
+  const expandList = () => {
+    let targetHeight;
+    if (currentHeight === SMALL_HEIGHT) {
+      targetHeight = MEDIUM_HEIGHT;
+    } else if (currentHeight === MEDIUM_HEIGHT) {
+      targetHeight = LARGE_HEIGHT;
+    } else {
+      return;
+    }
+
+    Animated.spring(panelHeight, {
+      toValue: targetHeight,
+      useNativeDriver: false,
+      friction: 8,
+    }).start();
+    setCurrentHeight(targetHeight);
+  };
+
+  const collapseList = () => {
+    let targetHeight;
+    if (currentHeight === LARGE_HEIGHT) {
+      targetHeight = MEDIUM_HEIGHT;
+    } else if (currentHeight === MEDIUM_HEIGHT) {
+      targetHeight = SMALL_HEIGHT;
+    } else {
+      return;
+    }
+
+    Animated.spring(panelHeight, {
+      toValue: targetHeight,
+      useNativeDriver: false,
+      friction: 8,
+    }).start();
+    setCurrentHeight(targetHeight);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.scrollView}>
+      <View style={styles.mapWrapper}>
         <View style={styles.searchSection}>
           <SearchBar
             value={address}
@@ -87,7 +172,7 @@ const StoreScreen = () => {
         </View>
 
         {/* Map Section */}
-        <View style={styles.mapSection}>
+        <View style={[styles.mapSection, { height: height * 0.65 }]}>
           <View style={styles.locationSection}>
             <LocationSelector
               address={
@@ -106,63 +191,87 @@ const StoreScreen = () => {
             />
           </View>
         </View>
-        <View style={styles.storesListSection}>
-          {/* Tabs Section */}
-          <View style={styles.tabsContainer}>
-            <TouchableOpacity
-              style={[
-                styles.tabButton,
-                activeTab === "favorites" ? styles.activeTabButton : {},
-              ]}
-              onPress={() => setActiveTab("favorites")}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === "favorites" ? styles.activeTabText : {},
-                ]}
-              >
-                My Stores
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.tabButton,
-                activeTab === "nearby" ? styles.activeTabButton : {},
-              ]}
-              onPress={() => setActiveTab("nearby")}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === "nearby" ? styles.activeTabText : {},
-                ]}
-              >
-                Nearby
-              </Text>
-            </TouchableOpacity>
-          </View>
+      </View>
 
-          {/* Stores List Content */}
-          <View style={styles.storesListContent}>
-            {loading ? (
-              <ActivityIndicator size="large" color={colors.primary} />
-            ) : error ? (
-              <Text style={styles.errorText}>{error}</Text>
-            ) : activeTab === "favorites" ? (
-              <MyStoresList stores={allStores} />
-            ) : (
-              <NearbyStoresList
-                stores={
-                  nearbyStores.length > 0 ? nearbyStores : lastSavedStores
-                }
-                onFavorite={handleAddStore}
-                favoriteStores={allStores}
-              />
+      <Animated.View
+        style={[
+          styles.draggablePanel,
+          {
+            height: panelHeight,
+          },
+        ]}
+      >
+        <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
+          <View style={styles.dragHandle} />
+          <View style={styles.controlButtons}>
+            {currentHeight > SMALL_HEIGHT && (
+              <TouchableOpacity
+                onPress={collapseList}
+                style={styles.arrowButton}
+              >
+                <Text style={styles.arrowText}>-</Text>
+              </TouchableOpacity>
+            )}
+            {currentHeight < LARGE_HEIGHT && (
+              <TouchableOpacity onPress={expandList} style={styles.arrowButton}>
+                <Text style={styles.arrowText}>+</Text>
+              </TouchableOpacity>
             )}
           </View>
         </View>
-      </View>
+
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "favorites" ? styles.activeTabButton : {},
+            ]}
+            onPress={() => setActiveTab("favorites")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "favorites" ? styles.activeTabText : {},
+              ]}
+            >
+              My Stores
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "nearby" ? styles.activeTabButton : {},
+            ]}
+            onPress={() => setActiveTab("nearby")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "nearby" ? styles.activeTabText : {},
+              ]}
+            >
+              Nearby
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.listContainer}>
+          {loading ? (
+            <ActivityIndicator size="large" color={colors.primary} />
+          ) : error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : activeTab === "favorites" ? (
+            <MyStoresList stores={allStores} />
+          ) : (
+            <NearbyStoresList
+              stores={nearbyStores.length > 0 ? nearbyStores : lastSavedStores}
+              onFavorite={handleAddStore}
+              favoriteStores={allStores}
+              selectedStore={selectedStore}
+            />
+          )}
+        </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };
@@ -172,51 +281,93 @@ export default StoreScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.ios.systemGroupedBackground,
   },
-  scrollView: {
-    flex: 1,
+  mapWrapper: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
   },
   searchSection: {
-    padding: 16,
-  },
-  headerSection: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-  },
-  locationSection: {
-    paddingBottom: 16,
-    width: "100%",
-  },
-  locationText: {
-    fontSize: 16,
+    position: "absolute",
+    top: 16,
+    left: 16,
+    right: 16,
+    zIndex: 10,
   },
   mapSection: {
-    padding: 16,
-    alignItems: "center",
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  locationSection: {
+    position: "absolute",
+    top: 80,
+    left: 16,
+    right: 16,
+    zIndex: 10,
   },
   mapContainer: {
     width: "100%",
-    height: 300,
-    overflow: "hidden",
-    borderRadius: 10,
+    height: "100%",
   },
-  storesListSection: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#fff",
+  draggablePanel: {
+    position: "absolute",
+    bottom: 0,
+    left: 8,
+    right: 8,
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -3,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 6,
+    zIndex: 10,
+  },
+  dragHandleContainer: {
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
+    flexDirection: "row",
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.ios.systemGray4,
+    marginTop: 5,
+  },
+  controlButtons: {
+    position: "absolute",
+    right: 20,
+    flexDirection: "row",
+  },
+  arrowButton: {
+    padding: 5,
+    marginLeft: 10,
+  },
+  arrowText: {
+    fontSize: 20,
+    color: colors.ios.systemBlue,
   },
   tabsContainer: {
     flexDirection: "row",
-    borderRadius: 30,
+    borderRadius: 8,
     overflow: "hidden",
-    marginBottom: 16,
-    backgroundColor: "#f0f0f0",
+    marginVertical: 10,
+    marginHorizontal: 16,
+    backgroundColor: colors.ios.systemGray6,
   },
   tabButton: {
     flex: 1,
@@ -225,29 +376,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   activeTabButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ios.systemBlue,
   },
   tabText: {
     fontSize: 16,
+    color: colors.ios.secondaryLabel,
     fontWeight: "500",
   },
   activeTabText: {
-    color: "#fff",
+    color: colors.white,
   },
-  storesListContent: {
+  listContainer: {
     flex: 1,
-    height: 300,
-  },
-  emptyListText: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-    color: colors.secondaryText,
+    paddingHorizontal: 16,
   },
   errorText: {
     textAlign: "center",
     marginTop: 20,
-    fontSize: 16,
-    color: "red",
+    fontSize: 17,
+    color: colors.ios.systemRed,
   },
 });

@@ -15,6 +15,7 @@ interface StoreCardProps {
   isFavorite: boolean;
   brand?: StoreBrand | null;
   onToggleFavorite: () => void;
+  isHighlighted?: boolean;
 }
 
 const StoreCard: React.FC<StoreCardProps> = ({
@@ -27,9 +28,13 @@ const StoreCard: React.FC<StoreCardProps> = ({
   isFavorite,
   brand,
   onToggleFavorite,
+  isHighlighted = false,
 }) => {
   return (
-    <TouchableOpacity style={styles.storeItem} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.storeItem, isHighlighted && styles.highlightedItem]}
+      onPress={onPress}
+    >
       <View style={styles.storeLogoContainer}>
         {brand ? (
           <StoreLogo brand={brand.logo} width={80} height={80} />
@@ -83,6 +88,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.lightGray2,
+  },
+  highlightedItem: {
+    backgroundColor: "#f5f5f5",
+    borderWidth: 1,
+    borderColor: colors.lightGray2,
+    borderRadius: 8,
   },
   storeLogoContainer: {
     marginRight: 16,
