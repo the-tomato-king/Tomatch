@@ -457,3 +457,26 @@ export const updateUserProductDisplayPreference = async (
     updated_at: new Date(),
   });
 };
+
+/**
+ * Gets all price records for a specific user product
+ * @param {string} userId - The ID of the user
+ * @param {string} userProductId - The ID of the user product
+ * @returns {Promise<PriceRecord[]>} Array of price records
+ */
+export const getUserProductPriceRecords = async (
+  userId: string,
+  userProductId: string
+): Promise<PriceRecord[]> => {
+  const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+  const recordsQuery = query(
+    collection(db, recordsPath),
+    where("user_product_id", "==", userProductId)
+  );
+  const recordsSnapshot = await getDocs(recordsQuery);
+
+  return recordsSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as PriceRecord[];
+};

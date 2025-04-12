@@ -23,8 +23,8 @@ import {
   readOneDoc,
 } from "./firebase/firebaseHelper";
 import {
-  deleteUserProduct,
-  updateUserProductStats,
+  getUserProductPriceRecords,
+  getUserProductById,
 } from "./userProductService";
 import { deleteProductImage } from "./mediaService";
 
@@ -100,9 +100,8 @@ export const updatePriceRecord = async (
     }
 
     // 3. get the user product
-    const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-    const userProduct = await readOneDoc<UserProduct>(
-      userProductPath,
+    const userProduct = await getUserProductById(
+      userId,
       originalRecord.user_product_id
     );
 
@@ -118,95 +117,128 @@ export const updatePriceRecord = async (
       : "measurable";
 
     // 5. get all records of the product
-    const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-    const recordsQuery = query(
-      collection(db, recordsPath),
-      where("user_product_id", "==", originalRecord.user_product_id)
+    const priceRecords = await getUserProductPriceRecords(
+      userId,
+      originalRecord.user_product_id
     );
-    const recordsSnapshot = await getDocs(recordsQuery);
 
     // 6. recalculate the stats
-    let totalRecords = 0;
-    let totalPrice = 0;
-    let lowestPrice = Infinity;
-    let highestPrice = -Infinity;
-    let lowestPriceStore =
-      userProduct.price_statistics[measurementType]?.lowest_price_store;
+    const updatedStats: Record<string, any> = {
+      [measurementType]: null,
+    };
 
-    recordsSnapshot.docs.forEach((doc) => {
-      const recordData = doc.data() as PriceRecord;
-      const recordMeasurementType = isCountUnit(recordData.original_unit)
+    // calculate the stats for the current record type
+    priceRecords.forEach((record) => {
+      const recordType = isCountUnit(record.original_unit)
         ? "count"
         : "measurable";
 
-      if (recordMeasurementType === measurementType) {
-        totalRecords++;
-        // if the current record is the one being updated, use the new price
-        const price =
-          doc.id === recordId && data.standard_unit_price
-            ? parseFloat(data.standard_unit_price)
-            : parseFloat(recordData.standard_unit_price);
-
-        totalPrice += price;
-
-        if (price < lowestPrice) {
-          lowestPrice = price;
-          lowestPriceStore = {
-            store_id: recordData.store_id,
-            store_name: recordData.store?.name || "",
+      // only process the data for the current record type
+      if (recordType === measurementType) {
+        if (!updatedStats[measurementType]) {
+          updatedStats[measurementType] = {
+            total_price: 0,
+            average_price: 0,
+            lowest_price: Infinity,
+            highest_price: -Infinity,
+            lowest_price_store: null,
+            total_price_records: 0,
           };
         }
-        if (price > highestPrice) {
-          highestPrice = price;
+
+        const price = parseFloat(
+          record.id === recordId && data.standard_unit_price
+            ? data.standard_unit_price
+            : record.standard_unit_price
+        );
+
+        updatedStats[measurementType].total_price += price;
+        updatedStats[measurementType].total_price_records += 1;
+
+        if (price < updatedStats[measurementType].lowest_price) {
+          updatedStats[measurementType].lowest_price = price;
+          updatedStats[measurementType].lowest_price_store = {
+            store_id: record.store_id,
+            store_name: record.store?.name || "",
+          };
+        }
+        if (price > updatedStats[measurementType].highest_price) {
+          updatedStats[measurementType].highest_price = price;
         }
       }
     });
 
-    // 7. update the user product stats
-    const updatedStats = {
-      total_price: totalPrice,
-      average_price: totalPrice / totalRecords,
-      lowest_price: lowestPrice === Infinity ? 0 : lowestPrice,
-      highest_price: highestPrice === -Infinity ? 0 : highestPrice,
-      lowest_price_store: lowestPriceStore,
-      total_price_records: totalRecords,
-    };
+    // calculate the average price
+    if (updatedStats[measurementType]) {
+      updatedStats[measurementType].average_price =
+        updatedStats[measurementType].total_price /
+        updatedStats[measurementType].total_price_records;
+    }
 
     // 8. if the unit type changed, update measurement_types
     let updatedMeasurementTypes = [...userProduct.measurement_types];
     const originalType = isCountUnit(originalRecord.original_unit)
       ? "count"
       : "measurable";
+    const newType = isCountUnit(
+      data.original_unit || originalRecord.original_unit
+    )
+      ? "count"
+      : "measurable";
 
-    if (data.original_unit && originalType !== measurementType) {
-      // remove the old type (if there are no other records using this type)
-      const hasOtherRecordsOfOriginalType = recordsSnapshot.docs.some((doc) => {
-        const record = doc.data() as PriceRecord;
+    let displayPreference: string | null = null; // use a temporary variable to store display_preference
+
+    if (data.original_unit && originalType !== newType) {
+      // check if there are other records using the original type
+      const hasOtherRecordsOfOriginalType = priceRecords.some((record) => {
         return (
-          doc.id !== recordId &&
+          record.id !== recordId &&
           (isCountUnit(record.original_unit) ? "count" : "measurable") ===
             originalType
         );
       });
 
+      // if there are no other records using the original type, then:
+      // 1. remove the original type from measurement_types
+      // 2. set the corresponding price_statistics to null
       if (!hasOtherRecordsOfOriginalType) {
         updatedMeasurementTypes = updatedMeasurementTypes.filter(
           (t) => t !== originalType
         );
+        updatedStats[originalType] = null;
+
+        // if the current display_preference is the original type, update it to the new type
+        if (userProduct.display_preference === originalType) {
+          displayPreference = newType;
+        }
       }
 
       // add the new type (if it doesn't exist yet)
-      if (!updatedMeasurementTypes.includes(measurementType)) {
-        updatedMeasurementTypes.push(measurementType);
+      if (!updatedMeasurementTypes.includes(newType)) {
+        updatedMeasurementTypes.push(newType);
+        // if the display_preference is not set, set it to the new type
+        if (!userProduct.display_preference) {
+          displayPreference = newType;
+        }
       }
     }
 
     // 9. update the user product
-    await updateOneDocInDB(userProductPath, originalRecord.user_product_id, {
+    let updateData: any = {};
+
+    updateData = {
       measurement_types: updatedMeasurementTypes,
-      [`price_statistics.${measurementType}`]: updatedStats,
+      [`price_statistics.${originalType}`]: updatedStats[originalType],
+      [`price_statistics.${newType}`]: updatedStats[newType],
+      ...(displayPreference && { display_preference: displayPreference }),
       updated_at: new Date(),
-    });
+    };
+
+    await updateOneDocInDB(
+      `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`,
+      originalRecord.user_product_id,
+      updateData
+    );
 
     return true;
   } catch (error) {
