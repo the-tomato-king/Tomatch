@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, Platform } from "react-native";
 import MapView, { Marker, Callout } from "react-native-maps";
 import { NearbyStore } from "../types/location";
 
@@ -27,6 +27,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   const displayLocation = userLocation || lastSavedLocation;
+  const isIOS = Platform.OS === 'ios';
 
   return (
     <View style={styles.container}>
@@ -54,17 +55,28 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
           {/* Store Markers */}
           {stores.map((store, index) => (
-            <Marker
-              key={`store-${index}`}
-              coordinate={store.coordinate}
-              pinColor="blue"
-              onPress={() => handleStorePress(store)}
-            >
-              <Callout>
-                <Text style={styles.storeName}>{store.name}</Text>
-                <Text>{store.address}</Text>
-              </Callout>
-            </Marker>
+            isIOS ? (
+              <Marker
+                key={`store-${index}`}
+                coordinate={store.coordinate}
+                pinColor="blue"
+                onPress={() => handleStorePress(store)}
+              >
+                <Callout>
+                  <Text style={styles.storeName}>{store.name}</Text>
+                  <Text>{store.address}</Text>
+                </Callout>
+              </Marker>
+            ) : (
+              <Marker
+                key={`store-${index}`}
+                coordinate={store.coordinate}
+                pinColor="blue"
+                onPress={() => handleStorePress(store)}
+                title={store.name}
+                description={store.address}
+              />
+            )
           ))}
         </MapView>
       ) : (
@@ -103,7 +115,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
     marginBottom: 5,
-  },
+  }
 });
 
 export default MapComponent;
