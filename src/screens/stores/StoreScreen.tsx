@@ -44,7 +44,6 @@ const StoreScreen = () => {
   const [address, setAddress] = useState("");
   const { favoriteStores, allStores, loading, error } = useUserStores();
   const { userId } = useAuth();
-  const navigation = useNavigation<StoreScreenNavigationProp>();
   const [selectedStore, setSelectedStore] = useState<NearbyStore | null>(null);
   const {
     userLocation,
@@ -218,7 +217,6 @@ const StoreScreen = () => {
           </View>
         </View>
 
-        {/* 标签页 */}
         <View style={styles.tabsContainer}>
           <TouchableOpacity
             style={[
@@ -254,7 +252,6 @@ const StoreScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* 列表内容 */}
         <View style={styles.listContainer}>
           {loading ? (
             <ActivityIndicator size="large" color={colors.primary} />
@@ -283,7 +280,7 @@ export default StoreScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
   },
   mapWrapper: {
     position: 'absolute',

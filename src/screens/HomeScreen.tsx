@@ -14,12 +14,8 @@ import LoadingLogo from "../components/loading/LoadingLogo";
 import { colors } from "../theme/colors";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../services/firebase/firebaseConfig";
-import MainPageHeader from "../components/MainPageHeader";
 import SearchBar from "../components/search/SearchBar";
-import {
-  getAllProducts,
-  getProductById,
-} from "../services/productLibraryService";
+import { getAllProducts } from "../services/productLibraryService";
 import { useAuth } from "../contexts/AuthContext";
 
 const HomeScreen = () => {
@@ -87,8 +83,7 @@ const HomeScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <MainPageHeader title="All Products" />
+    <View style={styles.container}>
       <View style={styles.searchContainer}>
         <SearchBar
           value={searchQuery}
@@ -110,7 +105,7 @@ const HomeScreen = () => {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -118,6 +113,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.lightGray2,
+    paddingTop: 16,
   },
   list: {
     flex: 1,

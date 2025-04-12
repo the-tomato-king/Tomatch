@@ -21,7 +21,6 @@ import {
 import { COLLECTIONS } from "../../constants/firebase";
 import { doc, onSnapshot, deleteDoc } from "firebase/firestore";
 import { auth, db } from "../../services/firebase/firebaseConfig";
-import MainPageHeader from "../../components/MainPageHeader";
 import LocationModal from "../../components/modals/LocationModal";
 import { updateOneDocInDB } from "../../services/firebase/firebaseHelper";
 import CurrencyModal from "../../components/modals/CurrencyModal";
@@ -290,8 +289,6 @@ const SettingPage = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar />
       <ScrollView>
-        <MainPageHeader title="Setting" />
-
         {/* User Profile Section */}
         <TouchableOpacity
           style={styles.profileSection}

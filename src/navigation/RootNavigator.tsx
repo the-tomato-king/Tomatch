@@ -9,7 +9,6 @@ import { Text } from "react-native";
 import { globalStyles } from "../theme/styles";
 import AddProductScreen from "../screens/products/AddProductScreen";
 import HeaderAddButton from "../components/buttons/HeaderAddButton";
-import BackButton from "../components/buttons/BackButton";
 import LoginScreen from "../screens/auth/LoginScreen";
 import { useAuth } from "../contexts/AuthContext";
 import SignupScreen from "../screens/auth/SignupScreen";
@@ -115,7 +114,6 @@ const AppNavigator = () => {
         component={AddProductScreen}
         options={{
           headerTitle: "Edit Product",
-          headerLeft: () => <BackButton />,
         }}
       />
     </AppStack.Navigator>

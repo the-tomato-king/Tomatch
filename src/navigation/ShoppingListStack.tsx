@@ -3,8 +3,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ShoppingListScreen from "../screens/shoppinglist/ShoppingListScreen";
 import AddShoppingListScreen from "../screens/shoppinglist/AddShoppingListScreen";
 import ShoppingListDetailScreen from "../screens/shoppinglist/ShoppingListDetailScreen";
-import { Button } from "react-native";
-import BackButton from "../components/buttons/BackButton";
 import HeaderAddButton from "../components/buttons/HeaderAddButton";
 import SupermarketMapScreen from "../screens/shoppinglist/SupermarketMapScreen";
 
@@ -32,7 +30,6 @@ const ShoppingListStack = () => {
         options={{
           headerShown: true,
           title: "New List",
-          headerLeft: () => <BackButton />,
         }}
       />
       <Stack.Screen

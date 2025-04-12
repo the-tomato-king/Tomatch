@@ -7,7 +7,7 @@ import {
   Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { PRODUCTS, PRODUCT_CATEGORIES } from "../../data/Product";
+import { PRODUCT_CATEGORIES } from "../../data/Product";
 import { colors } from "../../theme/colors";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import ProductImage from "../../components/ProductImage";

@@ -16,16 +16,10 @@ import { colors } from "../../theme/colors";
 import { HomeStackParamList } from "../../types/navigation";
 import { PriceRecord, Product, UserProduct, UserStore } from "../../types";
 import { COLLECTIONS } from "../../constants/firebase";
-import {
-  readOneDoc,
-  updateOneDocInDB,
-  deleteOneDocFromDB,
-} from "../../services/firebase/firebaseHelper";
 import LoadingLogo from "../../components/loading/LoadingLogo";
 import { globalStyles } from "../../theme/styles";
 import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
-import { collection, query, where, getDocs } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
 import { deletePriceRecordAndUpdateStats } from "../../services/priceRecordService";
 type PriceRecordInformationRouteProp = RouteProp<
@@ -35,58 +29,6 @@ type PriceRecordInformationRouteProp = RouteProp<
 
 type RecordDetailScreenNavigationProp =
   NativeStackNavigationProp<HomeStackParamList>;
-
-const TEST_PRODUCT: UserProduct = {
-  id: "test_id",
-  name: "Test Apple",
-  category: "Fruit",
-  image_type: "emoji",
-  image_source: "🍎",
-  plu_code: "",
-  barcode: "",
-  measurement_types: ["measurable", "count"],
-  price_statistics: {
-    measurable: {
-      total_price: 100,
-      average_price: 2.99,
-      lowest_price: 1.99,
-      highest_price: 3.99,
-      lowest_price_store: {
-        store_id: "test_store",
-        store_name: "Test Store",
-      },
-      total_price_records: 10,
-    },
-    count: {
-      total_price: 50,
-      average_price: 0.99,
-      lowest_price: 0.79,
-      highest_price: 1.29,
-      lowest_price_store: {
-        store_id: "test_store",
-        store_name: "Test Store",
-      },
-      total_price_records: 5,
-    },
-  },
-  created_at: new Date(),
-  updated_at: new Date(),
-};
-
-const TEST_PRICE_RECORDS: PriceRecord[] = [
-  {
-    id: "test_record_1",
-    user_product_id: "test_id",
-    store_id: "test_store",
-    original_price: "5.99",
-    original_quantity: "2",
-    original_unit: "lb",
-    standard_unit_price: "2.99",
-    currency: "$",
-    photo_url: "",
-    recorded_at: new Date(),
-  },
-];
 
 const PriceRecordInformationScreen = () => {
   const navigation = useNavigation<RecordDetailScreenNavigationProp>();
@@ -98,11 +40,6 @@ const PriceRecordInformationScreen = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [store, setStore] = useState<UserStore | null>(null);
   const { userId } = useAuth();
-
-  // 临时使用测试数据
-  const [userProduct, setUserProduct] = useState<UserProduct>(TEST_PRODUCT);
-  const [priceRecords, setPriceRecords] =
-    useState<PriceRecord[]>(TEST_PRICE_RECORDS);
 
   useEffect(() => {
     const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
@@ -263,17 +200,6 @@ const PriceRecordInformationScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <MaterialCommunityIcons name="chevron-left" size={30} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{product?.name || "Product"}</Text>
-        <View style={styles.placeholder} />
-      </View>
-
       <ScrollView style={styles.scrollContainer}>
         {/* Product Price Card */}
         <View style={styles.productPriceCard}>
