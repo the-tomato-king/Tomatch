@@ -61,6 +61,7 @@ import { getUserStoreById } from "../../services/userStoreService";
 import { calculateStandardPrice } from "../../utils/unitConverter";
 import { useUserPreference } from "../../hooks/useUserPreference";
 import ImagePreview from "../../components/ImagePreview";
+import UnitInputGroup from "../../components/inputs/UnitInputGroup";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -739,9 +740,7 @@ const AddRecordScreen = () => {
             <View style={globalStyles.labelContainer}>
               <Text style={globalStyles.inputLabel}>Price</Text>
             </View>
-            <View
-              style={[styles.priceContainer, { backgroundColor: colors.white }]}
-            >
+            <View style={styles.priceContainer}>
               <View style={styles.priceInputContainer}>
                 <Text style={styles.currencySymbol}>
                   {getCurrencySymbol(preferences?.currency || "USD")}
@@ -754,33 +753,12 @@ const AddRecordScreen = () => {
                   keyboardType="decimal-pad"
                 />
               </View>
-              <View style={styles.unitContainer}>
-                <TextInput
-                  style={styles.unitValueInput}
-                  value={unitValue}
-                  onChangeText={setUnitValue}
-                  keyboardType="decimal-pad"
-                  placeholder="/"
-                />
-                <DropDownPicker
-                  open={open}
-                  value={unitType}
-                  items={items}
-                  setOpen={setOpen}
-                  setValue={setUnitType}
-                  style={styles.unitPicker}
-                  containerStyle={styles.dropdownContainer}
-                  textStyle={{ fontSize: 16 }}
-                  dropDownContainerStyle={{
-                    backgroundColor: colors.white,
-                    borderWidth: 1,
-                    borderColor: colors.lightGray2,
-                    position: "absolute",
-                    width: 60,
-                  }}
-                  maxHeight={200}
-                />
-              </View>
+              <UnitInputGroup
+                unitValue={unitValue}
+                unitType={unitType}
+                onUnitValueChange={setUnitValue}
+                onUnitTypeChange={setUnitType}
+              />
             </View>
           </View>
         </View>
@@ -841,39 +819,6 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     minHeight: 48,
     paddingHorizontal: 0,
-  },
-  unitContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    maxWidth: 180,
-  },
-  unitValueInput: {
-    backgroundColor: colors.lightGray2,
-    borderTopLeftRadius: 8,
-    borderBottomLeftRadius: 8,
-    paddingHorizontal: 8,
-    minHeight: 48,
-    width: 50,
-    fontSize: 16,
-    textAlign: "center",
-  },
-  perText: {
-    fontSize: 16,
-    color: colors.darkText,
-  },
-  unitPicker: {
-    backgroundColor: colors.lightGray2,
-    borderRadius: 0,
-    borderTopRightRadius: 8,
-    borderBottomRightRadius: 8,
-    borderWidth: 0,
-    minHeight: 48,
-    paddingHorizontal: 8,
-    zIndex: 1,
-  },
-  dropdownContainer: {
-    width: 80,
-    zIndex: 1,
   },
   cameraIconContainer: {
     marginBottom: 15,
