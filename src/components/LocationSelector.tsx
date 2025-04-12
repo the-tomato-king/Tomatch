@@ -84,14 +84,22 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 8,
+    padding: 16,
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
+    borderRadius: 10,
     gap: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   text: {
-    fontSize: 16,
-    color: colors.darkText,
+    fontSize: 17,
+    color: colors.ios.label,
     flex: 1,
   },
 });

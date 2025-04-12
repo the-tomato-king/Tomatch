@@ -60,17 +60,9 @@ const AppNavigator = () => {
       <AppStack.Screen
         name="AddRecordModal"
         component={AddRecordScreen}
-        options={({ navigation }) => ({
+        options={() => ({
           presentation: "modal",
           title: "Add Record",
-          headerLeft: () => (
-            <Text
-              style={globalStyles.headerButton}
-              onPress={() => navigation.goBack()}
-            >
-              Cancel
-            </Text>
-          ),
         })}
       />
       <AppStack.Screen
@@ -91,14 +83,6 @@ const AppNavigator = () => {
         component={AddProductScreen}
         options={({ navigation }) => ({
           headerTitle: "Add Product",
-          headerLeft: () => (
-            <Text
-              style={globalStyles.headerButton}
-              onPress={() => navigation.goBack()}
-            >
-              Cancel
-            </Text>
-          ),
         })}
       />
       <AppStack.Screen

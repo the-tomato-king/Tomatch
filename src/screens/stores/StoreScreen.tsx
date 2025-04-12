@@ -68,7 +68,7 @@ const StoreScreen = () => {
       },
       onPanResponderRelease: (evt, gestureState) => {
         let targetHeight = currentHeight;
-        
+
         if (gestureState.dy < 0) {
           if (currentHeight < MEDIUM_HEIGHT) {
             targetHeight = MEDIUM_HEIGHT;
@@ -96,7 +96,7 @@ const StoreScreen = () => {
 
   const handleStoreSelect = (store: NearbyStore) => {
     setSelectedStore(store);
-    setActiveTab("nearby"); 
+    setActiveTab("nearby");
   };
 
   const handleLocationSelect = async (location: {
@@ -129,9 +129,9 @@ const StoreScreen = () => {
     if (currentHeight === SMALL_HEIGHT) {
       targetHeight = MEDIUM_HEIGHT;
     } else if (currentHeight === MEDIUM_HEIGHT) {
-      targetHeight = LARGE_HEIGHT; 
+      targetHeight = LARGE_HEIGHT;
     } else {
-      return; 
+      return;
     }
 
     Animated.spring(panelHeight, {
@@ -149,7 +149,7 @@ const StoreScreen = () => {
     } else if (currentHeight === MEDIUM_HEIGHT) {
       targetHeight = SMALL_HEIGHT;
     } else {
-      return; 
+      return;
     }
 
     Animated.spring(panelHeight, {
@@ -205,7 +205,10 @@ const StoreScreen = () => {
           <View style={styles.dragHandle} />
           <View style={styles.controlButtons}>
             {currentHeight > SMALL_HEIGHT && (
-              <TouchableOpacity onPress={collapseList} style={styles.arrowButton}>
+              <TouchableOpacity
+                onPress={collapseList}
+                style={styles.arrowButton}
+              >
                 <Text style={styles.arrowText}>-</Text>
               </TouchableOpacity>
             )}
@@ -261,9 +264,7 @@ const StoreScreen = () => {
             <MyStoresList stores={allStores} />
           ) : (
             <NearbyStoresList
-              stores={
-                nearbyStores.length > 0 ? nearbyStores : lastSavedStores
-              }
+              stores={nearbyStores.length > 0 ? nearbyStores : lastSavedStores}
               onFavorite={handleAddStore}
               favoriteStores={allStores}
               selectedStore={selectedStore}
@@ -280,40 +281,45 @@ export default StoreScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.ios.systemGroupedBackground,
   },
   mapWrapper: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: height,
+    bottom: 0,
     zIndex: 1,
   },
   searchSection: {
-    padding: 16,
+    position: "absolute",
+    top: 16,
+    left: 16,
+    right: 16,
     zIndex: 10,
   },
   mapSection: {
-    padding: 16,
-    alignItems: "center",
+    flex: 1,
+    width: "100%",
+    height: "100%",
   },
   locationSection: {
-    paddingBottom: 16,
-    width: "100%",
+    position: "absolute",
+    top: 80,
+    left: 16,
+    right: 16,
+    zIndex: 10,
   },
   mapContainer: {
     width: "100%",
-    flex: 1,
-    overflow: "hidden",
-    borderRadius: 10,
+    height: "100%",
   },
   draggablePanel: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 8,
     right: 8,
-    backgroundColor: "#fff",
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     shadowColor: "#000",
@@ -321,31 +327,31 @@ const styles = StyleSheet.create({
       width: 0,
       height: -3,
     },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
     elevation: 6,
     zIndex: 10,
   },
   dragHandleContainer: {
     height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    backgroundColor: "#fff",
-    flexDirection: 'row',
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
+    flexDirection: "row",
   },
   dragHandle: {
     width: 40,
     height: 5,
     borderRadius: 3,
-    backgroundColor: colors.lightGray2,
+    backgroundColor: colors.ios.systemGray4,
     marginTop: 5,
   },
   controlButtons: {
-    position: 'absolute',
+    position: "absolute",
     right: 20,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   arrowButton: {
     padding: 5,
@@ -353,15 +359,15 @@ const styles = StyleSheet.create({
   },
   arrowText: {
     fontSize: 20,
-    color: colors.primary,
+    color: colors.ios.systemBlue,
   },
   tabsContainer: {
     flexDirection: "row",
-    borderRadius: 30,
+    borderRadius: 8,
     overflow: "hidden",
     marginVertical: 10,
     marginHorizontal: 16,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: colors.ios.systemGray6,
   },
   tabButton: {
     flex: 1,
@@ -370,23 +376,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   activeTabButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.ios.systemBlue,
   },
   tabText: {
     fontSize: 16,
+    color: colors.ios.secondaryLabel,
     fontWeight: "500",
   },
   activeTabText: {
-    color: "#fff",
+    color: colors.white,
   },
   listContainer: {
     flex: 1,
-    paddingHorizontal: 5,
+    paddingHorizontal: 16,
   },
   errorText: {
     textAlign: "center",
     marginTop: 20,
-    fontSize: 16,
-    color: "red",
+    fontSize: 17,
+    color: colors.ios.systemRed,
   },
 });

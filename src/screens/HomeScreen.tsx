@@ -112,7 +112,7 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.lightGray2,
+    backgroundColor: colors.ios.systemGroupedBackground,
     paddingTop: 16,
   },
   list: {
@@ -120,9 +120,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   listContent: {
-    borderRadius: 12,
+    borderRadius: 10,
     overflow: "hidden",
-    backgroundColor: colors.white,
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
   },
   emptyContainer: {
     flex: 1,
@@ -131,12 +131,12 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   emptyText: {
-    fontSize: 16,
-    color: colors.darkGray,
+    fontSize: 17,
+    color: colors.ios.secondaryLabel,
   },
   separator: {
-    height: 1,
-    backgroundColor: colors.lightGray2,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.ios.separator,
     marginHorizontal: 16,
   },
   searchContainer: {

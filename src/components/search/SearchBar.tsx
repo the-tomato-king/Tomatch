@@ -27,13 +27,13 @@ const SearchBar = ({
       <View style={styles.searchBar}>
         <MaterialCommunityIcons
           name="magnify"
-          size={24}
-          color={colors.darkGray}
+          size={20}
+          color={colors.ios.tertiaryLabel}
         />
         <TextInput
           style={styles.searchInput}
           placeholder={placeholder}
-          placeholderTextColor={colors.darkGray}
+          placeholderTextColor={colors.ios.tertiaryLabel}
           value={value}
           onChangeText={onChangeText}
           onFocus={onFocus}
@@ -47,10 +47,8 @@ const SearchBar = ({
 
 const styles = StyleSheet.create({
   searchBarContainer: {
-    height: 40,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
+    height: 36,
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
     borderRadius: 10,
   },
   searchBar: {
@@ -61,8 +59,11 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    height: 40,
+    height: "100%",
     paddingVertical: 0,
+    marginLeft: 8,
+    fontSize: 17,
+    color: colors.ios.label,
   },
 });
 

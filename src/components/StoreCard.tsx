@@ -31,11 +31,8 @@ const StoreCard: React.FC<StoreCardProps> = ({
   isHighlighted = false,
 }) => {
   return (
-    <TouchableOpacity 
-      style={[
-        styles.storeItem, 
-        isHighlighted && styles.highlightedItem
-      ]} 
+    <TouchableOpacity
+      style={[styles.storeItem, isHighlighted && styles.highlightedItem]}
       onPress={onPress}
     >
       <View style={styles.storeLogoContainer}>
@@ -93,7 +90,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.lightGray2,
   },
   highlightedItem: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     borderWidth: 1,
     borderColor: colors.lightGray2,
     borderRadius: 8,

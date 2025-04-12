@@ -41,6 +41,7 @@ import {
 import { AuthenticatedState } from "../../contexts/AuthContext";
 import { deleteUser, User as FirebaseUser } from "firebase/auth";
 import { AppUser } from "../../types";
+import { colors } from "../../theme/colors";
 
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
@@ -411,7 +412,7 @@ export default SettingPage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F2F2F7", // iOS system background color
+    backgroundColor: colors.ios.systemGroupedBackground,
   },
   scrollView: {
     flex: 1,
@@ -421,18 +422,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   groupedList: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
     borderRadius: 10,
     overflow: "hidden",
   },
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#C6C6C8",
+    borderBottomColor: colors.ios.separator,
   },
   topItem: {
     borderTopLeftRadius: 10,
@@ -446,7 +447,7 @@ const styles = StyleSheet.create({
   settingLabel: {
     flex: 1,
     fontSize: 17,
-    color: "#000000",
+    color: colors.ios.label,
     fontFamily: Platform.OS === "ios" ? undefined : "System",
   },
   settingValueContainer: {
@@ -456,20 +457,20 @@ const styles = StyleSheet.create({
   },
   settingValue: {
     fontSize: 17,
-    color: "#8E8E93",
+    color: colors.ios.secondaryLabel,
   },
   chevron: {
     fontSize: 20,
-    color: "#C7C7CC",
+    color: colors.ios.tertiaryLabel,
     marginLeft: 4,
   },
   dangerText: {
-    color: "#FF3B30", // iOS system red color
+    color: colors.ios.systemRed,
   },
   profileSection: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.ios.secondarySystemGroupedBackground,
     padding: 16,
     borderRadius: 10,
   },
@@ -477,13 +478,13 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#F2F2F7",
+    backgroundColor: colors.ios.systemGray6,
     justifyContent: "center",
     alignItems: "center",
   },
   avatarText: {
     fontSize: 14,
-    color: "#8E8E93",
+    color: colors.ios.secondaryLabel,
   },
   userInfo: {
     marginLeft: 16,
@@ -492,11 +493,11 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 17,
     fontWeight: "600",
-    color: "#000000",
+    color: colors.ios.label,
   },
   userEmail: {
     fontSize: 15,
-    color: "#8E8E93",
+    color: colors.ios.secondaryLabel,
     marginTop: 4,
   },
   errorContainer: {
