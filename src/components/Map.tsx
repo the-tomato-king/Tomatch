@@ -27,7 +27,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   const displayLocation = userLocation || lastSavedLocation;
-  const isIOS = Platform.OS === 'ios';
+  const isIOS = Platform.OS === "ios";
 
   return (
     <View style={styles.container}>
@@ -54,7 +54,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
           </Marker>
 
           {/* Store Markers */}
-          {stores.map((store, index) => (
+          {stores.map((store, index) =>
             isIOS ? (
               <Marker
                 key={`store-${index}`}
@@ -77,7 +77,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 description={store.address}
               />
             )
-          ))}
+          )}
         </MapView>
       ) : (
         <Text>Waiting for location...</Text>
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
     marginBottom: 5,
-  }
+  },
 });
 
 export default MapComponent;
