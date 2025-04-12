@@ -26,6 +26,7 @@ import {
   deleteUserProduct,
   updateUserProductStats,
 } from "./userProductService";
+import { deleteProductImage } from "./mediaService";
 
 /**
  * Creates a new price record for a user
@@ -82,13 +83,13 @@ export const updatePriceRecord = async (
   data: Partial<BasePriceRecord>
 ): Promise<boolean> => {
   try {
-    // 1. 获取原始记录
+    // 1. get the original record
     const originalRecord = await getPriceRecord(userId, recordId);
     if (!originalRecord) {
       throw new Error("Record not found");
     }
 
-    // 2. 更新记录
+    // 2. update the record
     const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
     const success = await updateOneDocInDB(recordPath, recordId, {
       ...data,
@@ -99,7 +100,7 @@ export const updatePriceRecord = async (
       throw new Error("Failed to update price record");
     }
 
-    // 3. 获取用户产品
+    // 3. get the user product
     const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
     const userProduct = await readOneDoc<UserProduct>(
       userProductPath,
@@ -110,14 +111,14 @@ export const updatePriceRecord = async (
       throw new Error("User product not found");
     }
 
-    // 4. 确定记录的测量类型（使用更新后的单位，如果有的话）
+    // 4. determine the measurement type of the record (use the updated unit if it exists)
     const measurementType = isCountUnit(
       data.original_unit || originalRecord.original_unit
     )
       ? "count"
       : "measurable";
 
-    // 5. 获取该产品的所有记录
+    // 5. get all records of the product
     const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
     const recordsQuery = query(
       collection(db, recordsPath),
@@ -125,7 +126,7 @@ export const updatePriceRecord = async (
     );
     const recordsSnapshot = await getDocs(recordsQuery);
 
-    // 6. 重新计算统计信息
+    // 6. recalculate the stats
     let totalRecords = 0;
     let totalPrice = 0;
     let lowestPrice = Infinity;
@@ -141,7 +142,7 @@ export const updatePriceRecord = async (
 
       if (recordMeasurementType === measurementType) {
         totalRecords++;
-        // 如果是当前正在更新的记录，使用新的价格
+        // if the current record is the one being updated, use the new price
         const price =
           doc.id === recordId && data.standard_unit_price
             ? parseFloat(data.standard_unit_price)
@@ -162,7 +163,7 @@ export const updatePriceRecord = async (
       }
     });
 
-    // 7. 更新用户产品统计信息
+    // 7. update the user product stats
     const updatedStats = {
       total_price: totalPrice,
       average_price: totalPrice / totalRecords,
@@ -172,14 +173,14 @@ export const updatePriceRecord = async (
       total_price_records: totalRecords,
     };
 
-    // 8. 如果单位类型改变了，需要更新 measurement_types
+    // 8. if the unit type changed, update measurement_types
     let updatedMeasurementTypes = [...userProduct.measurement_types];
     const originalType = isCountUnit(originalRecord.original_unit)
       ? "count"
       : "measurable";
 
     if (data.original_unit && originalType !== measurementType) {
-      // 移除旧类型（如果没有其他记录使用这个类型）
+      // remove the old type (if there are no other records using this type)
       const hasOtherRecordsOfOriginalType = recordsSnapshot.docs.some((doc) => {
         const record = doc.data() as PriceRecord;
         return (
@@ -195,13 +196,13 @@ export const updatePriceRecord = async (
         );
       }
 
-      // 添加新类型（如果还没有）
+      // add the new type (if it doesn't exist yet)
       if (!updatedMeasurementTypes.includes(measurementType)) {
         updatedMeasurementTypes.push(measurementType);
       }
     }
 
-    // 9. 更新用户产品
+    // 9. update the user product
     await updateOneDocInDB(userProductPath, originalRecord.user_product_id, {
       measurement_types: updatedMeasurementTypes,
       [`price_statistics.${measurementType}`]: updatedStats,
@@ -251,129 +252,188 @@ export const getPriceRecord = async (
 };
 
 /**
- * Deletes a price record and updates the associated user product statistics
+ * Deletes a single price record and its associated image
  * @param {string} userId - The ID of the user
  * @param {string} recordId - The ID of the record to delete
  * @returns {Promise<boolean>} Whether the deletion was successful
  * @throws {Error} When deletion fails
+ */
+export const deletePriceRecord = async (
+  userId: string,
+  recordId: string
+): Promise<boolean> => {
+  try {
+    // 1. Get the record to get the image path
+    const record = await getPriceRecord(userId, recordId);
+    if (!record) {
+      throw new Error("Record not found");
+    }
+
+    // 2. Delete the image if exists
+    if (record.photo_url) {
+      try {
+        await deleteProductImage(record.photo_url);
+      } catch (error) {
+        console.error("Error deleting image:", error);
+        // Continue with record deletion even if image deletion fails
+      }
+    }
+
+    // 3. Delete the record
+    const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+    return await deleteOneDocFromDB(recordPath, recordId);
+  } catch (error) {
+    console.error("Error deleting price record:", error);
+    throw error;
+  }
+};
+
+/**
+ * Updates a product's statistics based on its current records
+ * @param {string} userId - The ID of the user
+ * @param {string} productId - The ID of the product
+ * @returns {Promise<boolean>} Whether the update was successful
+ */
+export const updateProductStats = async (
+  userId: string,
+  productId: string
+): Promise<boolean> => {
+  try {
+    const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+    const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+
+    // 1. Get the product
+    const userProduct = await readOneDoc<UserProduct>(
+      userProductPath,
+      productId
+    );
+    if (!userProduct) {
+      throw new Error("User product not found");
+    }
+
+    // 2. Get all records of the product
+    const recordsQuery = query(
+      collection(db, recordsPath),
+      where("user_product_id", "==", productId)
+    );
+    const recordsSnapshot = await getDocs(recordsQuery);
+
+    // 3. Calculate stats for each measurement type
+    type MeasurementType = "count" | "measurable";
+    type StatsType = {
+      records: number;
+      total: number;
+      lowest: number;
+      highest: number;
+      lowestPriceStore: null | { store_id: string; store_name: string };
+    };
+
+    const stats: Record<MeasurementType, StatsType> = {
+      count: {
+        records: 0,
+        total: 0,
+        lowest: Infinity,
+        highest: -Infinity,
+        lowestPriceStore: null,
+      },
+      measurable: {
+        records: 0,
+        total: 0,
+        lowest: Infinity,
+        highest: -Infinity,
+        lowestPriceStore: null,
+      },
+    };
+
+    const measurementTypes = new Set<MeasurementType>();
+
+    recordsSnapshot.docs.forEach((doc) => {
+      const record = doc.data() as PriceRecord;
+      const type = isCountUnit(record.original_unit) ? "count" : "measurable";
+      const price = parseFloat(record.standard_unit_price);
+
+      measurementTypes.add(type);
+      stats[type].records++;
+      stats[type].total += price;
+
+      if (price < stats[type].lowest) {
+        stats[type].lowest = price;
+        stats[type].lowestPriceStore = {
+          store_id: record.store_id,
+          store_name: record.store?.name || "",
+        };
+      }
+      if (price > stats[type].highest) {
+        stats[type].highest = price;
+      }
+    });
+
+    // 4. Prepare the update data
+    const updateData: any = {
+      measurement_types: Array.from(measurementTypes),
+      updated_at: new Date(),
+    };
+
+    // Add stats for each type that has records
+    (["count", "measurable"] as const).forEach((type: MeasurementType) => {
+      if (stats[type].records > 0) {
+        updateData[`price_statistics.${type}`] = {
+          total_price: stats[type].total,
+          average_price: stats[type].total / stats[type].records,
+          lowest_price:
+            stats[type].lowest === Infinity ? 0 : stats[type].lowest,
+          highest_price:
+            stats[type].highest === -Infinity ? 0 : stats[type].highest,
+          lowest_price_store: stats[type].lowestPriceStore,
+          total_price_records: stats[type].records,
+        };
+      } else {
+        updateData[`price_statistics.${type}`] = null;
+      }
+    });
+
+    // If current display_preference type has no records, clear it
+    if (
+      userProduct.display_preference &&
+      stats[userProduct.display_preference].records === 0
+    ) {
+      updateData.display_preference = null;
+    }
+
+    // 5. Update the product
+    return await updateOneDocInDB(userProductPath, productId, updateData);
+  } catch (error) {
+    console.error("Error updating product stats:", error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a price record and updates the associated product statistics
+ * @param {string} userId - The ID of the user
+ * @param {string} recordId - The ID of the record to delete
+ * @returns {Promise<boolean>} Whether the operation was successful
  */
 export const deletePriceRecordAndUpdateStats = async (
   userId: string,
   recordId: string
 ): Promise<boolean> => {
   try {
-    // 1. get the record to delete
+    // 1. Get the record to get the product ID
     const record = await getPriceRecord(userId, recordId);
     if (!record) {
       throw new Error("Record not found");
     }
 
-    const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-    const userProduct = await readOneDoc<UserProduct>(
-      userProductPath,
-      record.user_product_id
-    );
+    // 2. Delete the record and its image
+    await deletePriceRecord(userId, recordId);
 
-    if (!userProduct) {
-      throw new Error("User product not found");
-    }
-
-    // 2. determine the measurement type of the record
-    const measurementType = isCountUnit(record.original_unit)
-      ? "count"
-      : "measurable";
-    const currentStats = userProduct.price_statistics[measurementType];
-
-    if (!currentStats) {
-      throw new Error("Statistics not found for measurement type");
-    }
-
-    // 3. get all records of the product (except the one to delete)
-    const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
-    const recordsQuery = query(
-      collection(db, recordsPath),
-      where("user_product_id", "==", record.user_product_id)
-    );
-    const recordsSnapshot = await getDocs(recordsQuery);
-
-    // 4. recalculate the stats
-    let remainingRecordsOfType = 0;
-    let totalPrice = 0;
-    let lowestPrice = Infinity;
-    let highestPrice = -Infinity;
-    let lowestPriceStore = currentStats.lowest_price_store;
-
-    recordsSnapshot.docs.forEach((doc) => {
-      if (doc.id !== recordId) {
-        // skip the record to delete
-        const recordData = doc.data() as PriceRecord;
-        const recordMeasurementType = isCountUnit(recordData.original_unit)
-          ? "count"
-          : "measurable";
-
-        if (recordMeasurementType === measurementType) {
-          remainingRecordsOfType++;
-          const price = parseFloat(recordData.standard_unit_price);
-          totalPrice += price;
-
-          if (price < lowestPrice) {
-            lowestPrice = price;
-            lowestPriceStore = {
-              store_id: recordData.store_id,
-              store_name: recordData.store?.name || "",
-            };
-          }
-          if (price > highestPrice) {
-            highestPrice = price;
-          }
-        }
-      }
-    });
-
-    // 5. update the user product
-    const updatedMeasurementTypes = [...userProduct.measurement_types];
-
-    // if this is the last record of this type, remove it from measurement_types
-    if (remainingRecordsOfType === 0) {
-      const index = updatedMeasurementTypes.indexOf(measurementType);
-      if (index > -1) {
-        updatedMeasurementTypes.splice(index, 1);
-      }
-    }
-
-    const updatedStats =
-      remainingRecordsOfType === 0
-        ? null
-        : {
-            total_price: totalPrice,
-            average_price: totalPrice / remainingRecordsOfType,
-            lowest_price: lowestPrice === Infinity ? 0 : lowestPrice,
-            highest_price: highestPrice === -Infinity ? 0 : highestPrice,
-            lowest_price_store: lowestPriceStore,
-            total_price_records: remainingRecordsOfType,
-          };
-
-    // 6. update the user product
-    await updateOneDocInDB(userProductPath, record.user_product_id, {
-      measurement_types: updatedMeasurementTypes,
-      [`price_statistics.${measurementType}`]: updatedStats,
-      // if the current display preference is the deleted type and there are no records of this type, clear the display preference
-      ...(userProduct.display_preference === measurementType &&
-      remainingRecordsOfType === 0
-        ? { display_preference: undefined }
-        : {}),
-      updated_at: new Date(),
-    });
-
-    // 7. delete the record
-    const success = await deleteOneDocFromDB(recordsPath, recordId);
-    if (!success) {
-      throw new Error("Failed to delete price record");
-    }
+    // 3. Update the product stats
+    await updateProductStats(userId, record.user_product_id);
 
     return true;
   } catch (error) {
-    console.error("Error deleting price record and updating stats:", error);
+    console.error("Error in deletePriceRecordAndUpdateStats:", error);
     throw error;
   }
 };

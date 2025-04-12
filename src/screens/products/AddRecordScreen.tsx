@@ -47,7 +47,10 @@ import {
   BasicProductData,
 } from "../../services/userProductService";
 import { Unit } from "../../constants/units";
-import { uploadProductImage } from "../../services/mediaService";
+import {
+  uploadProductImage,
+  deleteProductImage,
+} from "../../services/mediaService";
 import {
   findUserProductByName,
   findUserProductByLibraryId,
@@ -380,16 +383,6 @@ const AddRecordScreen = () => {
     return numericPrice;
   };
 
-  // Uploads image and returns URL
-  const handleImageUpload = async (userId: string) => {
-    let photoUrl = "";
-    if (image) {
-      const result = await uploadProductImage(userId, image);
-      photoUrl = result.url;
-    }
-    return photoUrl;
-  };
-
   // Creates a product if none is selected
   const getOrCreateUserProduct = async (
     userId: string,
@@ -563,6 +556,8 @@ const AddRecordScreen = () => {
   };
 
   const handleSave = async () => {
+    let uploadedImagePath: string | null = null;
+
     try {
       // Validate form inputs
       const numericPrice = validateFormInputs();
@@ -571,7 +566,12 @@ const AddRecordScreen = () => {
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
 
       // Upload image if exists
-      const photoUrl = await handleImageUpload(userId as string);
+      let photoUrl = "";
+      if (image) {
+        const result = await uploadProductImage(userId as string, image);
+        photoUrl = result.url;
+        uploadedImagePath = result.path; // Store the path for potential rollback
+      }
 
       // Get or create user product
       const userProduct = await getOrCreateUserProduct(
@@ -648,6 +648,15 @@ const AddRecordScreen = () => {
         alert("Failed to save record");
       }
     } catch (error) {
+      // If image was uploaded but later steps failed, clean up the uploaded image
+      if (uploadedImagePath) {
+        try {
+          await deleteProductImage(uploadedImagePath);
+        } catch (cleanupError) {
+          console.error("Error cleaning up uploaded image:", cleanupError);
+        }
+      }
+
       console.error("Error saving record:", error);
       Alert.alert("Error", "Failed to save record");
     }
