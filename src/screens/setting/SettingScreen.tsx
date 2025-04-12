@@ -8,6 +8,7 @@ import {
   Switch,
   TouchableOpacity,
   Alert,
+  Platform,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { User, UserLocation } from "../../types";
@@ -288,90 +289,96 @@ const SettingPage = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar />
-      <ScrollView>
+      <ScrollView style={styles.scrollView}>
         {/* User Profile Section */}
-        <TouchableOpacity
-          style={styles.profileSection}
-          onPress={navigateToEditProfile}
-        >
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>Avatar</Text>
-          </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>{user?.name}</Text>
-            <Text style={styles.userEmail}>{user?.email}</Text>
-          </View>
-          <Text style={styles.chevron}>{">"}</Text>
-        </TouchableOpacity>
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.profileSection}
+            onPress={navigateToEditProfile}
+          >
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user?.name?.charAt(0) || "A"}
+              </Text>
+            </View>
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>{user?.name}</Text>
+              <Text style={styles.userEmail}>{user?.email}</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Account Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.groupedList}>
+            <TouchableOpacity
+              style={[styles.settingItem, styles.topItem]}
+              onPress={navigateToChangePassword}
+            >
+              <Text style={styles.settingLabel}>Change Password</Text>
+              <Text style={styles.chevron}>›</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={navigateToChangePassword}
-          >
-            <Text style={styles.settingLabel}>Change Password</Text>
-            <Text style={styles.chevron}>{">"}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.settingItem} onPress={handleLogout}>
+              <Text style={styles.settingLabel}>Logout</Text>
+              <Text style={styles.chevron}>›</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem} onPress={handleLogout}>
-            <Text style={styles.settingLabel}>Logout</Text>
-            <Text style={styles.chevron}>{">"}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={handleDeleteAccount}
-          >
-            <Text style={styles.settingLabel}>Delete My Account</Text>
-            <Text style={styles.chevron}>{">"}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.settingItem, styles.bottomItem]}
+              onPress={handleDeleteAccount}
+            >
+              <Text style={[styles.settingLabel, styles.dangerText]}>
+                Delete My Account
+              </Text>
+              <Text style={styles.chevron}>›</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Preference Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preference</Text>
+          <View style={styles.groupedList}>
+            <TouchableOpacity
+              style={[styles.settingItem, styles.topItem]}
+              onPress={() => setIsLocationModalVisible(true)}
+            >
+              <Text style={styles.settingLabel}>Location</Text>
+              <View style={styles.settingValueContainer}>
+                <Text style={styles.settingValue}>
+                  {preferences.location
+                    ? formatLocation(preferences.location)
+                    : "Not set"}
+                </Text>
+                <Text style={styles.chevron}>›</Text>
+              </View>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => setIsLocationModalVisible(true)}
-          >
-            <Text style={styles.settingLabel}>Location</Text>
-            <View style={styles.locationInfo}>
-              <Text style={styles.settingValue}>
-                {preferences.location
-                  ? formatLocation(preferences.location)
-                  : "Not set"}
-              </Text>
-              <Text style={styles.chevron}>{">"}</Text>
-            </View>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => setIsCurrencyModalVisible(true)}
+            >
+              <Text style={styles.settingLabel}>Currency</Text>
+              <View style={styles.settingValueContainer}>
+                <Text style={styles.settingValue}>
+                  {formatCurrency(preferences.currency)}
+                </Text>
+                <Text style={styles.chevron}>›</Text>
+              </View>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => setIsCurrencyModalVisible(true)}
-          >
-            <Text style={styles.settingLabel}>Currency</Text>
-            <View style={styles.locationInfo}>
-              <Text style={styles.settingValue}>
-                {formatCurrency(preferences.currency)}
-              </Text>
-              <Text style={styles.chevron}>{">"}</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => setIsWeightUnitModalVisible(true)}
-          >
-            <Text style={styles.settingLabel}>Weight Unit</Text>
-            <View style={styles.locationInfo}>
-              <Text style={styles.settingValue}>{user?.preferred_unit}</Text>
-              <Text style={styles.chevron}>{">"}</Text>
-            </View>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.settingItem, styles.bottomItem]}
+              onPress={() => setIsWeightUnitModalVisible(true)}
+            >
+              <Text style={styles.settingLabel}>Weight Unit</Text>
+              <View style={styles.settingValueContainer}>
+                <Text style={styles.settingValue}>{user?.preferred_unit}</Text>
+                <Text style={styles.chevron}>›</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <LocationModal
@@ -404,7 +411,93 @@ export default SettingPage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F2F2F7", // iOS system background color
+  },
+  scrollView: {
+    flex: 1,
+  },
+  section: {
+    marginTop: 20,
+    marginHorizontal: 16,
+  },
+  groupedList: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  settingItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#C6C6C8",
+  },
+  topItem: {
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  bottomItem: {
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    borderBottomWidth: 0,
+  },
+  settingLabel: {
+    flex: 1,
+    fontSize: 17,
+    color: "#000000",
+    fontFamily: Platform.OS === "ios" ? undefined : "System",
+  },
+  settingValueContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  settingValue: {
+    fontSize: 17,
+    color: "#8E8E93",
+  },
+  chevron: {
+    fontSize: 20,
+    color: "#C7C7CC",
+    marginLeft: 4,
+  },
+  dangerText: {
+    color: "#FF3B30", // iOS system red color
+  },
+  profileSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    borderRadius: 10,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#F2F2F7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: {
+    fontSize: 14,
+    color: "#8E8E93",
+  },
+  userInfo: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  userName: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#000000",
+  },
+  userEmail: {
+    fontSize: 15,
+    color: "#8E8E93",
+    marginTop: 4,
   },
   errorContainer: {
     flex: 1,
@@ -436,63 +529,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
-  },
-  profileSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#f0f0f0",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: 14,
-  },
-  userInfo: {
-    marginLeft: 16,
-    flex: 1,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  userEmail: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-  },
-  chevron: {
-    fontSize: 20,
-    color: "#ccc",
-  },
-  section: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  settingItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-  },
-  settingLabel: {
-    flex: 1,
-  },
-  settingValue: {
-    fontSize: 16,
-    color: "#666",
   },
   togglePlaceholder: {
     width: 50,
