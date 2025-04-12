@@ -526,7 +526,6 @@ const AddRecordScreen = () => {
         original_unit: unitType as Unit,
         standard_unit_price: standardUnitPrice.toString(),
         photo_url: photoUrl,
-        currency: preferences!.currency,
         recorded_at: new Date(),
       };
 

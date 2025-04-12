@@ -42,7 +42,6 @@ import { deleteProductImage } from "./mediaService";
  *   original_quantity: "2",
  *   original_unit: "kg",
  *   standard_unit_price: "4.995", // per gram
- *   currency: "$",
  *   photo_url: "https://..."
  * };
  * const recordId = await createPriceRecord("user123", recordData);

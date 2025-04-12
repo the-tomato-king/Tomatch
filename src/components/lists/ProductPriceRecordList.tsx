@@ -10,6 +10,8 @@ import {
 import { formatRecordDateTime } from "../../utils/dateUtils";
 import { PriceRecord } from "../../types";
 import { colors } from "../../theme/colors";
+import { PriceDisplay } from "../PriceDisplay";
+import { isCountUnit } from "../../constants/units";
 
 interface ProductPriceRecordListProps {
   priceRecords: PriceRecord[];
@@ -48,11 +50,18 @@ export const ProductPriceRecordList: React.FC<ProductPriceRecordListProps> = ({
                   </Text>
                 </View>
               </View>
-              <Text style={styles.recordPrice}>
-                ${parseFloat(record.original_price).toFixed(2)}/
-                {record.original_quantity}
-                {record.original_unit}
-              </Text>
+              <View style={styles.priceContainer}>
+                <PriceDisplay
+                  standardPrice={parseFloat(record.standard_unit_price)}
+                  measurementType={
+                    isCountUnit(record.original_unit) ? "count" : "measurable"
+                  }
+                />
+                <Text style={styles.unitText}>
+                  /{record.original_quantity}
+                  {record.original_unit}
+                </Text>
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -108,9 +117,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
   },
-  recordPrice: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: colors.primary,
+  priceContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  unitText: {
+    fontSize: 14,
+    color: colors.secondaryText,
+    marginLeft: 2,
   },
 });

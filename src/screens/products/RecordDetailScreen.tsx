@@ -23,6 +23,8 @@ import { db } from "../../services/firebase/firebaseConfig";
 import { useAuth } from "../../contexts/AuthContext";
 import { deletePriceRecordAndUpdateStats } from "../../services/priceRecordService";
 import ImagePreview from "../../components/ImagePreview";
+import { PriceDisplay } from "../../components/PriceDisplay";
+import { isCountUnit } from "../../constants/units";
 
 type PriceRecordInformationRouteProp = RouteProp<
   HomeStackParamList,
@@ -207,18 +209,37 @@ const PriceRecordInformationScreen = () => {
         <View style={styles.productPriceCard}>
           <View style={styles.productDetails}>
             <View style={styles.priceValueContainer}>
-              <Text style={styles.priceValue}>
-                ${record.original_price}/{record.original_quantity}
-                {record.original_unit}
-              </Text>
+              <View style={styles.priceRow}>
+                <PriceDisplay
+                  standardPrice={parseFloat(record.standard_unit_price)}
+                  measurementType={
+                    isCountUnit(record.original_unit) ? "count" : "measurable"
+                  }
+                  style={styles.priceValue}
+                />
+                <Text style={styles.priceValue}>
+                  /{record.original_quantity}
+                  {record.original_unit}
+                </Text>
+              </View>
             </View>
           </View>
           {/* Original Price and Record Date */}
           <View style={styles.additionalInfo}>
-            <Text style={styles.originalPrice}>
-              Original: ${record.original_price}/{record.original_quantity}
-              {record.original_unit}
-            </Text>
+            <View style={styles.priceRow}>
+              <Text style={styles.originalPrice}>Original: </Text>
+              <PriceDisplay
+                standardPrice={parseFloat(record.standard_unit_price)}
+                measurementType={
+                  isCountUnit(record.original_unit) ? "count" : "measurable"
+                }
+                style={styles.originalPrice}
+              />
+              <Text style={styles.originalPrice}>
+                /{record.original_quantity}
+                {record.original_unit}
+              </Text>
+            </View>
             <Text style={styles.recordDate}>
               Record on: {formatDateTime(record.recorded_at)}
             </Text>
@@ -428,6 +449,10 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     marginHorizontal: 16,
+  },
+  priceRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
   },
 });
 

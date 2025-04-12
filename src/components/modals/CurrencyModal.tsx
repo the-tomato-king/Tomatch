@@ -35,8 +35,7 @@ const CurrencyModal = ({
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Select Currency</Text>
-
+          <Text style={styles.modalTitle}>Display Currency</Text>
           <DropDownPicker
             open={open}
             value={currency}
@@ -50,6 +49,9 @@ const CurrencyModal = ({
             dropDownContainerStyle={styles.dropdownContainer}
             textStyle={styles.dropdownText}
           />
+          <Text style={styles.modalDescription}>
+            Only changes the currency display.
+          </Text>
 
           <View style={globalStyles.buttonsContainer}>
             <TouchableOpacity
@@ -106,6 +108,13 @@ const styles = StyleSheet.create({
     color: colors.darkText,
     fontSize: 16,
     fontWeight: "600",
+  },
+  modalDescription: {
+    width: "100%",
+    fontSize: 14,
+    color: colors.secondaryText,
+    marginBottom: 16,
+    textAlign: "center",
   },
 });
 
