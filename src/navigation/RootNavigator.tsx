@@ -79,14 +79,6 @@ const AppNavigator = () => {
         options={({ navigation }) => ({
           presentation: "modal",
           title: "Product Library",
-          headerLeft: () => (
-            <Text
-              style={globalStyles.headerButton}
-              onPress={() => navigation.goBack()}
-            >
-              Cancel
-            </Text>
-          ),
           headerRight: () => (
             <HeaderAddButton
               onPress={() => navigation.navigate("AddProduct")}

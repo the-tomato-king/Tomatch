@@ -24,10 +24,7 @@ import { db } from "../../services/firebase/firebaseConfig";
 import { Product, UserProduct } from "../../types";
 import LoadingLogo from "../../components/loading/LoadingLogo";
 import { COLLECTIONS } from "../../constants/firebase";
-import {
-  getAllProducts,
-  filterProductsByCategory,
-} from "../../services/productLibraryService";
+import { getAllProducts } from "../../services/productLibraryService";
 import { useAuth } from "../../contexts/AuthContext";
 
 type ProductLibraryRouteProp = NativeStackScreenProps<
@@ -194,13 +191,6 @@ const ProductLibraryScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.searchHeader}>
-        <View style={styles.sortByContainer}>
-          <MaterialCommunityIcons
-            name="sort"
-            size={24}
-            color={colors.darkGray}
-          />
-        </View>
         <View style={{ flex: 1 }}>
           <SearchBar
             value={searchQuery}
@@ -282,16 +272,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
     marginTop: 20,
-  },
-  sortByContainer: {
-    width: 40,
-    height: 40,
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
   },
   // product library
   productLibraryContainer: {
