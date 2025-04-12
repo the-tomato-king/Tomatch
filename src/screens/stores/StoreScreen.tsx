@@ -8,8 +8,11 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  Dimensions,
+  PanResponder,
+  Animated,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { colors } from "../../theme/colors";
 import SearchBar from "../../components/search/SearchBar";
 import { useUserStores } from "../../hooks/useUserStores";
@@ -27,7 +30,14 @@ import { convertNearbyStoreToUserStore } from "../../utils/storeConverters";
 import NearbyStoresList from "../../components/lists/NearbyStoresList";
 import MyStoresList from "../../components/lists/MyStoresList";
 import { useAuth } from "../../contexts/AuthContext";
+
 type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
+
+const { height, width } = Dimensions.get("window");
+
+const SMALL_HEIGHT = height * 0.25;
+const MEDIUM_HEIGHT = height * 0.5;
+const LARGE_HEIGHT = height * 0.75;
 
 const StoreScreen = () => {
   const [activeTab, setActiveTab] = useState("favorites");
@@ -45,9 +55,49 @@ const StoreScreen = () => {
     lastSavedStores,
   } = useLocation();
 
+  const panelHeight = useRef(new Animated.Value(SMALL_HEIGHT)).current;
+  const [currentHeight, setCurrentHeight] = useState(SMALL_HEIGHT);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (evt, gestureState) => {
+        const newHeight = currentHeight - gestureState.dy;
+        if (newHeight >= SMALL_HEIGHT && newHeight <= LARGE_HEIGHT) {
+          panelHeight.setValue(newHeight);
+        }
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        let targetHeight = currentHeight;
+        
+        if (gestureState.dy < 0) {
+          if (currentHeight < MEDIUM_HEIGHT) {
+            targetHeight = MEDIUM_HEIGHT;
+          } else {
+            targetHeight = LARGE_HEIGHT;
+          }
+        } else if (gestureState.dy > 0) {
+          if (currentHeight > MEDIUM_HEIGHT) {
+            targetHeight = MEDIUM_HEIGHT;
+          } else {
+            targetHeight = SMALL_HEIGHT;
+          }
+        }
+
+        Animated.spring(panelHeight, {
+          toValue: targetHeight,
+          useNativeDriver: false,
+          friction: 8,
+        }).start();
+
+        setCurrentHeight(targetHeight);
+      },
+    })
+  ).current;
+
   const handleStoreSelect = (store: NearbyStore) => {
     setSelectedStore(store);
-    setActiveTab("nearby");
+    setActiveTab("nearby"); 
   };
 
   const handleLocationSelect = async (location: {
@@ -75,9 +125,45 @@ const StoreScreen = () => {
     }
   };
 
+  const expandList = () => {
+    let targetHeight;
+    if (currentHeight === SMALL_HEIGHT) {
+      targetHeight = MEDIUM_HEIGHT;
+    } else if (currentHeight === MEDIUM_HEIGHT) {
+      targetHeight = LARGE_HEIGHT; 
+    } else {
+      return; 
+    }
+
+    Animated.spring(panelHeight, {
+      toValue: targetHeight,
+      useNativeDriver: false,
+      friction: 8,
+    }).start();
+    setCurrentHeight(targetHeight);
+  };
+
+  const collapseList = () => {
+    let targetHeight;
+    if (currentHeight === LARGE_HEIGHT) {
+      targetHeight = MEDIUM_HEIGHT;
+    } else if (currentHeight === MEDIUM_HEIGHT) {
+      targetHeight = SMALL_HEIGHT;
+    } else {
+      return; 
+    }
+
+    Animated.spring(panelHeight, {
+      toValue: targetHeight,
+      useNativeDriver: false,
+      friction: 8,
+    }).start();
+    setCurrentHeight(targetHeight);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.scrollView}>
+      <View style={styles.mapWrapper}>
         <View style={styles.searchSection}>
           <SearchBar
             value={address}
@@ -87,7 +173,7 @@ const StoreScreen = () => {
         </View>
 
         {/* Map Section */}
-        <View style={styles.mapSection}>
+        <View style={[styles.mapSection, { height: height * 0.65 }]}>
           <View style={styles.locationSection}>
             <LocationSelector
               address={
@@ -106,64 +192,88 @@ const StoreScreen = () => {
             />
           </View>
         </View>
-        <View style={styles.storesListSection}>
-          {/* Tabs Section */}
-          <View style={styles.tabsContainer}>
-            <TouchableOpacity
-              style={[
-                styles.tabButton,
-                activeTab === "favorites" ? styles.activeTabButton : {},
-              ]}
-              onPress={() => setActiveTab("favorites")}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === "favorites" ? styles.activeTabText : {},
-                ]}
-              >
-                My Stores
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.tabButton,
-                activeTab === "nearby" ? styles.activeTabButton : {},
-              ]}
-              onPress={() => setActiveTab("nearby")}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === "nearby" ? styles.activeTabText : {},
-                ]}
-              >
-                Nearby
-              </Text>
-            </TouchableOpacity>
-          </View>
+      </View>
 
-          {/* Stores List Content */}
-          <View style={styles.storesListContent}>
-            {loading ? (
-              <ActivityIndicator size="large" color={colors.primary} />
-            ) : error ? (
-              <Text style={styles.errorText}>{error}</Text>
-            ) : activeTab === "favorites" ? (
-              <MyStoresList stores={allStores} />
-            ) : (
-              <NearbyStoresList
-                stores={
-                  nearbyStores.length > 0 ? nearbyStores : lastSavedStores
-                }
-                onFavorite={handleAddStore}
-                favoriteStores={allStores}
-                selectedStore={selectedStore}
-              />
+      <Animated.View
+        style={[
+          styles.draggablePanel,
+          {
+            height: panelHeight,
+          },
+        ]}
+      >
+        <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
+          <View style={styles.dragHandle} />
+          <View style={styles.controlButtons}>
+            {currentHeight > SMALL_HEIGHT && (
+              <TouchableOpacity onPress={collapseList} style={styles.arrowButton}>
+                <Text style={styles.arrowText}>-</Text>
+              </TouchableOpacity>
+            )}
+            {currentHeight < LARGE_HEIGHT && (
+              <TouchableOpacity onPress={expandList} style={styles.arrowButton}>
+                <Text style={styles.arrowText}>+</Text>
+              </TouchableOpacity>
             )}
           </View>
         </View>
-      </View>
+
+        {/* 标签页 */}
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "favorites" ? styles.activeTabButton : {},
+            ]}
+            onPress={() => setActiveTab("favorites")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "favorites" ? styles.activeTabText : {},
+              ]}
+            >
+              My Stores
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "nearby" ? styles.activeTabButton : {},
+            ]}
+            onPress={() => setActiveTab("nearby")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "nearby" ? styles.activeTabText : {},
+              ]}
+            >
+              Nearby
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 列表内容 */}
+        <View style={styles.listContainer}>
+          {loading ? (
+            <ActivityIndicator size="large" color={colors.primary} />
+          ) : error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : activeTab === "favorites" ? (
+            <MyStoresList stores={allStores} />
+          ) : (
+            <NearbyStoresList
+              stores={
+                nearbyStores.length > 0 ? nearbyStores : lastSavedStores
+              }
+              onFavorite={handleAddStore}
+              favoriteStores={allStores}
+              selectedStore={selectedStore}
+            />
+          )}
+        </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };
@@ -175,48 +285,85 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  scrollView: {
-    flex: 1,
+  mapWrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: height,
+    zIndex: 1,
   },
   searchSection: {
     padding: 16,
-  },
-  headerSection: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-  },
-  locationSection: {
-    paddingBottom: 16,
-    width: "100%",
-  },
-  locationText: {
-    fontSize: 16,
+    zIndex: 10,
   },
   mapSection: {
     padding: 16,
     alignItems: "center",
   },
+  locationSection: {
+    paddingBottom: 16,
+    width: "100%",
+  },
   mapContainer: {
     width: "100%",
-    height: 300,
+    flex: 1,
     overflow: "hidden",
     borderRadius: 10,
   },
-  storesListSection: {
-    flex: 1,
-    padding: 16,
+  draggablePanel: {
+    position: 'absolute',
+    bottom: 0,
+    left: 8,
+    right: 8,
     backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
+    zIndex: 10,
+  },
+  dragHandleContainer: {
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    backgroundColor: "#fff",
+    flexDirection: 'row',
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.lightGray2,
+    marginTop: 5,
+  },
+  controlButtons: {
+    position: 'absolute',
+    right: 20,
+    flexDirection: 'row',
+  },
+  arrowButton: {
+    padding: 5,
+    marginLeft: 10,
+  },
+  arrowText: {
+    fontSize: 20,
+    color: colors.primary,
   },
   tabsContainer: {
     flexDirection: "row",
     borderRadius: 30,
     overflow: "hidden",
-    marginBottom: 16,
+    marginVertical: 10,
+    marginHorizontal: 16,
     backgroundColor: "#f0f0f0",
   },
   tabButton: {
@@ -235,15 +382,9 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: "#fff",
   },
-  storesListContent: {
+  listContainer: {
     flex: 1,
-    height: 300,
-  },
-  emptyListText: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-    color: colors.secondaryText,
+    paddingHorizontal: 5,
   },
   errorText: {
     textAlign: "center",
