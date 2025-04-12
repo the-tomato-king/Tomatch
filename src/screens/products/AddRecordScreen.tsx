@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Platform,
+  ActionSheetIOS,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import React, { useEffect, useState, useLayoutEffect } from "react";
@@ -55,6 +57,7 @@ import { getUserProductById } from "../../services/userProductService";
 import { getUserStoreById } from "../../services/userStoreService";
 import { calculateStandardPrice } from "../../utils/unitConverter";
 import { useUserPreference } from "../../hooks/useUserPreference";
+import ImagePreview from "../../components/ImagePreview";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -318,26 +321,42 @@ const AddRecordScreen = () => {
     }
   };
 
-  const pickImage = () => {
-    Alert.alert(
-      "Select Photo",
-      "Please select photo source",
-      [
+  const handleImagePress = () => {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
         {
-          text: "Take Photo",
-          onPress: takePhoto,
+          options: ["Cancel", "Take Photo", "Choose from Library"],
+          cancelButtonIndex: 0,
         },
-        {
-          text: "Select from Library",
-          onPress: pickFromLibrary,
-        },
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-      ],
-      { cancelable: true }
-    );
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            takePhoto();
+          } else if (buttonIndex === 2) {
+            pickFromLibrary();
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        "Change Photo",
+        "Choose photo source",
+        [
+          {
+            text: "Take Photo",
+            onPress: takePhoto,
+          },
+          {
+            text: "Choose from Library",
+            onPress: pickFromLibrary,
+          },
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   // Validates basic form inputs
@@ -656,30 +675,39 @@ const AddRecordScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.cardContainer}>
         {image ? (
-          <TouchableOpacity
-            style={[
-              styles.imageContainer,
-              { borderWidth: 1, borderStyle: "solid" },
-            ]}
-            onPress={pickImage}
-          >
-            <Image source={{ uri: image }} style={styles.previewImage} />
-          </TouchableOpacity>
-        ) : (
-          <>
-            <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
-              <View style={styles.imageContent}>
-                <View style={styles.cameraIconContainer}>
-                  <MaterialCommunityIcons
-                    name="camera-plus-outline"
-                    size={80}
-                    color={colors.mediumGray}
-                  />
-                </View>
-                <Text style={styles.uploadText}>Take photo and auto-fill</Text>
-              </View>
+          <View style={styles.imageContainer}>
+            <ImagePreview
+              source={image}
+              height={180}
+              containerStyle={styles.previewImage}
+            />
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={handleImagePress}
+            >
+              <MaterialCommunityIcons
+                name="pencil"
+                size={20}
+                color={colors.white}
+              />
             </TouchableOpacity>
-          </>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.imageContainer, styles.emptyImageContainer]}
+            onPress={handleImagePress}
+          >
+            <View style={styles.imageContent}>
+              <View style={styles.cameraIconContainer}>
+                <MaterialCommunityIcons
+                  name="camera-plus-outline"
+                  size={80}
+                  color={colors.mediumGray}
+                />
+              </View>
+              <Text style={styles.uploadText}>Take photo and auto-fill</Text>
+            </View>
+          </TouchableOpacity>
         )}
         <View style={globalStyles.inputsContainer}>
           <ProductSearchInput
@@ -766,11 +794,13 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: "100%",
     height: 180,
+    borderRadius: 8,
+    marginVertical: 20,
+  },
+  emptyImageContainer: {
     borderWidth: 2,
     borderStyle: "dashed",
     borderColor: colors.mediumGray,
-    borderRadius: 8,
-    marginVertical: 20,
   },
   imageContent: {
     flex: 1,
@@ -848,5 +878,24 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 8,
+  },
+  editButton: {
+    position: "absolute",
+    right: 10,
+    bottom: 10,
+    backgroundColor: colors.primary,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });

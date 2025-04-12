@@ -22,6 +22,8 @@ import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { useAuth } from "../../contexts/AuthContext";
 import { deletePriceRecordAndUpdateStats } from "../../services/priceRecordService";
+import ImagePreview from "../../components/ImagePreview";
+
 type PriceRecordInformationRouteProp = RouteProp<
   HomeStackParamList,
   "PriceRecordInformation"
@@ -240,19 +242,11 @@ const PriceRecordInformationScreen = () => {
         {/* Photo */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Photo</Text>
-          {record.photo_url ? (
-            <View style={styles.photoContainer}>
-              <Image
-                source={{ uri: record.photo_url }}
-                style={styles.recordPhoto}
-                resizeMode="cover"
-              />
-            </View>
-          ) : (
-            <View style={styles.noPhotoContainer}>
-              <Text style={styles.noPhotoText}>No photo available</Text>
-            </View>
-          )}
+          <ImagePreview
+            source={record.photo_url}
+            height={200}
+            containerStyle={styles.photoContainer}
+          />
         </View>
       </ScrollView>
       {/* Buttons */}
