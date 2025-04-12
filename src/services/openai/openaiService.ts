@@ -32,7 +32,7 @@ Product Name Rules:
 2. Remove marketing terms that don't affect price:
    - Fresh, Premium, Natural, Finest, Select
    - Brand names unless it's a packaged product
-3. For packaged items, include quantity in parentheses
+3. For weight/volume sold items, include package info in parentheses if relevant
 
 Examples:
 - "Fresh Premium Boneless Skinless Chicken Breast" -> "Boneless Skinless Chicken Breast"
@@ -40,8 +40,8 @@ Examples:
 - "Farm Fresh Large White Eggs" -> "Large White Egg"
 - "Premium Russet Potatoes" -> "Russet Potato"
 - "Natural Whole Milk" -> "Whole Milk"
-- "Organic 2% Milk" -> "Organic 2% Milk"
-- "12-Pack Coca Cola Cans" -> "Cola (12 cans)"
+- "Organic 2% Milk (1 gallon)" -> "Organic 2% Milk"
+- "12-Pack Coca Cola Cans" -> "Cola"
 
 For unit type, ONLY return the following units:
 Weight units (preferred): g, kg, mg, lb, oz
@@ -52,7 +52,8 @@ For unit value, ONLY return numeric values without any letters or symbols:
 Examples: 
 - "142g" -> {"unitValue": "142", "unitType": "g"}
 - "2 lb Organic Chicken" -> {"unitValue": "2", "unitType": "lb"}
-- "12 pack Cola" -> {"productName": "Cola (12 cans)", "unitValue": "1", "unitType": "EA"}
+- "12 pack Cola" -> {"productName": "Cola", "unitValue": "12", "unitType": "EA"}
+- "6 pack Beer" -> {"productName": "Beer", "unitValue": "6", "unitType": "EA"}
 
 Rules:
 1. Do not include any other text or explanation, especially any markdown marks
@@ -60,8 +61,13 @@ Rules:
 3. Use count unit (EA) only when item has no clear weight/volume
 4. Never use currency units or any other units not listed above
 5. unitValue must ONLY contain numbers and decimal points, no letters or symbols
-6. For packaged items, include the package quantity in the product name and use EA as unit
-7. Keep only attributes that affect store pricing
+6. For items sold by count (EA):
+   - Put the quantity directly in unitValue
+   - Keep product name clean without quantity info
+7. For items sold by weight/volume:
+   - Include package info in product name if relevant
+   - Put the actual weight/volume in unitValue
+8. Keep only attributes that affect store pricing
 
 Return ONLY a JSON object in this format:
 {

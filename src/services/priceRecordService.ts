@@ -128,7 +128,7 @@ export const updatePriceRecord = async (
     };
 
     // calculate the stats for the current record type
-    priceRecords.forEach((record) => {
+    priceRecords.forEach((record: PriceRecord) => {
       const recordType = isCountUnit(record.original_unit)
         ? "count"
         : "measurable";
@@ -190,7 +190,7 @@ export const updatePriceRecord = async (
 
     if (data.original_unit && originalType !== newType) {
       // check if there are other records using the original type
-      const hasOtherRecordsOfOriginalType = priceRecords.some((record) => {
+      const hasOtherRecordsOfOriginalType = priceRecords.some((record: PriceRecord) => {
         return (
           record.id !== recordId &&
           (isCountUnit(record.original_unit) ? "count" : "measurable") ===

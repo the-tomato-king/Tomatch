@@ -5,13 +5,11 @@ import {
   View,
   SafeAreaView,
   ScrollView,
-  Image,
   TouchableOpacity,
   Alert,
 } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import { HomeStackParamList } from "../../types/navigation";
 import { PriceRecord, Product, UserProduct, UserStore } from "../../types";
@@ -25,6 +23,8 @@ import { deletePriceRecordAndUpdateStats } from "../../services/priceRecordServi
 import ImagePreview from "../../components/ImagePreview";
 import { PriceDisplay } from "../../components/PriceDisplay";
 import { isCountUnit } from "../../constants/units";
+import { useUserPreference } from "../../hooks/useUserPreference";
+import { UNITS } from "../../constants/units";
 
 type PriceRecordInformationRouteProp = RouteProp<
   HomeStackParamList,
@@ -44,6 +44,9 @@ const PriceRecordInformationScreen = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [store, setStore] = useState<UserStore | null>(null);
   const { userId } = useAuth();
+  const { preferences, getCurrencySymbol } = useUserPreference(
+    userId as string
+  );
 
   useEffect(() => {
     const recordPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
@@ -218,8 +221,10 @@ const PriceRecordInformationScreen = () => {
                   style={styles.priceValue}
                 />
                 <Text style={styles.priceValue}>
-                  /{record.original_quantity}
-                  {record.original_unit}
+                  /
+                  {isCountUnit(record.original_unit)
+                    ? UNITS.COUNT.EACH
+                    : preferences?.unit}
                 </Text>
               </View>
             </View>
@@ -228,13 +233,10 @@ const PriceRecordInformationScreen = () => {
           <View style={styles.additionalInfo}>
             <View style={styles.priceRow}>
               <Text style={styles.originalPrice}>Original: </Text>
-              <PriceDisplay
-                standardPrice={parseFloat(record.standard_unit_price)}
-                measurementType={
-                  isCountUnit(record.original_unit) ? "count" : "measurable"
-                }
-                style={styles.originalPrice}
-              />
+              <Text style={styles.originalPrice}>
+                {getCurrencySymbol(preferences?.currency || "USD")}
+                {record.original_price}
+              </Text>
               <Text style={styles.originalPrice}>
                 /{record.original_quantity}
                 {record.original_unit}

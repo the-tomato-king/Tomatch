@@ -5,13 +5,15 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Pressable,
 } from "react-native";
 import { formatRecordDateTime } from "../../utils/dateUtils";
 import { PriceRecord } from "../../types";
 import { colors } from "../../theme/colors";
 import { PriceDisplay } from "../PriceDisplay";
 import { isCountUnit } from "../../constants/units";
+import { useUserPreference } from "../../hooks/useUserPreference";
+import { useAuth } from "../../contexts/AuthContext";
+import { UNITS } from "../../constants/units";
 
 interface ProductPriceRecordListProps {
   priceRecords: PriceRecord[];
@@ -22,6 +24,9 @@ export const ProductPriceRecordList: React.FC<ProductPriceRecordListProps> = ({
   priceRecords,
   navigation,
 }) => {
+  const { userId } = useAuth();
+  const { preferences } = useUserPreference(userId as string);
+
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>
@@ -58,8 +63,10 @@ export const ProductPriceRecordList: React.FC<ProductPriceRecordListProps> = ({
                   }
                 />
                 <Text style={styles.unitText}>
-                  /{record.original_quantity}
-                  {record.original_unit}
+                  /
+                  {isCountUnit(record.original_unit)
+                    ? UNITS.COUNT.EACH
+                    : preferences?.unit}
                 </Text>
               </View>
             </TouchableOpacity>

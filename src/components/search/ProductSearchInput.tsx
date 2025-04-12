@@ -46,6 +46,7 @@ const ProductSearchInput: React.FC<ProductSearchInputProps> = ({
   const handleInputChange = (text: string) => {
     onChangeText(text);
     setSearchTerm(text);
+    setShowSuggestions(true);
   };
 
   return (
