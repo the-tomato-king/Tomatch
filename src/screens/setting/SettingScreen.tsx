@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  Image,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { User, UserLocation } from "../../types";
@@ -42,6 +43,7 @@ import { AuthenticatedState } from "../../contexts/AuthContext";
 import { deleteUser, User as FirebaseUser } from "firebase/auth";
 import { AppUser } from "../../types";
 import { colors } from "../../theme/colors";
+import { updateUserDocument } from "../../services/userService";
 
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
@@ -298,9 +300,16 @@ const SettingPage = () => {
             onPress={navigateToEditProfile}
           >
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {user?.name?.charAt(0) || "A"}
-              </Text>
+              {user?.avatar_url ? (
+                <Image
+                  source={{ uri: user.avatar_url }}
+                  style={styles.avatarImage}
+                />
+              ) : (
+                <Text style={styles.avatarText}>
+                  {user?.name?.charAt(0) || "A"}
+                </Text>
+              )}
             </View>
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{user?.name}</Text>
@@ -547,5 +556,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 30,
   },
 });
