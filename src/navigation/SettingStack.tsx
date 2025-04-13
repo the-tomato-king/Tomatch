@@ -12,6 +12,10 @@ const SettingStack = () => {
       <Stack.Screen
         name="SettingScreen"
         component={SettingScreen}
+        options={{
+          headerShown: true,
+          title: "Settings",
+        }}
       />
       <Stack.Screen
         name="EditProfile"
