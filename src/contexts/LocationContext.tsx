@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { UserLocation, NearbyStore } from "../types/location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from "expo-location";
 
 interface LocationContextType {
   userLocation: UserLocation | null;
@@ -32,6 +33,32 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({
   const [lastSavedStores, setLastSavedStores] = useState<NearbyStore[]>([]);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
+  const initializeLocation = async () => {
+    try {
+      // Request location permission
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission to access location was denied");
+        return;
+      }
+
+      setIsLoadingLocation(true);
+      // Get current location
+      const location = await Location.getCurrentPositionAsync({});
+
+      // Update location and fetch nearby stores
+      await setUserLocationAndStores({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        address: "", // Address will be empty initially
+      });
+    } catch (error) {
+      console.error("Error initializing location:", error);
+    } finally {
+      setIsLoadingLocation(false);
+    }
+  };
+
   useEffect(() => {
     const loadSavedData = async () => {
       try {
@@ -44,6 +71,9 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({
         if (savedStores) {
           setLastSavedStores(JSON.parse(savedStores));
         }
+
+        // After loading saved data, try to get current location
+        await initializeLocation();
       } catch (error) {
         console.error("Error loading saved location data:", error);
       }

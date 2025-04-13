@@ -9,6 +9,10 @@ import {
   Alert,
   Platform,
   ActionSheetIOS,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  ScrollView,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import React, { useEffect, useState, useLayoutEffect } from "react";
@@ -681,89 +685,104 @@ const AddRecordScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.cardContainer}>
-        {image ? (
-          <View style={styles.imageContainer}>
-            <ImagePreview
-              source={image}
-              height={180}
-              containerStyle={styles.previewImage}
-            />
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={handleImagePress}
-            >
-              <MaterialCommunityIcons
-                name="pencil"
-                size={20}
-                color={colors.white}
-              />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={[styles.imageContainer, styles.emptyImageContainer]}
-            onPress={handleImagePress}
-          >
-            <View style={styles.imageContent}>
-              <View style={styles.cameraIconContainer}>
-                <MaterialCommunityIcons
-                  name="camera-plus-outline"
-                  size={80}
-                  color={colors.mediumGray}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.cardContainer}>
+            {image ? (
+              <View style={styles.imageContainer}>
+                <ImagePreview
+                  source={image}
+                  height={180}
+                  containerStyle={styles.previewImage}
                 />
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={handleImagePress}
+                >
+                  <MaterialCommunityIcons
+                    name="pencil"
+                    size={20}
+                    color={colors.white}
+                  />
+                </TouchableOpacity>
               </View>
-              <Text style={styles.uploadText}>Take photo and auto-fill</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        <View style={globalStyles.inputsContainer}>
-          <ProductSearchInput
-            value={productState.productName}
-            selectedProduct={productState.selectedProduct}
-            onChangeText={handleProductNameChange}
-            onSelectProduct={handleProductSelect}
-            onNavigateToLibrary={handleNavigateToLibrary}
-          />
-          {/* TODO: replace with general search dropdown */}
-          <StoreSearchInput
-            inputValue={storeName}
-            onChangeInputValue={setStoreName}
-            onSelectStore={(store) => {
-              setSelectedStore(store);
-            }}
-            initialStoreId={selectedStore?.id}
-            disabled={false}
-          />
-          <View style={[globalStyles.inputContainer]}>
-            <View style={globalStyles.labelContainer}>
-              <Text style={globalStyles.inputLabel}>Price</Text>
-            </View>
-            <View style={styles.priceContainer}>
-              <View style={styles.priceInputContainer}>
-                <Text style={styles.currencySymbol}>
-                  {getCurrencySymbol(preferences?.currency || "USD")}
-                </Text>
-                <TextInput
-                  style={[globalStyles.input, styles.priceInput]}
-                  placeholder="0.00"
-                  value={price}
-                  onChangeText={setPrice}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <UnitInputGroup
-                unitValue={unitValue}
-                unitType={unitType}
-                onUnitValueChange={setUnitValue}
-                onUnitTypeChange={setUnitType}
+            ) : (
+              <TouchableOpacity
+                style={[styles.imageContainer, styles.emptyImageContainer]}
+                onPress={handleImagePress}
+              >
+                <View style={styles.imageContent}>
+                  <View style={styles.cameraIconContainer}>
+                    <MaterialCommunityIcons
+                      name="camera-plus-outline"
+                      size={80}
+                      color={colors.mediumGray}
+                    />
+                  </View>
+                  <Text style={styles.uploadText}>
+                    Take photo and auto-fill
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            <View style={globalStyles.inputsContainer}>
+              <ProductSearchInput
+                value={productState.productName}
+                selectedProduct={productState.selectedProduct}
+                onChangeText={handleProductNameChange}
+                onSelectProduct={handleProductSelect}
+                onNavigateToLibrary={handleNavigateToLibrary}
               />
+              {/* TODO: replace with general search dropdown */}
+              <StoreSearchInput
+                inputValue={storeName}
+                onChangeInputValue={setStoreName}
+                onSelectStore={(store) => {
+                  setSelectedStore(store);
+                }}
+                initialStoreId={selectedStore?.id}
+                disabled={false}
+              />
+              <View style={[globalStyles.inputContainer]}>
+                <View style={globalStyles.labelContainer}>
+                  <MaterialCommunityIcons
+                    name="alpha-s-circle"
+                    size={18}
+                    color={colors.primary}
+                  />
+                </View>
+                <View style={styles.priceContainer}>
+                  <View style={styles.priceInputContainer}>
+                    <Text style={styles.currencySymbol}>
+                      {getCurrencySymbol(preferences?.currency || "USD")}
+                    </Text>
+                    <TextInput
+                      style={[globalStyles.input, styles.priceInput]}
+                      placeholder="0.00"
+                      placeholderTextColor={colors.secondaryText}
+                      value={price}
+                      onChangeText={setPrice}
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                  <UnitInputGroup
+                    unitValue={unitValue}
+                    unitType={unitType}
+                    onUnitValueChange={setUnitValue}
+                    onUnitTypeChange={setUnitType}
+                  />
+                </View>
+              </View>
             </View>
           </View>
-        </View>
-      </View>
-    </SafeAreaView>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -776,6 +795,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     paddingHorizontal: 30,
+    paddingBottom: 30,
   },
   imageContainer: {
     width: "100%",
