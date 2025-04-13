@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Modal, StyleSheet, TouchableOpacity } from "react-native";
 import { colors } from "../../theme/colors";
-import { globalStyles } from "../../theme/styles";
-import DropDownPicker from "react-native-dropdown-picker";
 import { USER_SELECTABLE_UNITS } from "../../constants/units";
 
 interface UnitModalProps {
@@ -18,12 +16,7 @@ const UnitModal = ({
   onSave,
   initialUnit,
 }: UnitModalProps) => {
-  const [open, setOpen] = useState(false);
   const [unit, setUnit] = useState(initialUnit);
-
-  const getUnitItems = () => {
-    return USER_SELECTABLE_UNITS.WEIGHT;
-  };
 
   const handleSave = () => {
     onSave(unit);
@@ -33,37 +26,43 @@ const UnitModal = ({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Select Weight Unit</Text>
+      <View style={styles.overlay}>
+        <View style={styles.modal}>
+          <Text style={styles.title}>Select Weight Unit</Text>
 
-          <DropDownPicker
-            open={open}
-            value={unit}
-            items={getUnitItems()}
-            setOpen={setOpen}
-            setValue={setUnit}
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
-            textStyle={styles.dropdownText}
-          />
+          <View style={styles.unitList}>
+            {USER_SELECTABLE_UNITS.WEIGHT.map((item) => (
+              <TouchableOpacity
+                key={item.value}
+                style={[
+                  styles.unitItem,
+                  unit === item.value && styles.selectedItem,
+                ]}
+                onPress={() => setUnit(item.value)}
+              >
+                <Text
+                  style={[
+                    styles.unitText,
+                    unit === item.value && styles.selectedText,
+                  ]}
+                >
+                  {item.label}
+                </Text>
+                {unit === item.value && <Text style={styles.checkmark}>✓</Text>}
+              </TouchableOpacity>
+            ))}
+          </View>
 
-          <View style={globalStyles.buttonsContainer}>
-            <TouchableOpacity
-              style={[globalStyles.button, styles.cancelButton]}
-              onPress={onClose}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+          <View style={styles.buttons}>
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+              <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[globalStyles.button, globalStyles.primaryButton]}
-              onPress={handleSave}
-            >
-              <Text style={globalStyles.primaryButtonText}>Save</Text>
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Text style={styles.saveText}>Save</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -73,39 +72,77 @@ const UnitModal = ({
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
+  overlay: {
     flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  modalContent: {
+  modal: {
+    width: "90%",
     backgroundColor: "white",
+    borderRadius: 13,
     padding: 16,
-    borderRadius: 16,
-    width: "80%",
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+  title: {
+    fontSize: 17,
+    fontWeight: "600",
+    textAlign: "center",
     marginBottom: 16,
   },
-  dropdown: {
+  unitList: {
+    gap: 8,
     marginBottom: 16,
-    borderColor: colors.lightGray2,
   },
-  dropdownContainer: {
-    borderColor: colors.lightGray2,
+  unitItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 12,
+    backgroundColor: colors.ios.systemGray6,
+    borderRadius: 8,
   },
-  dropdownText: {
-    fontSize: 16,
+  selectedItem: {
+    backgroundColor: colors.ios.systemBlue,
+  },
+  unitText: {
+    fontSize: 17,
+    color: colors.ios.label,
+  },
+  selectedText: {
+    color: "white",
+    fontWeight: "500",
+  },
+  checkmark: {
+    color: "white",
+    fontSize: 17,
+    fontWeight: "600",
+  },
+  buttons: {
+    flexDirection: "row",
+    gap: 8,
   },
   cancelButton: {
-    backgroundColor: colors.lightGray2,
+    flex: 1,
+    padding: 12,
+    backgroundColor: colors.ios.systemGray6,
+    borderRadius: 8,
+    alignItems: "center",
   },
-  cancelButtonText: {
-    color: colors.darkText,
-    fontSize: 16,
+  saveButton: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: colors.ios.systemBlue,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  cancelText: {
+    fontSize: 17,
+    color: colors.ios.label,
+  },
+  saveText: {
+    fontSize: 17,
+    color: "white",
     fontWeight: "600",
   },
 });

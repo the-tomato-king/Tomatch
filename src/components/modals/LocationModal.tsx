@@ -3,13 +3,12 @@ import {
   View,
   Text,
   Modal,
-  StyleSheet,
   TouchableOpacity,
-  TextInput,
   Alert,
+  StyleSheet,
+  TextInput,
 } from "react-native";
 import { colors } from "../../theme/colors";
-import { globalStyles } from "../../theme/styles";
 import { UserLocation } from "../../types";
 import * as Location from "expo-location";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -54,11 +53,13 @@ const LocationModal = ({
         longitude: position.coords.longitude,
       });
 
-      setLocation({
+      const newLocation = {
         country: address.country || "",
         province: address.region || "",
         city: address.city || "",
-      });
+      };
+
+      setLocation(newLocation);
     } catch (error) {
       Alert.alert("Error", "Failed to get current location");
     } finally {
@@ -67,6 +68,10 @@ const LocationModal = ({
   };
 
   const handleSave = () => {
+    if (!location.country.trim()) {
+      Alert.alert("Error", "Please enter a country");
+      return;
+    }
     onSave(location);
     onClose();
   };
@@ -74,13 +79,13 @@ const LocationModal = ({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Update Location</Text>
+      <View style={styles.overlay}>
+        <View style={styles.modal}>
+          <Text style={styles.title}>Update Location</Text>
 
           <TouchableOpacity
             style={styles.locationButton}
@@ -89,70 +94,56 @@ const LocationModal = ({
           >
             <MaterialCommunityIcons
               name="crosshairs-gps"
-              size={24}
-              color={colors.primary}
+              size={20}
+              color={colors.ios.systemBlue}
             />
             <Text style={styles.locationButtonText}>
               {loading ? "Getting location..." : "Get Current Location"}
             </Text>
           </TouchableOpacity>
 
-          <View style={globalStyles.inputsContainer}>
-            <View style={globalStyles.inputContainer}>
-              <View style={globalStyles.labelContainer}>
-                <Text style={globalStyles.inputLabel}>Country</Text>
-              </View>
-              <TextInput
-                style={globalStyles.input}
-                value={location.country}
-                onChangeText={(text) =>
-                  setLocation((prev) => ({ ...prev, country: text }))
-                }
-                placeholder="Enter country"
-              />
-            </View>
-
-            <View style={globalStyles.inputContainer}>
-              <View style={globalStyles.labelContainer}>
-                <Text style={globalStyles.inputLabel}>Province</Text>
-              </View>
-              <TextInput
-                style={globalStyles.input}
-                value={location.province}
-                onChangeText={(text) =>
-                  setLocation((prev) => ({ ...prev, province: text }))
-                }
-                placeholder="Enter province"
-              />
-            </View>
-
-            <View style={globalStyles.inputContainer}>
-              <View style={globalStyles.labelContainer}>
-                <Text style={globalStyles.inputLabel}>City</Text>
-              </View>
-              <TextInput
-                style={globalStyles.input}
-                value={location.city}
-                onChangeText={(text) =>
-                  setLocation((prev) => ({ ...prev, city: text }))
-                }
-                placeholder="Enter city"
-              />
-            </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Country *</Text>
+            <TextInput
+              style={styles.input}
+              value={location.country}
+              onChangeText={(text) =>
+                setLocation((prev) => ({ ...prev, country: text }))
+              }
+              placeholder="Enter country"
+            />
           </View>
 
-          <View style={globalStyles.buttonsContainer}>
-            <TouchableOpacity
-              style={[globalStyles.button, styles.cancelButton]}
-              onPress={onClose}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Province/State</Text>
+            <TextInput
+              style={styles.input}
+              value={location.province}
+              onChangeText={(text) =>
+                setLocation((prev) => ({ ...prev, province: text }))
+              }
+              placeholder="Enter province or state"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>City</Text>
+            <TextInput
+              style={styles.input}
+              value={location.city}
+              onChangeText={(text) =>
+                setLocation((prev) => ({ ...prev, city: text }))
+              }
+              placeholder="Enter city"
+            />
+          </View>
+
+          <View style={styles.buttons}>
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+              <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[globalStyles.button, globalStyles.primaryButton]}
-              onPress={handleSave}
-            >
-              <Text style={globalStyles.primaryButtonText}>Save</Text>
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Text style={styles.saveText}>Save</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -162,43 +153,75 @@ const LocationModal = ({
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
+  overlay: {
     flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  modalContent: {
+  modal: {
+    width: "90%",
     backgroundColor: "white",
+    borderRadius: 13,
     padding: 16,
-    borderRadius: 16,
-    width: "80%",
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  cancelButton: {
-    backgroundColor: colors.lightGray2,
-  },
-  cancelButtonText: {
-    color: colors.darkText,
-    fontSize: 16,
+  title: {
+    fontSize: 17,
     fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 16,
   },
   locationButton: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    backgroundColor: colors.lightGray2,
-    borderRadius: 8,
+    justifyContent: "center",
+    gap: 6,
     marginBottom: 16,
-    gap: 8,
   },
   locationButtonText: {
-    fontSize: 16,
-    color: colors.primary,
+    fontSize: 17,
+    color: colors.ios.systemBlue,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 15,
+    marginBottom: 8,
+  },
+  input: {
+    fontSize: 17,
+    padding: 12,
+    backgroundColor: colors.ios.systemGray6,
+    borderRadius: 8,
+  },
+  buttons: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 8,
+  },
+  cancelButton: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: colors.ios.systemGray6,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  saveButton: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: colors.ios.systemBlue,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  cancelText: {
+    fontSize: 17,
+    color: colors.ios.label,
+  },
+  saveText: {
+    fontSize: 17,
+    color: "white",
+    fontWeight: "600",
   },
 });
 
