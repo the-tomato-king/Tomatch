@@ -8,6 +8,7 @@ export interface AppUser {
   preferred_unit?: string;
   preferred_currency?: string;
   location?: UserLocation;
+  avatar_url?: string;
 }
 
 export interface BaseUser {
@@ -17,6 +18,7 @@ export interface BaseUser {
   location: UserLocation;
   preferred_unit: string;
   preferred_currency: string;
+  avatar_url?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -119,7 +121,6 @@ export interface BasePriceRecord {
   // standard unit price (for comparison and statistics)
   standard_unit_price: string; // price per standard unit (g or each)
 
-  currency: string;
   photo_url: string;
   recorded_at: Date;
 }

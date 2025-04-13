@@ -26,6 +26,7 @@ import {
   reauthenticateWithCredential,
   verifyBeforeUpdateEmail,
 } from "firebase/auth";
+import { EditAvatar } from "../../components/EditAvatar";
 
 const EditProfileScreen = () => {
   const navigation = useNavigation();
@@ -200,9 +201,18 @@ const EditProfileScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content}>
-        <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Personal Information</Text>
+        <EditAvatar
+          userId={userId as string}
+          avatarUrl={user?.avatar_url}
+          userName={user?.name}
+          onAvatarUpdate={(newAvatarUrl) => {
+            setUser((prev) =>
+              prev ? { ...prev, avatar_url: newAvatarUrl } : null
+            );
+          }}
+        />
 
+        <View style={styles.formSection}>
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Name</Text>
             <TextInput
@@ -266,11 +276,6 @@ const styles = StyleSheet.create({
   },
   formSection: {
     marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 16,
   },
   inputContainer: {
     marginBottom: 16,

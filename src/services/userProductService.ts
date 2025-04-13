@@ -22,7 +22,8 @@ import {
   updateOneDocInDB,
   deleteOneDocFromDB,
 } from "./firebase/firebaseHelper";
-import { uploadProductImage } from "./mediaService";
+import { uploadProductImage, deleteProductImage } from "./mediaService";
+import { deletePriceRecord } from "./priceRecordService";
 
 interface ListenToUserProductResult {
   userProduct: UserProduct | null;
@@ -234,31 +235,38 @@ export const updateUserProduct = async ({
  * @param {string} productId - The ID of the product to delete
  * @returns {Promise<void>}
  * @throws {Error} When deletion fails
- * @example
- * await deleteUserProduct("user123", "product456");
  */
 export const deleteUserProduct = async (
   userId: string,
   productId: string
 ): Promise<void> => {
-  const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
-  const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+  try {
+    const userProductPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS}`;
+    const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
 
-  // 1. Delete all related price records
-  const recordsQuery = query(
-    collection(db, recordsPath),
-    where("user_product_id", "==", productId)
-  );
-  const recordsSnapshot = await getDocs(recordsQuery);
+    // 1. Get all related price records
+    const recordsQuery = query(
+      collection(db, recordsPath),
+      where("user_product_id", "==", productId)
+    );
+    const recordsSnapshot = await getDocs(recordsQuery);
 
-  // Delete each record
-  const recordDeletePromises = recordsSnapshot.docs.map((doc) =>
-    deleteOneDocFromDB(recordsPath, doc.id)
-  );
-  await Promise.all(recordDeletePromises);
+    // 2. Delete each record (without updating stats)
+    for (const doc of recordsSnapshot.docs) {
+      try {
+        await deletePriceRecord(userId, doc.id);
+      } catch (error) {
+        console.error(`Error deleting record ${doc.id}:`, error);
+        // Continue with other records even if one fails
+      }
+    }
 
-  // 2. Delete the user product
-  await deleteOneDocFromDB(userProductPath, productId);
+    // 3. Delete the user product itself
+    await deleteOneDocFromDB(userProductPath, productId);
+  } catch (error) {
+    console.error("Error deleting user product:", error);
+    throw error;
+  }
 };
 
 /**
@@ -448,4 +456,27 @@ export const updateUserProductDisplayPreference = async (
     display_preference: preference,
     updated_at: new Date(),
   });
+};
+
+/**
+ * Gets all price records for a specific user product
+ * @param {string} userId - The ID of the user
+ * @param {string} userProductId - The ID of the user product
+ * @returns {Promise<PriceRecord[]>} Array of price records
+ */
+export const getUserProductPriceRecords = async (
+  userId: string,
+  userProductId: string
+): Promise<PriceRecord[]> => {
+  const recordsPath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.PRICE_RECORDS}`;
+  const recordsQuery = query(
+    collection(db, recordsPath),
+    where("user_product_id", "==", userProductId)
+  );
+  const recordsSnapshot = await getDocs(recordsQuery);
+
+  return recordsSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as PriceRecord[];
 };

@@ -14,7 +14,6 @@ export const UNITS = {
   },
   COUNT: {
     EACH: "EA",
-    PACK: "PK",
   },
 } as const;
 
@@ -56,7 +55,6 @@ export const ALL_UNITS = [
   UNITS.VOLUME.L,
   // Count Units
   UNITS.COUNT.EACH,
-  UNITS.COUNT.PACK,
 ] as const;
 
 // User selectable units for preferences

@@ -7,6 +7,12 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Platform,
+  ActionSheetIOS,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  ScrollView,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import React, { useEffect, useState, useLayoutEffect } from "react";
@@ -45,7 +51,10 @@ import {
   BasicProductData,
 } from "../../services/userProductService";
 import { Unit } from "../../constants/units";
-import { uploadProductImage } from "../../services/mediaService";
+import {
+  uploadProductImage,
+  deleteProductImage,
+} from "../../services/mediaService";
 import {
   findUserProductByName,
   findUserProductByLibraryId,
@@ -55,6 +64,8 @@ import { getUserProductById } from "../../services/userProductService";
 import { getUserStoreById } from "../../services/userStoreService";
 import { calculateStandardPrice } from "../../utils/unitConverter";
 import { useUserPreference } from "../../hooks/useUserPreference";
+import ImagePreview from "../../components/ImagePreview";
+import UnitInputGroup from "../../components/inputs/UnitInputGroup";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -318,26 +329,42 @@ const AddRecordScreen = () => {
     }
   };
 
-  const pickImage = () => {
-    Alert.alert(
-      "Select Photo",
-      "Please select photo source",
-      [
+  const handleImagePress = () => {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
         {
-          text: "Take Photo",
-          onPress: takePhoto,
+          options: ["Cancel", "Take Photo", "Choose from Library"],
+          cancelButtonIndex: 0,
         },
-        {
-          text: "Select from Library",
-          onPress: pickFromLibrary,
-        },
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-      ],
-      { cancelable: true }
-    );
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            takePhoto();
+          } else if (buttonIndex === 2) {
+            pickFromLibrary();
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        "Change Photo",
+        "Choose photo source",
+        [
+          {
+            text: "Take Photo",
+            onPress: takePhoto,
+          },
+          {
+            text: "Choose from Library",
+            onPress: pickFromLibrary,
+          },
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   // Validates basic form inputs
@@ -359,16 +386,6 @@ const AddRecordScreen = () => {
     }
 
     return numericPrice;
-  };
-
-  // Uploads image and returns URL
-  const handleImageUpload = async (userId: string) => {
-    let photoUrl = "";
-    if (image) {
-      const result = await uploadProductImage(userId, image);
-      photoUrl = result.url;
-    }
-    return photoUrl;
   };
 
   // Creates a product if none is selected
@@ -514,7 +531,6 @@ const AddRecordScreen = () => {
         original_unit: unitType as Unit,
         standard_unit_price: standardUnitPrice.toString(),
         photo_url: photoUrl,
-        currency: preferences!.currency,
         recorded_at: new Date(),
       };
 
@@ -544,6 +560,8 @@ const AddRecordScreen = () => {
   };
 
   const handleSave = async () => {
+    let uploadedImagePath: string | null = null;
+
     try {
       // Validate form inputs
       const numericPrice = validateFormInputs();
@@ -552,7 +570,12 @@ const AddRecordScreen = () => {
       const userPath = `${COLLECTIONS.USERS}/${userId}`;
 
       // Upload image if exists
-      const photoUrl = await handleImageUpload(userId as string);
+      let photoUrl = "";
+      if (image) {
+        const result = await uploadProductImage(userId as string, image);
+        photoUrl = result.url;
+        uploadedImagePath = result.path; // Store the path for potential rollback
+      }
 
       // Get or create user product
       const userProduct = await getOrCreateUserProduct(
@@ -629,6 +652,15 @@ const AddRecordScreen = () => {
         alert("Failed to save record");
       }
     } catch (error) {
+      // If image was uploaded but later steps failed, clean up the uploaded image
+      if (uploadedImagePath) {
+        try {
+          await deleteProductImage(uploadedImagePath);
+        } catch (cleanupError) {
+          console.error("Error cleaning up uploaded image:", cleanupError);
+        }
+      }
+
       console.error("Error saving record:", error);
       Alert.alert("Error", "Failed to save record");
     }
@@ -653,103 +685,104 @@ const AddRecordScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.cardContainer}>
-        {image ? (
-          <TouchableOpacity
-            style={[
-              styles.imageContainer,
-              { borderWidth: 1, borderStyle: "solid" },
-            ]}
-            onPress={pickImage}
-          >
-            <Image source={{ uri: image }} style={styles.previewImage} />
-          </TouchableOpacity>
-        ) : (
-          <>
-            <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
-              <View style={styles.imageContent}>
-                <View style={styles.cameraIconContainer}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.cardContainer}>
+            {image ? (
+              <View style={styles.imageContainer}>
+                <ImagePreview
+                  source={image}
+                  height={180}
+                  containerStyle={styles.previewImage}
+                />
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={handleImagePress}
+                >
                   <MaterialCommunityIcons
-                    name="camera-plus-outline"
-                    size={80}
-                    color={colors.mediumGray}
+                    name="pencil"
+                    size={20}
+                    color={colors.white}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.imageContainer, styles.emptyImageContainer]}
+                onPress={handleImagePress}
+              >
+                <View style={styles.imageContent}>
+                  <View style={styles.cameraIconContainer}>
+                    <MaterialCommunityIcons
+                      name="camera-plus-outline"
+                      size={80}
+                      color={colors.mediumGray}
+                    />
+                  </View>
+                  <Text style={styles.uploadText}>
+                    Take photo and auto-fill
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            <View style={globalStyles.inputsContainer}>
+              <ProductSearchInput
+                value={productState.productName}
+                selectedProduct={productState.selectedProduct}
+                onChangeText={handleProductNameChange}
+                onSelectProduct={handleProductSelect}
+                onNavigateToLibrary={handleNavigateToLibrary}
+              />
+              {/* TODO: replace with general search dropdown */}
+              <StoreSearchInput
+                inputValue={storeName}
+                onChangeInputValue={setStoreName}
+                onSelectStore={(store) => {
+                  setSelectedStore(store);
+                }}
+                initialStoreId={selectedStore?.id}
+                disabled={false}
+              />
+              <View style={[globalStyles.inputContainer]}>
+                <View style={globalStyles.labelContainer}>
+                  <MaterialCommunityIcons
+                    name="alpha-s-circle"
+                    size={18}
+                    color={colors.primary}
                   />
                 </View>
-                <Text style={styles.uploadText}>Take photo and auto-fill</Text>
-              </View>
-            </TouchableOpacity>
-          </>
-        )}
-        <View style={globalStyles.inputsContainer}>
-          <ProductSearchInput
-            value={productState.productName}
-            selectedProduct={productState.selectedProduct}
-            onChangeText={handleProductNameChange}
-            onSelectProduct={handleProductSelect}
-            onNavigateToLibrary={handleNavigateToLibrary}
-          />
-          {/* TODO: replace with general search dropdown */}
-          <StoreSearchInput
-            inputValue={storeName}
-            onChangeInputValue={setStoreName}
-            onSelectStore={(store) => {
-              setSelectedStore(store);
-            }}
-            initialStoreId={selectedStore?.id}
-            disabled={false}
-          />
-          <View style={[globalStyles.inputContainer]}>
-            <View style={globalStyles.labelContainer}>
-              <Text style={globalStyles.inputLabel}>Price</Text>
-            </View>
-            <View
-              style={[styles.priceContainer, { backgroundColor: colors.white }]}
-            >
-              <View style={styles.priceInputContainer}>
-                <Text style={styles.currencySymbol}>
-                  {getCurrencySymbol(preferences?.currency || "USD")}
-                </Text>
-                <TextInput
-                  style={[globalStyles.input, styles.priceInput]}
-                  placeholder="0.00"
-                  value={price}
-                  onChangeText={setPrice}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View style={styles.unitContainer}>
-                <TextInput
-                  style={styles.unitValueInput}
-                  value={unitValue}
-                  onChangeText={setUnitValue}
-                  keyboardType="decimal-pad"
-                  placeholder="/"
-                />
-                <DropDownPicker
-                  open={open}
-                  value={unitType}
-                  items={items}
-                  setOpen={setOpen}
-                  setValue={setUnitType}
-                  style={styles.unitPicker}
-                  containerStyle={styles.dropdownContainer}
-                  textStyle={{ fontSize: 16 }}
-                  dropDownContainerStyle={{
-                    backgroundColor: colors.white,
-                    borderWidth: 1,
-                    borderColor: colors.lightGray2,
-                    position: "absolute",
-                    width: 60,
-                  }}
-                  maxHeight={200}
-                />
+                <View style={styles.priceContainer}>
+                  <View style={styles.priceInputContainer}>
+                    <Text style={styles.currencySymbol}>
+                      {getCurrencySymbol(preferences?.currency || "USD")}
+                    </Text>
+                    <TextInput
+                      style={[globalStyles.input, styles.priceInput]}
+                      placeholder="0.00"
+                      placeholderTextColor={colors.secondaryText}
+                      value={price}
+                      onChangeText={setPrice}
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                  <UnitInputGroup
+                    unitValue={unitValue}
+                    unitType={unitType}
+                    onUnitValueChange={setUnitValue}
+                    onUnitTypeChange={setUnitType}
+                  />
+                </View>
               </View>
             </View>
           </View>
-        </View>
-      </View>
-    </SafeAreaView>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -762,15 +795,18 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     paddingHorizontal: 30,
+    paddingBottom: 30,
   },
   imageContainer: {
     width: "100%",
     height: 180,
+    borderRadius: 8,
+    marginVertical: 20,
+  },
+  emptyImageContainer: {
     borderWidth: 2,
     borderStyle: "dashed",
     borderColor: colors.mediumGray,
-    borderRadius: 8,
-    marginVertical: 20,
   },
   imageContent: {
     flex: 1,
@@ -804,39 +840,6 @@ const styles = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 0,
   },
-  unitContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    maxWidth: 180,
-  },
-  unitValueInput: {
-    backgroundColor: colors.lightGray2,
-    borderTopLeftRadius: 8,
-    borderBottomLeftRadius: 8,
-    paddingHorizontal: 8,
-    minHeight: 48,
-    width: 50,
-    fontSize: 16,
-    textAlign: "center",
-  },
-  perText: {
-    fontSize: 16,
-    color: colors.darkText,
-  },
-  unitPicker: {
-    backgroundColor: colors.lightGray2,
-    borderRadius: 0,
-    borderTopRightRadius: 8,
-    borderBottomRightRadius: 8,
-    borderWidth: 0,
-    minHeight: 48,
-    paddingHorizontal: 8,
-    zIndex: 1,
-  },
-  dropdownContainer: {
-    width: 80,
-    zIndex: 1,
-  },
   cameraIconContainer: {
     marginBottom: 15,
   },
@@ -848,5 +851,24 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 8,
+  },
+  editButton: {
+    position: "absolute",
+    right: 10,
+    bottom: 10,
+    backgroundColor: colors.primary,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });

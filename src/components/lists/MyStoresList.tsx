@@ -9,12 +9,14 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../../constants/firebase";
 import { useLocation } from "../../contexts/LocationContext";
-import { calculateDistance, formatDistance } from "../../utils/distance";
 import { StoreBrand } from "../../types";
 import { readOneDoc } from "../../services/firebase/firebaseHelper";
 import { useAuth } from "../../contexts/AuthContext";
+import { calculateDistance, formatDistance } from "../../utils/distance";
+
 interface StoreWithBrand extends UserStore {
   brand?: StoreBrand | null;
+  distance?: string;
 }
 
 interface MyStoresListProps {
@@ -22,40 +24,90 @@ interface MyStoresListProps {
 }
 
 const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
+  const { userLocation } = useLocation();
   const navigation =
     useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
   const { userId } = useAuth();
-  const { userLocation } = useLocation();
   const [storesWithBrands, setStoresWithBrands] = useState<StoreWithBrand[]>(
     []
   );
 
-  useEffect(() => {
-    const fetchBrandsForStores = async () => {
-      const storesWithBrandPromises = stores.map(async (store) => {
-        if (store.brand_id) {
-          const brandPath = `${COLLECTIONS.STORE_BRANDS}`;
-          const brandData = await readOneDoc<StoreBrand>(
-            brandPath,
-            store.brand_id
-          );
-          return {
-            ...store,
-            brand: brandData || null,
-          };
-        }
-        return {
-          ...store,
-          brand: null,
-        };
+  const processStores = (stores: UserStore[]) => {
+    console.log("Processing stores with location:", {
+      userLocation,
+      storesCount: stores.length,
+      firstStoreLocation: stores[0]?.location,
+    });
+
+    return stores.map((store) => {
+      const distance =
+        userLocation && store.location
+          ? calculateDistance(
+              userLocation.latitude,
+              userLocation.longitude,
+              store.location.latitude,
+              store.location.longitude
+            )
+          : undefined;
+
+      console.log("Store distance calculation:", {
+        storeName: store.name,
+        hasUserLocation: !!userLocation,
+        hasStoreLocation: !!store.location,
+        calculatedDistance: distance,
+        formattedDistance: distance ? formatDistance(distance) : undefined,
       });
 
+      return {
+        ...store,
+        distance: distance ? formatDistance(distance) : undefined,
+      };
+    });
+  };
+
+  useEffect(() => {
+    const fetchBrandsForStores = async () => {
+      console.log("Fetching brands for stores:", {
+        storesCount: stores.length,
+        hasUserLocation: !!userLocation,
+      });
+
+      const storesWithBrandPromises = processStores(stores).map(
+        async (store) => {
+          if (store.brand_id) {
+            const brandPath = `${COLLECTIONS.STORE_BRANDS}`;
+            const brandData = await readOneDoc<StoreBrand>(
+              brandPath,
+              store.brand_id
+            );
+            const result = {
+              ...store,
+              brand: brandData || null,
+            };
+            console.log("Store with brand and distance:", {
+              storeName: result.name,
+              distance: result.distance,
+              hasBrand: !!result.brand,
+            });
+            return result;
+          }
+          return {
+            ...store,
+            brand: null,
+          };
+        }
+      );
+
       const results = await Promise.all(storesWithBrandPromises);
+      console.log("Final processed stores:", {
+        resultsCount: results.length,
+        firstStoreDistance: results[0]?.distance,
+      });
       setStoresWithBrands(results);
     };
 
     fetchBrandsForStores();
-  }, [stores]);
+  }, [stores, userLocation]);
 
   const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
     try {
@@ -70,19 +122,6 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
     }
   };
 
-  const getDistance = (store: UserStore): string | null => {
-    if (!userLocation || !store.location) return null;
-
-    const distance = calculateDistance(
-      userLocation.latitude,
-      userLocation.longitude,
-      store.location.latitude,
-      store.location.longitude
-    );
-
-    return formatDistance(distance);
-  };
-
   return stores.length === 0 ? (
     <Text style={{ textAlign: "center", marginTop: 20 }}>
       No stores added yet
@@ -94,7 +133,7 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
       renderItem={({ item }) => (
         <StoreCard
           name={item.name}
-          distance={getDistance(item)}
+          distance={item.distance || null}
           address={item.address}
           isFavorite={item.is_favorite}
           brand={item.brand}

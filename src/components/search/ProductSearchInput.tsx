@@ -7,6 +7,7 @@ import {
   FlatList,
   TouchableWithoutFeedback,
   Keyboard,
+  Platform,
 } from "react-native";
 import { Product, UserProduct } from "../../types";
 import { globalStyles } from "../../theme/styles";
@@ -16,11 +17,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
-import {
-  searchProducts,
-  getAllProducts,
-} from "../../services/productLibraryService";
 import { useProductSearch } from "../../hooks/useProductSearch";
+import { Ionicons } from "@expo/vector-icons";
 
 type ProductSearchNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -46,6 +44,7 @@ const ProductSearchInput: React.FC<ProductSearchInputProps> = ({
   const handleInputChange = (text: string) => {
     onChangeText(text);
     setSearchTerm(text);
+    setShowSuggestions(true);
   };
 
   return (
@@ -53,7 +52,11 @@ const ProductSearchInput: React.FC<ProductSearchInputProps> = ({
       <View style={styles.wrapper}>
         <View style={[globalStyles.inputContainer]}>
           <View style={globalStyles.labelContainer}>
-            <Text style={globalStyles.inputLabel}>Product</Text>
+            <MaterialCommunityIcons
+              name="food-apple"
+              size={18}
+              color={colors.primary}
+            />
           </View>
           <View style={styles.inputWrapper}>
             <TextInput
@@ -61,6 +64,7 @@ const ProductSearchInput: React.FC<ProductSearchInputProps> = ({
               value={value}
               onChangeText={handleInputChange}
               placeholder="Search product..."
+              placeholderTextColor={colors.secondaryText}
               onFocus={() => setShowSuggestions(true)}
             />
             {!selectedProduct && value.length > 0 && onNavigateToLibrary && (
@@ -114,20 +118,38 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: colors.white,
-    borderRadius: 8,
+    borderRadius: 12,
     maxHeight: 200,
-    borderWidth: 1,
-    borderColor: colors.mediumGray,
-    zIndex: 1001,
+    marginTop: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   suggestionItem: {
-    padding: 15,
-    borderBottomWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: Platform.OS === "ios" ? 0.5 : 1,
     borderBottomColor: colors.lightGray2,
   },
   suggestionText: {
     fontSize: 16,
     color: colors.darkText,
+    ...Platform.select({
+      ios: {
+        fontWeight: "400",
+      },
+      android: {
+        fontFamily: "sans-serif",
+      },
+    }),
   },
   inputWrapper: {
     flex: 1,

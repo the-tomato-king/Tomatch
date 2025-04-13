@@ -38,12 +38,10 @@ import { colors } from "../../theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts/AuthContext";
-import { formatRecordDateTime } from "../../utils/dateUtils";
 import {
   listenToUserProduct,
   updateUserProductDisplayPreference,
 } from "../../services/userProductService";
-import { UNITS } from "../../constants/units";
 import { useUserPreference } from "../../hooks/useUserPreference";
 import { PriceDisplay } from "../../components/PriceDisplay";
 import { ProductPriceRecordList } from "../../components/lists/ProductPriceRecordList";

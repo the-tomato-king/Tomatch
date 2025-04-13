@@ -1,8 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, Modal, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import { colors } from "../../theme/colors";
-import { globalStyles } from "../../theme/styles";
-import DropDownPicker from "react-native-dropdown-picker";
 import { CURRENCIES } from "../../constants/currencies";
 
 interface CurrencyModalProps {
@@ -18,7 +23,6 @@ const CurrencyModal = ({
   onSave,
   initialCurrency,
 }: CurrencyModalProps) => {
-  const [open, setOpen] = useState(false);
   const [currency, setCurrency] = useState(initialCurrency);
 
   const handleSave = () => {
@@ -29,40 +33,47 @@ const CurrencyModal = ({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Select Currency</Text>
+      <View style={styles.overlay}>
+        <View style={styles.modal}>
+          <Text style={styles.title}>Display Currency</Text>
 
-          <DropDownPicker
-            open={open}
-            value={currency}
-            items={CURRENCIES.map((currency) => ({
-              label: currency.name,
-              value: currency.code,
-            }))}
-            setOpen={setOpen}
-            setValue={setCurrency}
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
-            textStyle={styles.dropdownText}
-          />
+          <ScrollView style={styles.currencyList}>
+            {CURRENCIES.map((curr) => (
+              <TouchableOpacity
+                key={curr.code}
+                style={[
+                  styles.currencyItem,
+                  currency === curr.code && styles.selectedItem,
+                ]}
+                onPress={() => setCurrency(curr.code)}
+              >
+                <Text
+                  style={[
+                    styles.currencyText,
+                    currency === curr.code && styles.selectedText,
+                  ]}
+                >
+                  {`${curr.code} (${curr.symbol})`}
+                </Text>
+                {currency === curr.code && (
+                  <Text style={styles.checkmark}>✓</Text>
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
-          <View style={globalStyles.buttonsContainer}>
-            <TouchableOpacity
-              style={[globalStyles.button, styles.cancelButton]}
-              onPress={onClose}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={styles.note}>Only changes the currency display.</Text>
+
+          <View style={styles.buttons}>
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+              <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[globalStyles.button, globalStyles.primaryButton]}
-              onPress={handleSave}
-            >
-              <Text style={globalStyles.primaryButtonText}>Save</Text>
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Text style={styles.saveText}>Save</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -72,39 +83,85 @@ const CurrencyModal = ({
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
+  overlay: {
     flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  modalContent: {
+  modal: {
+    width: "90%",
     backgroundColor: "white",
+    borderRadius: 13,
     padding: 16,
-    borderRadius: 16,
-    width: "80%",
+    maxHeight: "80%",
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+  title: {
+    fontSize: 17,
+    fontWeight: "600",
+    textAlign: "center",
     marginBottom: 16,
   },
-  dropdown: {
-    marginBottom: 16,
-    borderColor: colors.lightGray2,
+  currencyList: {
+    maxHeight: 300,
   },
-  dropdownContainer: {
-    borderColor: colors.lightGray2,
+  currencyItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 12,
+    backgroundColor: colors.ios.systemGray6,
+    borderRadius: 8,
+    marginBottom: 8,
   },
-  dropdownText: {
-    fontSize: 16,
+  selectedItem: {
+    backgroundColor: colors.ios.systemBlue,
+  },
+  currencyText: {
+    fontSize: 17,
+    color: colors.ios.label,
+  },
+  selectedText: {
+    color: "white",
+    fontWeight: "500",
+  },
+  checkmark: {
+    color: "white",
+    fontSize: 17,
+    fontWeight: "600",
+  },
+  note: {
+    fontSize: 14,
+    color: colors.ios.secondaryLabel,
+    textAlign: "center",
+    marginVertical: 16,
+  },
+  buttons: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 8,
   },
   cancelButton: {
-    backgroundColor: colors.lightGray2,
+    flex: 1,
+    padding: 12,
+    backgroundColor: colors.ios.systemGray6,
+    borderRadius: 8,
+    alignItems: "center",
   },
-  cancelButtonText: {
-    color: colors.darkText,
-    fontSize: 16,
+  saveButton: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: colors.ios.systemBlue,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  cancelText: {
+    fontSize: 17,
+    color: colors.ios.label,
+  },
+  saveText: {
+    fontSize: 17,
+    color: "white",
     fontWeight: "600",
   },
 });
