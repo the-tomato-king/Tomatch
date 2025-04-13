@@ -32,7 +32,7 @@ const onboardingData: OnboardingItem[] = [
     id: "1",
     title: "Welcome to Scalor!",
     description: "Track, compare and save with smart grocery price tracking",
-    image: "https://via.placeholder.com/300",
+    image: require("../../../assets/onboardingLogo.png"),
   },
   {
     id: "2",
@@ -46,13 +46,13 @@ const onboardingData: OnboardingItem[] = [
     title: "Smart Comparisons 🆚",
     description:
       "Compare prices across different stores with automatic unit conversions",
-    image: require("../../../assets/WechatIMG137.jpg"),
+    image: require("../../../assets/onboardingB.png"),
   },
   {
     id: "4",
     title: "Shopping Lists 🛒",
     description: "Create and manage your grocery lists in one place",
-    image: require("../../../assets/WechatIMG136.jpg"),
+    image: require("../../../assets/onboardingC.png"),
   },
 ];
 
