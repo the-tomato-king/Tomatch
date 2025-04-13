@@ -16,6 +16,7 @@ import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { useNavigation } from "@react-navigation/native";
 import { getAuth } from "firebase/auth";
+import { colors } from "../../theme/colors";
 
 type ShoppingListDetailRouteProp = RouteProp<
   ShoppingStackParamList,
@@ -62,7 +63,6 @@ const ShoppingListDetailScreen = () => {
           return;
         }
 
-        // 直接获取文档以检查所有权
         const docRef = doc(db, "shoppingLists", id);
         const docSnap = await getDoc(docRef);
         
@@ -74,7 +74,6 @@ const ShoppingListDetailScreen = () => {
         const listData = docSnap.data() as ShoppingListDetails;
         listData.id = docSnap.id;
         
-        // 检查是否是当前用户的购物清单
         if (listData.userId !== currentUserId) {
           setUnauthorized(true);
           setLoading(false);
@@ -218,7 +217,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: colors.ios.systemGroupedBackground,
   },
   centerContainer: {
     flex: 1,

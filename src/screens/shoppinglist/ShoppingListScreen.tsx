@@ -17,6 +17,7 @@ import { ShoppingStackParamList } from "../../types/navigation";
 import { db } from "../../services/firebase/firebaseConfig";
 import { getAuth } from "firebase/auth";
 import { COLLECTIONS } from "../../constants/firebase";
+import { colors } from "../../theme/colors";
 
 interface ShoppingList {
   id: string;
@@ -142,7 +143,7 @@ export default ShoppingListScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.ios.systemGroupedBackground,
     paddingTop: 20,
     paddingHorizontal: 15,
   },
@@ -153,8 +154,8 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#fff",
     borderRadius: 10,
-    marginVertical: 8,
-    marginHorizontal:15
+    marginTop: 16,
+    marginHorizontal:16
   },
   itemContent: {
     padding: 5,
