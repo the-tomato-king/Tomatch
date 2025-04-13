@@ -43,21 +43,14 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 - email
 - phone_number
 - location
-- country
-- province
-- city
-- street_address
-- postcode
-- coordinates
-	- latitude
-	- longitude
+  - country
+  - province
+  - city
 - preferred_unit
-- weight
-- volume
 - preferred_currency
+- avatar_url
 - created_at
 - updated_at
-
 
 #### 1.1 user_products (sub-collection)
 - id
@@ -68,6 +61,19 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 - image_source (emoji string or image url)
 - plu_code
 - barcode
+- measurement_types (array of "measurable" and/or "count")
+- price_statistics
+  - measurable (optional)
+    - total_price
+    - average_price
+    - lowest_price
+    - highest_price
+    - lowest_price_store
+      - store_id
+      - store_name
+    - total_price_records
+  - count (optional, same structure as measurable)
+- display_preference ("measurable" | "count" | undefined)
 - created_at
 - updated_at
 
@@ -77,8 +83,8 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 - name (e.g., "Walmart Downtown", "Walmart West Side")
 - address
 - location
-	- latitude
-	- longitude
+  - latitude
+  - longitude
 - is_favorite
 - last_visited
 - created_at
@@ -97,35 +103,35 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 - id
 - user_product_id (references user_products)
 - store_id (references user_stores)
-- price
-- unit_type
-- unit_price
+- original_price
+- original_quantity
+- original_unit
+- standard_unit_price (price per standard unit - g or each)
 - photo_url
 - recorded_at
 
-
 ### 2. store_brands (collection)
-	- id
-	- name
-	- logo
-	- updated_at
+- id
+- name
+- logo
+- updated_at
 
 ### 3. Local Product Library (in-app, not in Firestore)
-	- id
-	- name
-	- category
-	- image_type ("emoji" | "preset_image" | "user_image")
-	- image_source (emoji string or image url)
-	- plu_code
-	- barcode
+- id
+- name
+- category
+- image_type ("emoji" | "preset_image" | "user_image")
+- image_source (emoji string or image url)
+- plu_code
+- barcode
 
 ## CRUD Operations on Collections
 
 1. users (collection): Stores user profiles and preferences.
-- [ ] Create: New users register an account via Firebase Authentication.
-- [ ] Read: Users retrieve their profile details, preferred stores, and settings.
-- [ ] Update: Users update their profile information, preferred units, and favorite stores.
-- [ ] Delete: Users can delete their accounts, which also removes all their related sub-collections.
+- [x] Create: New users register an account via Firebase Authentication.
+- [x] Read: Users retrieve their profile details, preferred stores, and settings.
+- [x] Update: Users update their profile information, preferred units, and favorite stores.
+- [x] Delete: Users can delete their accounts, which also removes all their related sub-collections.
 
 Sub-Collections under users: 
 
@@ -142,68 +148,73 @@ Sub-Collections under users:
 - [x] Delete: Users can delete entire shopping lists or individual items.
 
 1.3 price_records (Sub-collection): Stores individual price entries for products.
-- [ ] Create: Users add price records manually or via OCR from price tags.
+- [x] Create: Users add price records manually or via OCR from price tags.
 - [x] Read: Users retrieve product price history and price trends.
-- [ ] Update: Users can edit incorrect prices or store information.
+- [x] Update: Users can edit incorrect prices or store information.
 - [x] Delete: Users can remove outdated or incorrect price records.
 
-1.4 user_product_stats (Sub-collection): Stores aggregated statistics for each product a user tracks.
-- [x] Create: Automatically generated when a user adds their first price record for a product.
-- [x] Read: Users view statistics like average price, lowest price, etc.
-- [x] Update: Automatically updated when new price records are added.
-- [x] Delete: Removed when a user deletes the associated product from their tracking.
-
-1.5 user_stores (Sub-collection): Stores information about stores that users have visited or added.
+1.4 user_stores (Sub-collection): Stores information about stores that users have visited or added.
 - [x] Create: Users can add new stores manually or when adding price records.
 - [x] Read: Users can view their list of stores and details about each store.
 - [x] Update: Users can update store information or mark stores as favorites.
 - [x] Delete: Users can remove stores they no longer visit.
 
-2. store_brands (collection): Stores information about retail brands.
+1. store_brands (collection): Stores information about retail brands.
 - Create: Only Admins can add new store brands.
 - [x] Read: Users can view store brand information.
 - Update: Only Admins can update store brand details.
 - Delete: Only Admins can remove outdated or incorrect store brands.
 
-3. Local Product Library: A built-in database of common products.
+1. Local Product Library: A built-in database of common products.
 - No direct CRUD operations as it's local to the app
 - [x] Read: Users can browse/search for products by name, code, or category.
 
 ## Contributors
 
-- [Shiyu Xu (Gina)](https://github.com/Gnblink0)
-	- UI Development
-		- Designed and implemented core screens in products, setting, stores folders
-		- Created reusable components including BackButton, MainPageHeader, AILoadingScreen, LoadingLogo, and ProductSearchInput
-		- Set up navigation flows between screens
-	- Data Architecture
-		- Designed the Firebase database schema and collection structure
-		- Created TypeScript type definitions for the entire application
-	- Firebase Integration
-		- Implemented CRUD operations for price records, user products, and user stores
-		- Set up real-time data synchronization between UI and Firebase
-	- Camera & AI Integration
-		- Implemented camera functionality using expo-image-picker
-		- Integrated OpenAI API for price tag text recognition
-	- Map Integration
-		- Integrated Google Maps into Store management system
+### [Shiyu Xu (Gina)](https://github.com/Gnblink0)
+
+- Data Architecture & Schema Design
+	- Created TypeScript type definitions for the entire application
+	- Designed and Optimized database schema for better data organization
+	- Developed dual pricing system (count & measurable) with dynamic switching
+
+- Firebase Integration & Services
+	- Restructured Firebase functions into modular services
+	- Implemented CRUD operations for user products and price records
+	- Developed user profile and preferences management system
+	- Added email verification functionality
+	- Set up real-time data synchronization between UI and Firebase
+
+- Core Features Development
+	- Implemented comprehensive price conversion system
+	- Enhanced image extraction system with optimized GPT prompts
+	- Created dynamic price display system with unit conversion
+
+- UI Development
+	- Designed and implemented core screens in products, setting, stores folders
+	- Created reusable components including BackButton, MainPageHeader, AILoadingScreen, LoadingLogo, and ProductSearchInput
+	- Implemented image preview functionality
+	- Enhanced UI/UX with extensive style refinements
+	- Set up navigation flows between screens
 
 
-- [Yuxin Zhou (Renie)](https://github.com/Zhouyuxin4)
-	- Firebase Integration
-		- Implemented Firebase Helper (CRUD functions)
-		- Integrated frontend with backend for Shopping List CRUD
-	- UI Development
-		- Developed UI for Shopping List (ShoppingList, AddShoppingList, ShoppingListDetails)
-		- Implemented navigation between ShoppingList
-	- Map and Stores Select
-		- Designed and developed a reusable Map component for location-based features
-		- Integrated Google Maps API to enable user location detection and automatic search of nearby stores
-		- Implemented SupermarketMapScreen where users can view and select stores on the map
-		- Enabled storing selected store data in the Firebase database for later use
-	- Notification System
-		- Set up a notification feature to remind users to shop on their chosen shopping date
-		- Allowed users to toggle notifications on or off within the app's settings
+### [Yuxin Zhou (Renie)](https://github.com/Zhouyuxin4)
+
+
+- Firebase Integration
+	- Implemented Firebase Helper (CRUD functions)
+	- Integrated frontend with backend for Shopping List CRUD
+- UI Development
+	- Developed UI for Shopping List (ShoppingList, AddShoppingList, ShoppingListDetails)
+	- Implemented navigation between ShoppingList
+- Map and Stores Select
+	- Designed and developed a reusable Map component for location-based features
+	- Integrated Google Maps API to enable user location detection and automatic search of nearby stores
+	- Implemented SupermarketMapScreen where users can view and select stores on the map
+	- Enabled storing selected store data in the Firebase database for later use
+- Notification System
+	- Set up a notification feature to remind users to shop on their chosen shopping date
+	- Allowed users to toggle notifications on or off within the app's settings
 
 
 ## Update
@@ -233,7 +244,7 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/627d1454-6416-47ad-94af-82c3d6571067" alt="Product Details" width="100%"/><br><em>Add Record</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/6d467050-cd60-4744-886f-bdd079380d77" alt="Product Details" width="100%"/><br><em>Add Record</em></td>
 <td width="50%"><img src="https://github.com/user-attachments/assets/f3f1845c-1bb7-47c5-822a-1d42b0169655" alt="Price Record" width="100%"/><br><em>Product Library</em></td>
 </tr>
 </table>
@@ -243,7 +254,7 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/9506f5fd-d455-4d61-b76b-48769e9010f0" width="100%"/><br><em>Settings</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/a68e0b02-8366-4a49-9cd8-18d68e2ee661" width="100%"/><br><em>Settings</em></td>
 <td width="50%"><img src="https://github.com/user-attachments/assets/2dc4b062-9425-4cf4-b2a7-0b8d9fa433b1" width="100%"/><br><em>Edit Profile</em></td>
 </tr>
 </table>
@@ -278,7 +289,6 @@ Sub-Collections under users:
 
 #### Location
 
-- Integrated Google Maps API
 - Store location detection and mapping
 - User location-based store suggestions
 
@@ -303,6 +313,8 @@ Sub-Collections under users:
 <td width="50%"><img src="" alt="Set Location" width="100%"/><br><em>Set Location (iOS)</em></td>
 </tr>
 </table>
+
+#### Google Maps API
 
 ## Development Guide
 
