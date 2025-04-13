@@ -28,24 +28,25 @@ Product Name Rules:
    - Processing type (e.g., Boneless, Sliced)
    - Certification (e.g., Organic)
    - Size grade (e.g., Large, Extra Large)
-   - Variety if price differs (e.g., Russet Potato vs Sweet Potato)
+   - Variety if price differs (e.g., Russet Potato vs Yukon Potato)
 2. Remove marketing terms that don't affect price:
    - Fresh, Premium, Natural, Finest, Select
    - Brand names unless it's a packaged product
 3. For weight/volume sold items, include package info in parentheses if relevant
+4. Always use singular form for product names, even if the item comes in multiple units
 
 Examples:
-- "Fresh Premium Boneless Skinless Chicken Breast" -> "Boneless Skinless Chicken Breast"
+- "Fresh Premium Boneless Skinless Chicken Breasts" -> "Boneless Skinless Chicken Breast"
 - "Organic Large Brown Eggs" -> "Organic Large Brown Egg"
+- "Pears Yellow Asian" -> "Asian Yellow Pear"
 - "Farm Fresh Large White Eggs" -> "Large White Egg"
 - "Premium Russet Potatoes" -> "Russet Potato"
 - "Natural Whole Milk" -> "Whole Milk"
 - "Organic 2% Milk (1 gallon)" -> "Organic 2% Milk"
-- "12-Pack Coca Cola Cans" -> "Cola"
 
 For unit type, ONLY return the following units:
-Weight units (preferred): g, kg, mg, lb, oz
-Volume units (preferred): ml, l, fl oz, pt, gal
+Weight units: g, kg, lb, oz
+Volume units: ml, L
 Count unit: EA (use only if no weight/volume applicable)
 
 For unit value, ONLY return numeric values without any letters or symbols:
@@ -53,7 +54,7 @@ Examples:
 - "142g" -> {"unitValue": "142", "unitType": "g"}
 - "2 lb Organic Chicken" -> {"unitValue": "2", "unitType": "lb"}
 - "12 pack Cola" -> {"productName": "Cola", "unitValue": "12", "unitType": "EA"}
-- "6 pack Beer" -> {"productName": "Beer", "unitValue": "6", "unitType": "EA"}
+- "1.5L Milk" -> {"productName": "Milk", "unitValue": "1.5", "unitType": "L"}
 
 Rules:
 1. Do not include any other text or explanation, especially any markdown marks
@@ -63,11 +64,12 @@ Rules:
 5. unitValue must ONLY contain numbers and decimal points, no letters or symbols
 6. For items sold by count (EA):
    - Put the quantity directly in unitValue
-   - Keep product name clean without quantity info
+   - Keep product name in singular form regardless of quantity
 7. For items sold by weight/volume:
    - Include package info in product name if relevant
    - Put the actual weight/volume in unitValue
 8. Keep only attributes that affect store pricing
+9. Always return product names in singular form, even for items sold in multiples
 
 Return ONLY a JSON object in this format:
 {
