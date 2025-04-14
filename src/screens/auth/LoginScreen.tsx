@@ -3,12 +3,15 @@ import React, { useState } from "react";
 import {
   View,
   TextInput,
-  Button,
   Text,
   StyleSheet,
   Alert,
   TouchableOpacity,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
+  SafeAreaView,
 } from "react-native";
 import { auth } from "../../services/firebase/firebaseConfig";
 import {
@@ -103,97 +106,176 @@ const LoginScreen = () => {
 
   const forgetPasswordHandler = () => {
     navigation.navigate("ForgotPassword");
-  }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Tomatch!</Text>
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <View style={styles.contentContainer}>
+          <View style={styles.headerContainer}>
+            <Text style={styles.title}>Welcome Back!</Text>
+            <Text style={styles.subtitle}>Sign in to continue</Text>
+          </View>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleLogin}
-        >
-          {isCheckingVerification ?  (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.buttonText}>Login</Text>
-          )}
-        </TouchableOpacity>
-      
+          <View style={styles.formContainer}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                placeholder="Enter your email"
+                value={email}
+                onChangeText={setEmail}
+                style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor="#A0A0A0"
+              />
+            </View>
 
-      <View style={styles.bottomContainer}>
-        <TouchableOpacity onPress={forgetPasswordHandler} style={styles.smallButton}>
-          <Text style={styles.smallButtonText}>Forget Password?</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={signupHandler} style={styles.smallButton}>
-          <Text style={styles.smallButtonText}>New User? Create An Account</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                placeholder="Enter your password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                style={styles.input}
+                placeholderTextColor="#A0A0A0"
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={handleLogin}
+              disabled={isCheckingVerification}
+            >
+              {isCheckingVerification ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.loginButtonText}>Sign In</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.bottomContainer}>
+            <TouchableOpacity
+              onPress={forgetPasswordHandler}
+              style={styles.textButton}
+            >
+              <Text style={styles.textButtonText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            <View style={styles.signupContainer}>
+              <Text style={styles.signupText}>Don't have an account?</Text>
+              <TouchableOpacity
+                onPress={signupHandler}
+                style={styles.textButton}
+              >
+                <Text style={[styles.textButtonText, styles.signupButtonText]}>
+                  Sign Up
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   container: {
     flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    padding: 24,
     justifyContent: "center",
-    alignItems: 'center',
-    padding: 16,
+  },
+  headerContainer: {
+    marginBottom: 40,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 32,
-    color: "#333",
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+  },
+  formContainer: {
+    marginBottom: 24,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginBottom: 8,
   },
   input: {
-    width:"100%",
-    height: 48,
-    borderColor: "gray",
-    borderWidth: 1,
+    height: 52,
+    backgroundColor: "#f5f5f5",
     borderRadius: 12,
-    marginBottom: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#1a1a1a",
   },
-  error: {
-    color: "red",
+  loginButton: {
+    height: 52,
+    backgroundColor: "#007AFF",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 24,
+    shadowColor: "#007AFF",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  loginButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
   bottomContainer: {
-    position: 'absolute',
-    bottom: 30,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  smallButton: {
-    marginTop:20,
-  },  
-  smallButtonText: {
-    fontSize: 14,
+  textButton: {
+    padding: 8,
+  },
+  textButtonText: {
     color: "#007AFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
-  button: {
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
+  signupContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
   },
-  buttonText: {
-    color: '#007AFF',
-    fontSize: 16,
+  signupText: {
+    color: "#666",
+    fontSize: 14,
+    marginRight: 4,
+  },
+  signupButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 
