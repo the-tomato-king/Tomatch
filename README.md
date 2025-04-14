@@ -264,9 +264,9 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="33%"><img src="https://github.com/user-attachments/assets/6f570aa2-1dc7-4c7b-8c3e-a12283276cde" alt="Product Details" width="100%"/><br><em>All Product</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/fa2926be-f2d1-4cf3-9906-c6e9b432a89b" alt="Price Record" width="100%"/><br><em>Product Detail</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/d84eae06-938b-4815-880f-f894aa9fb1b0" alt="Add Record" width="100%"/><br><em>Record Detail</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/5da5d4ed-e5c9-493c-90e4-7f21f0335097" alt="Product Details" width="100%"/><br><em>All Product</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/801995ad-41db-455c-b782-f7907f22601a" alt="Price Record" width="100%"/><br><em>Product Detail</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/aff27682-ac74-412e-bf3c-7bbc6ecefde0" alt="Add Record" width="100%"/><br><em>Record Detail</em></td>
 </tr>
 </table>
 
