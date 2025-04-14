@@ -1,7 +1,15 @@
-# Tomatch - You personal grocery price tracker
+<div align="center">
+  <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+    <img src="https://picture-guan.oss-cn-hangzhou.aliyuncs.com/F4C32040-60EC-4415-9348-39CA98680520.png" width="100" alt="Tomatch Logo">
+    <div>
+      <h1 style="margin: 0;">Tomatch</h1>
+      <p style="margin: 0;">To Match, To Save, Your personal grocery price tracker</p>
+    </div>
+  </div>
+  
+</div>
 
-## Project Introduction
-
+<br>
 Tomatch is a mobile application designed to help users track and compare grocery prices across different stores.
 
 By leveraging AI, Tomatch allows users to easily record prices by snapping photos of price tags, eliminating manual data entry. With features like smart price comparisons, price history tracking, and personalized shopping lists, Tomatch helps users make smarter shopping decisions and avoid overpaying by providing data-driven insights. Say goodbye to impulsive purchases and hello to smarter grocery shopping!
@@ -32,8 +40,23 @@ By leveraging AI, Tomatch allows users to easily record prices by snapping photo
 
 ### External APIs
 
-- OCR API:
-- AI Recognization API: Open AI API
+- OpenAI API:
+  - Model: gpt-4o-mini
+  - Purpose: Price tag image analysis and text recognition
+  - Features:
+    - Extracts product name, price, and unit information from images
+    - Standardizes product names by removing marketing terms
+    - Normalizes units to standard measurements (g, kg, lb, oz, ml, L, EA)
+
+- Google Maps API:
+  - Services Used: 
+    - Places API (Nearby Search)
+    - Geolocation
+  - Features:
+    - User location detection with permission handling
+    - Nearby supermarket search within 5km radius
+    - Store details including name, address, and coordinates
+    - Location data persistence using AsyncStorage
 
 ## Data Model 
 
@@ -110,11 +133,10 @@ By leveraging AI, Tomatch allows users to easily record prices by snapping photo
 - photo_url
 - recorded_at
 
-### 2. store_brands (collection)
+### 2. Local Store Brands Library (in-app, not in Firestore)
 - id
 - name
 - logo
-- updated_at
 
 ### 3. Local Product Library (in-app, not in Firestore)
 - id
@@ -159,15 +181,6 @@ Sub-Collections under users:
 - [x] Update: Users can update store information or mark stores as favorites.
 - [x] Delete: Users can remove stores they no longer visit.
 
-1. store_brands (collection): Stores information about retail brands.
-- Create: Only Admins can add new store brands.
-- [x] Read: Users can view store brand information.
-- Update: Only Admins can update store brand details.
-- Delete: Only Admins can remove outdated or incorrect store brands.
-
-1. Local Product Library: A built-in database of common products.
-- No direct CRUD operations as it's local to the app
-- [x] Read: Users can browse/search for products by name, code, or category.
 
 ## Contributors
 
@@ -186,15 +199,19 @@ Sub-Collections under users:
 	- Set up real-time data synchronization between UI and Firebase
 
 - Core Features Development
-	- Implemented comprehensive price conversion system
-	- Enhanced image extraction system with optimized GPT prompts
-	- Created dynamic price display system with unit conversion
+    - AI-Powered Price Tag Recognition System
+        - Implemented image extraction using OpenAI API
+        - Optimized GPT prompts for accurate product name, price, and unit recognition
+    
+    - Comprehensive Price Management System
+        - Developed dual pricing system (count & measurable units)
+        - Implemented automatic unit conversion (kg/lb, ml/oz, etc.)
+        - Created standardized price display with user's preferred units
+
 
 - UI Development
 	- Designed and implemented core screens in products, setting, stores folders
 	- Created reusable components including BackButton, MainPageHeader, AILoadingScreen, LoadingLogo, and ProductSearchInput
-	- Implemented image preview functionality
-	- Enhanced UI/UX with extensive style refinements
 	- Set up navigation flows between screens
 
 
@@ -293,8 +310,8 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/66f336f5-0cb5-4537-9cc5-d59a5788647c" width="100%"/><br><em>AI is Analyzing</em></td>
-<td width="50%"><img src="https://github.com/user-attachments/assets/3d09a638-5b6b-4d97-87a7-7659cbd75b8c" alt="Set Location" width="100%"/><br><em>AI Auto Fill</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/d5941788-f499-48a1-af3b-0e1c97b93a88" width="100%"/><br><em>AI is Analyzing</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/cb95cd44-3428-420c-ab02-49a78a00004f" alt="Set Location" width="100%"/><br><em>AI Auto Fill</em></td>
 </tr>
 </table>
 
