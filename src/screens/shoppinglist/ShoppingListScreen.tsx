@@ -45,8 +45,8 @@ const ShoppingListScreen = () => {
       return;
     }
 
-    const shoppingListsRef = collection(db, "shoppingLists");
-    const q = query(shoppingListsRef, where("userId", "==", userId));
+    const shoppingListsRef = collection(db, `users/${userId}/shopping_lists`);
+    const q = query(shoppingListsRef);
     
     const unsubscribe = onSnapshot(
       q,
@@ -78,8 +78,9 @@ const ShoppingListScreen = () => {
               Alert.alert("Error", "You must be logged in to delete items.");
               return;
             }
-            
-            await deleteOneDocFromDB("shoppingLists", id);
+
+            const path = `users/${userId}/shopping_lists`; 
+            await deleteOneDocFromDB(path, id);
             setShoppingLists((prevState) =>
               prevState.filter((item) => item.id !== id)
             );

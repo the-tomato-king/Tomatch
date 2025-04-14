@@ -258,7 +258,7 @@ const AddShoppingListScreen = () => {
       notification: setNotification ? true : false,
     };
 
-    const docId = await createDoc("shoppingLists", shoppingListData);
+    const docId = await createDoc(`users/${userId}/shopping_lists`, shoppingListData);
 
     if (docId) {
       console.log("Shopping list created with ID:", docId);

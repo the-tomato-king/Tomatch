@@ -63,7 +63,7 @@ const ShoppingListDetailScreen = () => {
           return;
         }
 
-        const docRef = doc(db, "shoppingLists", id);
+        const docRef = doc(db, `users/${currentUserId}/shopping_lists`, id);
         const docSnap = await getDoc(docRef);
         
         if (!docSnap.exists()) {
@@ -118,7 +118,7 @@ const ShoppingListDetailScreen = () => {
           item.id === itemId ? { ...item, checked: newCheckedState } : item
         );
 
-        await updateDoc(doc(db, "shoppingLists", id), { items: updatedItems });
+        await updateDoc(doc(db, `users/${currentUserId}/shopping_lists`, id), { items: updatedItems });
 
         setCheckedItems((prev) => ({
           ...prev,
