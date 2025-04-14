@@ -30,7 +30,7 @@ interface OnboardingItem {
 const onboardingData: OnboardingItem[] = [
   {
     id: "1",
-    title: "Welcome to Scalor!",
+    title: "Welcome to Tomatch!",
     description: "Track, compare and save with smart grocery price tracking",
     image: require("../../../assets/onboardingLogo.png"),
   },
