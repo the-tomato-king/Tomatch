@@ -13,6 +13,7 @@ import { StoreBrand } from "../../types";
 import { readOneDoc } from "../../services/firebase/firebaseHelper";
 import { useAuth } from "../../contexts/AuthContext";
 import { calculateDistance, formatDistance } from "../../utils/distance";
+import { useBrands } from "../../hooks/useBrands";
 
 interface StoreWithBrand extends UserStore {
   brand?: StoreBrand | null;
@@ -31,6 +32,7 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
   const [storesWithBrands, setStoresWithBrands] = useState<StoreWithBrand[]>(
     []
   );
+  const { brands } = useBrands();
 
   const processStores = (stores: UserStore[]) => {
     console.log("Processing stores with location:", {
@@ -75,21 +77,11 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
       const storesWithBrandPromises = processStores(stores).map(
         async (store) => {
           if (store.brand_id) {
-            const brandPath = `${COLLECTIONS.STORE_BRANDS}`;
-            const brandData = await readOneDoc<StoreBrand>(
-              brandPath,
-              store.brand_id
-            );
-            const result = {
+            const brandData = brands.find((b) => b.id === store.brand_id);
+            return {
               ...store,
               brand: brandData || null,
             };
-            console.log("Store with brand and distance:", {
-              storeName: result.name,
-              distance: result.distance,
-              hasBrand: !!result.brand,
-            });
-            return result;
           }
           return {
             ...store,
@@ -107,7 +99,7 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
     };
 
     fetchBrandsForStores();
-  }, [stores, userLocation]);
+  }, [stores, userLocation, brands]);
 
   const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
     try {

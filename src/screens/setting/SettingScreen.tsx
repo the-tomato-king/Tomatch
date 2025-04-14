@@ -226,62 +226,58 @@ const SettingPage = () => {
           text: "OK",
           onPress: async () => {
             try {
-              if (!user) {
+              if (!user || !firebaseUser || !userId) {
                 console.log("No user logged in");
+                Alert.alert(
+                  "Error",
+                  "You must be logged in to delete your account"
+                );
                 return;
               }
 
-              // 1. delete user data in Firestore
-              await deleteDoc(doc(db, COLLECTIONS.USERS, user.uid));
+              // 1. Delete user document in Firestore (this will automatically delete all sub-collections)
+              try {
+                await deleteDoc(doc(db, COLLECTIONS.USERS, userId));
+              } catch (error) {
+                console.error("Error deleting user document:", error);
+                throw error;
+              }
 
-              // 2. delete all user_products data
-              const userProductsRef = collection(
-                db,
-                COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
-              );
-              const q = query(
-                userProductsRef,
-                where("user_id", "==", user.uid)
-              );
-              const querySnapshot = await getDocs(q);
-              const batch = writeBatch(db);
-              querySnapshot.forEach((doc) => {
-                batch.delete(doc.ref);
-              });
-              await batch.commit();
-
-              // 3. delete Auth account
-              await deleteUser(firebaseUser);
-
-              Alert.alert(
-                "Account Deleted",
-                "Your account has been successfully deleted.",
-                [
-                  {
-                    text: "OK",
-                    onPress: () => rootNavigation.navigate("Auth"),
-                  },
-                ]
-              );
-            } catch (error: any) {
-              console.error("Error deleting account:", error);
-              if (error.code === "auth/requires-recent-login") {
+              // 2. Delete Auth account
+              try {
+                await deleteUser(firebaseUser);
                 Alert.alert(
-                  "Re-authentication Required",
-                  "Please log out and log in again before deleting your account.",
+                  "Account Deleted",
+                  "Your account has been successfully deleted.",
                   [
                     {
                       text: "OK",
-                      onPress: () => logout(),
+                      onPress: () => rootNavigation.navigate("Auth"),
                     },
                   ]
                 );
-              } else {
-                Alert.alert(
-                  "Error",
-                  "Failed to delete account. Please try again."
-                );
+              } catch (error: any) {
+                if (error.code === "auth/requires-recent-login") {
+                  Alert.alert(
+                    "Re-authentication Required",
+                    "Please log out and log in again before deleting your account.",
+                    [
+                      {
+                        text: "OK",
+                        onPress: () => logout(),
+                      },
+                    ]
+                  );
+                  return;
+                }
+                throw error;
               }
+            } catch (error: any) {
+              console.error("Error deleting account:", error);
+              Alert.alert(
+                "Error",
+                "Failed to delete account. Please try again."
+              );
             }
           },
         },
