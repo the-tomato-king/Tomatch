@@ -88,12 +88,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
     paddingHorizontal: 8,
     paddingVertical: 10,
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 6,
   },
   mapContainer: {
     flex: 1,
