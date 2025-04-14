@@ -273,7 +273,7 @@ Sub-Collections under users:
 <table>
 <tr>
 <td width="50%"><img src="https://github.com/user-attachments/assets/6d467050-cd60-4744-886f-bdd079380d77" alt="Product Details" width="100%"/><br><em>Add Record</em></td>
-<td width="50%"><img src="https://github.com/user-attachments/assets/f3f1845c-1bb7-47c5-822a-1d42b0169655" alt="Price Record" width="100%"/><br><em>Product Library</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/4e851138-d7cc-437b-988e-4c2e16ae7573" alt="Price Record" width="100%"/><br><em>Product Library</em></td>
 </tr>
 </table>
 
@@ -310,7 +310,7 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/d5941788-f499-48a1-af3b-0e1c97b93a88" width="100%"/><br><em>AI is Analyzing</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/38250257-41ff-41d9-80c0-0638c35f7d30" width="100%"/><br><em>AI is Analyzing</em></td>
 <td width="50%"><img src="https://github.com/user-attachments/assets/cb95cd44-3428-420c-ab02-49a78a00004f" alt="Set Location" width="100%"/><br><em>AI Auto Fill</em></td>
 </tr>
 </table>
@@ -322,7 +322,7 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/16b1424f-77df-4355-8ff6-7ebea0f44bb3" alt="Set Notification" width="100%"/><br><em>Store Screen</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/906dc139-2701-47af-92e7-f889f54ef8a7" alt="Set Notification" width="100%"/><br><em>Store Screen with Location Selector and Draggable Panel</em></td>
 <td width="50%"><img src="https://github.com/user-attachments/assets/0b095b5d-bf6d-465a-a498-7a1c28e8f5e8" width="100%"/><br><em>Select Store in Shopping List</em></td>
 </tr>
 </table>
@@ -384,4 +384,4 @@ Sub-Collections under users:
 1. Clone the repository
 2. Install dependencies: `npm install`
 3. Create a `.env` file in the root directory with the required environment variables
-4. Start the development server: `
+4. Start the development server: `npm expo start`
