@@ -301,6 +301,28 @@ Sub-Collections under users:
 
 ### Iteration 3
 
+#### Authentication
+
+- Users can register and log in using email and password. Authentication state is persisted across sessions.
+
+- Users can update personal info, change password, and upload an avatar using the camera or gallery.
+
+- Users can reset their password via a recovery email if they forget it.
+
+- Users can log out or permanently delete their account along with associated data and avatar.
+
+- Each user only has access to their own data based on authentication.
+
+- First-time users are guided through a one-time onboarding screen.
+
+<table>
+<tr>
+<td width="33%"><img src="https://github.com/user-attachments/assets/de376738-ce40-4711-b824-fc709de555eb" alt="Onboarding Screen" width="100%"/><br><em>Onboarding Screen (iOS)</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/62a749c0-22e5-46cb-a004-25fea476d587" alt="Login Screen" width="100%"/><br><em>Login Screen (iOS)</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/f1f756e0-9343-4428-9337-f1c7adf87845" alt="Settings Screen" width="100%"/><br><em>Settings Screen (iOS)</em></td>
+</tr>
+</table>
+
 #### Push Notifications
 
 - Shopping reminder notifications
@@ -309,12 +331,12 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/b85ff64e-865f-4318-a789-43fda78c4c2c" alt="Set Notification" width="100%"/><br><em>Set Notification (iOS)</em></td>
-<td width="50%"><img src="" alt="Set Location" width="100%"/><br><em>Set Location (iOS)</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/b85ff64e-865f-4318-a789-43fda78c4c2c" alt="Set Notification" width="50%"/><br><em>Set Notification (iOS)</em></td>
 </tr>
 </table>
 
 #### Google Maps API
+
 
 ## Development Guide
 
