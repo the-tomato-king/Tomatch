@@ -17,7 +17,6 @@ import { useUserStores } from "../../hooks/useUserStores";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../../constants/firebase";
-import { useNavigation } from "@react-navigation/native";
 import { StoreStackParamList } from "../../types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import MapComponent from "../../components/Map";
@@ -315,8 +314,8 @@ const styles = StyleSheet.create({
   draggablePanel: {
     position: "absolute",
     bottom: 0,
-    left: 8,
-    right: 8,
+    left: 0,
+    right: 0,
     backgroundColor: colors.ios.secondarySystemGroupedBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

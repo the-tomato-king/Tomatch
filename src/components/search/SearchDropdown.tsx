@@ -3,9 +3,9 @@ import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
 import DropDownPicker from "react-native-dropdown-picker";
-
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 interface SearchDropdownProps {
-  label: string;
+  iconName: string;
   value: string | null | undefined;
   items: Array<{
     label: string;
@@ -19,7 +19,7 @@ interface SearchDropdownProps {
 }
 
 const SearchDropdown = ({
-  label,
+  iconName,
   value,
   items,
   onChangeValue,
@@ -44,7 +44,11 @@ const SearchDropdown = ({
   return (
     <View style={globalStyles.inputContainer}>
       <View style={globalStyles.labelContainer}>
-        <Text style={globalStyles.inputLabel}>{label}</Text>
+        <MaterialCommunityIcons
+          name={iconName as any}
+          size={24}
+          color={colors.primary}
+        />
       </View>
       <View style={styles.inputWrapper}>
         <DropDownPicker
