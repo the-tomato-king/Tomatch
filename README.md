@@ -1,10 +1,18 @@
-# Scalor - You personal grocery price tracker
+<div align="center">
+  <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+    <img src="https://picture-guan.oss-cn-hangzhou.aliyuncs.com/F4C32040-60EC-4415-9348-39CA98680520.png" width="100" alt="Tomatch Logo">
+    <div>
+      <h1 style="margin: 0;">Tomatch</h1>
+      <p style="margin: 0;">To Match, To Save, Your personal grocery price tracker</p>
+    </div>
+  </div>
+  
+</div>
 
-## Project Introduction
+<br>
+Tomatch is a mobile application designed to help users track and compare grocery prices across different stores.
 
-Scalor is a mobile application designed to help users track and compare grocery prices across different stores.
-
-By leveraging OCR and AI, Scalor allows users to easily record prices by snapping photos of price tags, eliminating manual data entry. With features like smart price comparisons, price history tracking, and personalized shopping lists, Scalor helps users make smarter shopping decisions and avoid overpaying by providing data-driven insights. Say goodbye to impulsive purchases and hello to smarter grocery shopping!
+By leveraging AI, Tomatch allows users to easily record prices by snapping photos of price tags, eliminating manual data entry. With features like smart price comparisons, price history tracking, and personalized shopping lists, Tomatch helps users make smarter shopping decisions and avoid overpaying by providing data-driven insights. Say goodbye to impulsive purchases and hello to smarter grocery shopping!
 
 
 ### Target Users
@@ -32,8 +40,23 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 
 ### External APIs
 
-- OCR API:
-- AI Recognization API: Open AI API
+- OpenAI API:
+  - Model: gpt-4o-mini
+  - Purpose: Price tag image analysis and text recognition
+  - Features:
+    - Extracts product name, price, and unit information from images
+    - Standardizes product names by removing marketing terms
+    - Normalizes units to standard measurements (g, kg, lb, oz, ml, L, EA)
+
+- Google Maps API:
+  - Services Used: 
+    - Places API (Nearby Search)
+    - Geolocation
+  - Features:
+    - User location detection with permission handling
+    - Nearby supermarket search within 5km radius
+    - Store details including name, address, and coordinates
+    - Location data persistence using AsyncStorage
 
 ## Data Model 
 
@@ -110,11 +133,10 @@ By leveraging OCR and AI, Scalor allows users to easily record prices by snappin
 - photo_url
 - recorded_at
 
-### 2. store_brands (collection)
+### 2. Local Store Brands Library (in-app, not in Firestore)
 - id
 - name
 - logo
-- updated_at
 
 ### 3. Local Product Library (in-app, not in Firestore)
 - id
@@ -159,15 +181,6 @@ Sub-Collections under users:
 - [x] Update: Users can update store information or mark stores as favorites.
 - [x] Delete: Users can remove stores they no longer visit.
 
-1. store_brands (collection): Stores information about retail brands.
-- Create: Only Admins can add new store brands.
-- [x] Read: Users can view store brand information.
-- Update: Only Admins can update store brand details.
-- Delete: Only Admins can remove outdated or incorrect store brands.
-
-1. Local Product Library: A built-in database of common products.
-- No direct CRUD operations as it's local to the app
-- [x] Read: Users can browse/search for products by name, code, or category.
 
 ## Contributors
 
@@ -186,15 +199,19 @@ Sub-Collections under users:
 	- Set up real-time data synchronization between UI and Firebase
 
 - Core Features Development
-	- Implemented comprehensive price conversion system
-	- Enhanced image extraction system with optimized GPT prompts
-	- Created dynamic price display system with unit conversion
+    - AI-Powered Price Tag Recognition System
+        - Implemented image extraction using OpenAI API
+        - Optimized GPT prompts for accurate product name, price, and unit recognition
+    
+    - Comprehensive Price Management System
+        - Developed dual pricing system (count & measurable units)
+        - Implemented automatic unit conversion (kg/lb, ml/oz, etc.)
+        - Created standardized price display with user's preferred units
+
 
 - UI Development
 	- Designed and implemented core screens in products, setting, stores folders
 	- Created reusable components including BackButton, MainPageHeader, AILoadingScreen, LoadingLogo, and ProductSearchInput
-	- Implemented image preview functionality
-	- Enhanced UI/UX with extensive style refinements
 	- Set up navigation flows between screens
 
 
@@ -204,7 +221,7 @@ Sub-Collections under users:
 - Firebase Integration
 	- Implemented Firebase Helper (CRUD functions)
 	- Integrated frontend with backend for Shopping List CRUD
-- UI Development
+- Shopping List Development
 	- Developed UI for Shopping List (ShoppingList, AddShoppingList, ShoppingListDetails)
 	- Implemented navigation between ShoppingList
 - Map and Stores Select
@@ -215,7 +232,18 @@ Sub-Collections under users:
 - Notification System
 	- Set up a notification feature to remind users to shop on their chosen shopping date
 	- Allowed users to toggle notifications on or off within the app's settings
-
+- Authentication
+	- Developed the login screen, signup screen, password reset and forget password screen
+    - Implemented user registration, login, logout, password reset, and account deletion using Firebase Authentication
+	- Restricted data access so each user only sees users own shopping lists and details (auth-based access control)
+	- Developed and integrated onboarding screen shown only on the app's first launch
+- Google Maps API
+	- Integrated Google Maps to allow users to search and view nearby stores based on their current location
+	- Fetched detailed store information (e.g., name, address) and show the information
+	- Enable selecting a store from the list highlights it on the map, and tapping a marker on the map scrolls to its entry in the list.
+- UI Modification
+	- Enhanced UI with custom icons and improved visual styling for a more user-friendly experience
+	- Added images and icon overlays to improve usability and aesthetics
 
 ## Update
 
@@ -236,16 +264,16 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="33%"><img src="https://github.com/user-attachments/assets/6f570aa2-1dc7-4c7b-8c3e-a12283276cde" alt="Product Details" width="100%"/><br><em>All Product</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/fa2926be-f2d1-4cf3-9906-c6e9b432a89b" alt="Price Record" width="100%"/><br><em>Product Detail</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/d84eae06-938b-4815-880f-f894aa9fb1b0" alt="Add Record" width="100%"/><br><em>Record Detail</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/5da5d4ed-e5c9-493c-90e4-7f21f0335097" alt="Product Details" width="100%"/><br><em>All Product</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/801995ad-41db-455c-b782-f7907f22601a" alt="Price Record" width="100%"/><br><em>Product Detail</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/aff27682-ac74-412e-bf3c-7bbc6ecefde0" alt="Add Record" width="100%"/><br><em>Record Detail</em></td>
 </tr>
 </table>
 
 <table>
 <tr>
 <td width="50%"><img src="https://github.com/user-attachments/assets/6d467050-cd60-4744-886f-bdd079380d77" alt="Product Details" width="100%"/><br><em>Add Record</em></td>
-<td width="50%"><img src="https://github.com/user-attachments/assets/f3f1845c-1bb7-47c5-822a-1d42b0169655" alt="Price Record" width="100%"/><br><em>Product Library</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/4e851138-d7cc-437b-988e-4c2e16ae7573" alt="Price Record" width="100%"/><br><em>Product Library</em></td>
 </tr>
 </table>
 
@@ -282,8 +310,8 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/66f336f5-0cb5-4537-9cc5-d59a5788647c" width="100%"/><br><em>AI is Analyzing</em></td>
-<td width="50%"><img src="https://github.com/user-attachments/assets/3d09a638-5b6b-4d97-87a7-7659cbd75b8c" alt="Set Location" width="100%"/><br><em>AI Auto Fill</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/38250257-41ff-41d9-80c0-0638c35f7d30" width="100%"/><br><em>AI is Analyzing</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/cb95cd44-3428-420c-ab02-49a78a00004f" alt="Set Location" width="100%"/><br><em>AI Auto Fill</em></td>
 </tr>
 </table>
 
@@ -294,12 +322,34 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="50%"><img src="https://github.com/user-attachments/assets/16b1424f-77df-4355-8ff6-7ebea0f44bb3" alt="Set Notification" width="100%"/><br><em>Store Screen</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/906dc139-2701-47af-92e7-f889f54ef8a7" alt="Set Notification" width="100%"/><br><em>Store Screen with Location Selector and Draggable Panel</em></td>
 <td width="50%"><img src="https://github.com/user-attachments/assets/0b095b5d-bf6d-465a-a498-7a1c28e8f5e8" width="100%"/><br><em>Select Store in Shopping List</em></td>
 </tr>
 </table>
 
 ### Iteration 3
+
+#### Authentication
+
+- Users can register and log in using email and password. Authentication state is persisted across sessions.
+
+- Users can update personal info, change password, and upload an avatar using the camera or gallery.
+
+- Users can reset their password via a recovery email if they forget it.
+
+- Users can log out or permanently delete their account along with associated data and avatar.
+
+- Each user only has access to their own data based on authentication.
+
+- First-time users are guided through a one-time onboarding screen.
+
+<table>
+<tr>
+<td width="33%"><img src="https://github.com/user-attachments/assets/dc16d1ce-3119-4ddc-8450-3566f20dd921" alt="Onboarding Screen" width="100%"/><br><em>Onboarding Screen (iOS)</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/62a749c0-22e5-46cb-a004-25fea476d587" alt="Login Screen" width="100%"/><br><em>Login Screen (Android)</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/f1f756e0-9343-4428-9337-f1c7adf87845" alt="Settings Screen" width="100%"/><br><em>Settings Screen (Android)</em></td>
+</tr>
+</table>
 
 #### Push Notifications
 
@@ -310,11 +360,23 @@ Sub-Collections under users:
 <table>
 <tr>
 <td width="50%"><img src="https://github.com/user-attachments/assets/b85ff64e-865f-4318-a789-43fda78c4c2c" alt="Set Notification" width="100%"/><br><em>Set Notification (iOS)</em></td>
-<td width="50%"><img src="" alt="Set Location" width="100%"/><br><em>Set Location (iOS)</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/d394bf81-acd7-46ca-a877-aebff78fc5d3" alt="Recieve Notification " width="100%"/><br><em>Recieve Notification (iOS)</em></td>
 </tr>
 </table>
 
 #### Google Maps API
+
+- App requests location access to enable nearby search and centering map on user's location.
+- Users can search for nearby stores based on their current location using Google Maps Places API.
+- When a store is selected on the map, detailed information is retrieved and displayed.
+- Selecting a store from the list highlights it on the map, and tapping a marker on the map scrolls to its entry in the list.
+<table>
+<tr>
+<td width="50%"><img src="https://github.com/user-attachments/assets/30d58192-4542-4c90-9cf8-8bf618c4f331" alt="Stores Screen" width="100%"/><br><em>Stores Screen (Android)</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/71d779c5-ebb3-43de-a3f6-9424f7ab5a91" alt="Select Supermarket" width="100%"/><br><em>Select Supermarket (Android)</em></td>
+</tr>
+</table>
+
 
 ## Development Guide
 
@@ -322,4 +384,4 @@ Sub-Collections under users:
 1. Clone the repository
 2. Install dependencies: `npm install`
 3. Create a `.env` file in the root directory with the required environment variables
-4. Start the development server: `
+4. Start the development server: `npm expo start`
