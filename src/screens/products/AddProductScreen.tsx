@@ -26,9 +26,8 @@ import {
   deleteOneDocFromDB,
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
-import { ImageType, Product, BaseUserProduct, UserProduct } from "../../types";
+import { ImageType, UserProduct } from "../../types";
 import LoadingLogo from "../../components/loading/LoadingLogo";
-import ProductImage from "../../components/ProductImage";
 import EditProductImage from "../../components/EditProductImage";
 import EmojiSelector from "react-native-emoji-selector";
 import {
@@ -44,6 +43,7 @@ import {
   updateUserProduct,
   deleteUserProduct,
 } from "../../services/userProductService";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 const AddProductScreen = () => {
   const route = useRoute<any>();
@@ -297,8 +297,11 @@ const AddProductScreen = () => {
           {/* Product Name */}
           <View style={globalStyles.inputContainer}>
             <View style={globalStyles.labelContainer}>
-              <Text style={globalStyles.inputLabel}>Name</Text>
-              <Text style={styles.requiredMark}>*</Text>
+              <MaterialCommunityIcons
+                name="food-apple"
+                size={24}
+                color={colors.primary}
+              />
             </View>
             <TextInput
               style={globalStyles.input}
@@ -310,7 +313,7 @@ const AddProductScreen = () => {
 
           {/* Category */}
           <SearchDropdown
-            label="Category"
+            iconName="format-list-bulleted"
             value={category}
             items={Object.values(PRODUCT_CATEGORIES).map((category) => ({
               label: category,
@@ -323,7 +326,11 @@ const AddProductScreen = () => {
           {/* PLU Code */}
           <View style={globalStyles.inputContainer}>
             <View style={globalStyles.labelContainer}>
-              <Text style={globalStyles.inputLabel}>PLU</Text>
+              <MaterialCommunityIcons
+                name="barcode"
+                size={24}
+                color={colors.primary}
+              />
             </View>
             <TextInput
               style={globalStyles.input}
@@ -415,10 +422,6 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     paddingHorizontal: 30,
-  },
-  requiredMark: {
-    color: colors.negative,
-    marginLeft: 4,
   },
   imageContainer: {
     width: "100%",

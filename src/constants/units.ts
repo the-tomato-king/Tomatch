@@ -1,9 +1,8 @@
-export const STANDARD_WEIGHT_UNIT = "g";
-
 export const UNITS = {
   WEIGHT: {
     G: "g",
     HG: "100g",
+    FHG: "500g",
     KG: "kg",
     LB: "lb",
     OZ: "oz",
@@ -46,7 +45,8 @@ export const isMeasurableUnit = (unit: Unit): unit is MeasurableUnit => {
 // the flat array of all units for dropdown
 export const ALL_UNITS = [
   // Weight Units
-  UNITS.WEIGHT.G,
+  UNITS.WEIGHT.FHG,
+  UNITS.WEIGHT.HG,
   UNITS.WEIGHT.KG,
   UNITS.WEIGHT.LB,
   UNITS.WEIGHT.OZ,
@@ -60,8 +60,8 @@ export const ALL_UNITS = [
 // User selectable units for preferences
 export const USER_SELECTABLE_UNITS = {
   WEIGHT: [
-    { value: UNITS.WEIGHT.G, label: "/g" },
     { value: UNITS.WEIGHT.HG, label: "/100g" },
+    { value: UNITS.WEIGHT.FHG, label: "/500g" },
     { value: UNITS.WEIGHT.KG, label: "/kg" },
     { value: UNITS.WEIGHT.LB, label: "/lb" },
   ],

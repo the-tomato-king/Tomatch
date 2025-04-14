@@ -22,6 +22,7 @@ import { globalStyles } from "../../theme/styles";
 import { colors } from "../../theme/colors";
 import * as Notifications from "expo-notifications";
 import { getAuth } from "firebase/auth";
+import Entypo from '@expo/vector-icons/Entypo';
 
 export interface ShoppingItem {
   id: string;
@@ -274,7 +275,7 @@ const AddShoppingListScreen = () => {
         }
       }
 
-      navigation.navigate("ShoppingList");
+      navigation.goBack();
     } else {
       console.error("Error creating shopping list.");
       alert("Failed to create shopping list. Please try again.");
@@ -344,11 +345,12 @@ const AddShoppingListScreen = () => {
       {/* Shopping List Name */}
       <View style={[globalStyles.inputContainer, { marginBottom: 10 }]}>
         <View style={globalStyles.labelContainer}>
-          <Text style={globalStyles.inputLabel}>Name</Text>
+        <Entypo name="pencil" size={18} color={colors.primary} />
         </View>
         <TextInput
           style={[globalStyles.input]}
           placeholder="Enter shopping list name..."
+          placeholderTextColor={colors.secondaryText}
           value={listName}
           onChangeText={setListName}
         />
@@ -388,11 +390,12 @@ const AddShoppingListScreen = () => {
         data={shoppingItems}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <Text>
-              {item.name} - {item.quantity} pcs
-            </Text>
-          </View>
+        <View style={styles.listItem}>
+          <Text style={{ fontSize: 16 }}>
+            {item.name} - {item.quantity} pcs
+          </Text>
+        </View>
+
         )}
       />
 
@@ -454,7 +457,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "white"
   },
   input: {
     borderWidth: 1,
@@ -471,10 +474,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listItem: {
-    fontSize: 16,
     padding: 10,
+    marginTop:10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderBottomColor: "#d0e0f0",
   },
   buttonRow: {
     flexDirection: "row",

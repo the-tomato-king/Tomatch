@@ -182,7 +182,7 @@ const StoreSearchInput = ({
 const styles = StyleSheet.create({
   wrapper: {
     position: "relative",
-    zIndex: 1000,
+    zIndex: 1,
   },
   suggestionsContainer: {
     position: "absolute",

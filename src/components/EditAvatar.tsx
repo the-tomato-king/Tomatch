@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, TouchableOpacity, Image, Text, Alert } from "react-native";
+import { StyleSheet, TouchableOpacity, Image, Text, Alert, View } from "react-native";
 import { colors } from "../theme/colors";
 import {
   requestMediaLibraryPermissionsAsync,
@@ -10,6 +10,7 @@ import {
 } from "expo-image-picker";
 import { uploadUserAvatar, deleteUserAvatar } from "../services/mediaService";
 import { updateUserDocument } from "../services/userService";
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 interface EditAvatarProps {
   userId: string;
@@ -109,17 +110,30 @@ export const EditAvatar = ({
   };
 
   return (
-    <TouchableOpacity style={styles.avatar} onPress={handleAvatarPress}>
+    <TouchableOpacity style={styles.avatarContainer} onPress={handleAvatarPress}>
+    <View style={styles.avatar}>
       {avatarUrl ? (
         <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
       ) : (
         <Text style={styles.avatarText}>{userName?.charAt(0) || "A"}</Text>
       )}
-    </TouchableOpacity>
+    </View>
+    <View style={styles.cameraIconContainer}>
+      <FontAwesome name="camera" size={24} color="white" />
+    </View>
+  </TouchableOpacity>
   );
 };
 
+
 const styles = StyleSheet.create({
+  avatarContainer: {
+    width: 100,
+    height: 100,
+    alignSelf: "center",
+    marginBottom: 20,
+    position: "relative",
+  },
   avatar: {
     width: 100,
     height: 100,
@@ -127,8 +141,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ios.systemGray6,
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: "center",
-    marginBottom: 20,
   },
   avatarImage: {
     width: "100%",
@@ -138,5 +150,16 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 36,
     color: colors.ios.secondaryLabel,
+  },
+  cameraIconContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.2)",
+    borderRadius: 50,
   },
 });

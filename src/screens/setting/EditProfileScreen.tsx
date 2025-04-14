@@ -19,13 +19,7 @@ import {
   updateOneDocInDB,
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
-import {
-  getAuth,
-  updateEmail,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  verifyBeforeUpdateEmail,
-} from "firebase/auth";
+import { getAuth, verifyBeforeUpdateEmail } from "firebase/auth";
 import { EditAvatar } from "../../components/EditAvatar";
 
 const EditProfileScreen = () => {

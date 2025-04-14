@@ -145,14 +145,10 @@ export interface Product {
   barcode: string;
 }
 
-export interface BaseStoreBrand {
+export interface StoreBrand {
+  id: string;
   name: string;
   logo: string;
-  updated_at: Date;
-}
-
-export interface StoreBrand extends BaseStoreBrand {
-  id: string;
 }
 
 export interface Currency {

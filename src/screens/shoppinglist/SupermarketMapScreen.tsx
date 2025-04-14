@@ -81,10 +81,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   locationSection: {
-    padding: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    position: "absolute",
+    top: 20, 
+    left: 8,
+    right: 16,
+    zIndex: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
   },
   mapContainer: {
     flex: 1,

@@ -107,7 +107,7 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Scalor!</Text>
+      <Text style={styles.title}>Welcome to Tomatch!</Text>
       <TextInput
         placeholder="Email"
         value={email}

@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   StyleSheet,
   View,
   FlatList,
   TouchableOpacity,
   SafeAreaView,
+  Text,
 } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -13,7 +14,6 @@ import { StoreBrand } from "../../types";
 import { useBrands } from "../../hooks/useBrands";
 import StoreLogo from "../../components/StoreLogo";
 import SearchBar from "../../components/search/SearchBar";
-import { Text } from "react-native";
 
 type SelectStoreBrandScreenRouteProp = RouteProp<
   StoreStackParamList,
@@ -24,10 +24,10 @@ const SelectStoreBrandScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
   const route = useRoute<SelectStoreBrandScreenRouteProp>();
-  const { brands, loading } = useBrands();
+  const { brands } = useBrands();
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  const filteredBrands = React.useMemo(() => {
+  const filteredBrands = useMemo(() => {
     return brands.filter((brand) =>
       brand.name.toLowerCase().includes(searchQuery.toLowerCase())
     );

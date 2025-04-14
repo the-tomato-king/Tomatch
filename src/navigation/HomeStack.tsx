@@ -15,6 +15,9 @@ const HomeStack = () => {
       <Stack.Screen
         name="HomeScreen"
         component={HomeScreen}
+        options={{
+          headerTitle: "Home",
+        }}
       />
       <Stack.Screen
         name="ProductDetail"

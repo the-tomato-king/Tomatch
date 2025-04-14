@@ -1,9 +1,10 @@
-import { UNITS, STANDARD_WEIGHT_UNIT } from "../constants/units";
+import { UNITS } from "../constants/units";
 
 // conversion rate to standard unit (kg)
 const WEIGHT_CONVERSION_RATES: Record<string, number> = {
   [UNITS.WEIGHT.G]: 0.001, // 1g = 0.001kg
   [UNITS.WEIGHT.HG]: 0.1, // 100g = 0.1kg
+  [UNITS.WEIGHT.FHG]: 0.5, // 500g = 0.5kg
   [UNITS.WEIGHT.KG]: 1, // 1kg = 1kg
   [UNITS.WEIGHT.LB]: 0.45359, // 1lb = 0.45359kg
   [UNITS.WEIGHT.OZ]: 0.02835, // 1oz = 0.02835kg

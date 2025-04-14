@@ -5,14 +5,12 @@ import {
   SafeAreaView,
   TextInput,
   TouchableOpacity,
-  Image,
   Alert,
   Platform,
   ActionSheetIOS,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
-  ScrollView,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import React, { useEffect, useState, useLayoutEffect } from "react";
@@ -35,7 +33,7 @@ import ProductSearchInput from "../../components/search/ProductSearchInput";
 import StoreSearchInput from "../../components/search/StoreSearchInput";
 import LoadingLogo from "../../components/loading/LoadingLogo";
 import { analyzeReceiptImage } from "../../services/openai/openaiService";
-import AILoadingScreen from "../../components/loading/AILoadingScreen";
+import AILoadingOverlay from "../../components/loading/AILoadingOverlay";
 import {
   getProductById,
   getAllProducts,
@@ -681,7 +679,7 @@ const AddRecordScreen = () => {
   }
 
   if (isAILoading) {
-    return <AILoadingScreen />;
+    return <AILoadingOverlay imageUri={image} />;
   }
 
   return (
@@ -710,6 +708,7 @@ const AddRecordScreen = () => {
                     color={colors.white}
                   />
                 </TouchableOpacity>
+                {isAILoading && <AILoadingOverlay imageUri={image} />}
               </View>
             ) : (
               <TouchableOpacity
