@@ -346,7 +346,7 @@ Sub-Collections under users:
 <table>
 <tr>
 <td width="33%"><img src="https://github.com/user-attachments/assets/dc16d1ce-3119-4ddc-8450-3566f20dd921" alt="Onboarding Screen" width="100%"/><br><em>Onboarding Screen (iOS)</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/62a749c0-22e5-46cb-a004-25fea476d587" alt="Login Screen" width="100%"/><br><em>Login Screen (Android)</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/25285376-5620-478c-a78b-0d1394601f46" alt="Login Screen" width="100%"/><br><em>Login Screen (Android)</em></td>
 <td width="33%"><img src="https://github.com/user-attachments/assets/f1f756e0-9343-4428-9337-f1c7adf87845" alt="Settings Screen" width="100%"/><br><em>Settings Screen (Android)</em></td>
 </tr>
 </table>
