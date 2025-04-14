@@ -275,7 +275,7 @@ const AddShoppingListScreen = () => {
         }
       }
 
-      navigation.navigate("ShoppingList");
+      navigation.goBack();
     } else {
       console.error("Error creating shopping list.");
       alert("Failed to create shopping list. Please try again.");
