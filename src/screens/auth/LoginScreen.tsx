@@ -116,7 +116,7 @@ const LoginScreen = () => {
       >
         <View style={styles.contentContainer}>
           <View style={styles.headerContainer}>
-            <Text style={styles.title}>Welcome Back!</Text>
+            <Text style={styles.title}>Let's get started</Text>
             <Text style={styles.subtitle}>Sign in to continue</Text>
           </View>
 
