@@ -78,8 +78,9 @@ const ShoppingListScreen = () => {
               Alert.alert("Error", "You must be logged in to delete items.");
               return;
             }
-            
-            await deleteOneDocFromDB("shoppingLists", id);
+
+            const path = `users/${userId}/shopping_lists`; 
+            await deleteOneDocFromDB(path, id);
             setShoppingLists((prevState) =>
               prevState.filter((item) => item.id !== id)
             );
