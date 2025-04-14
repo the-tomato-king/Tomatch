@@ -63,7 +63,7 @@ const ShoppingListDetailScreen = () => {
           return;
         }
 
-        const docRef = doc(db, "shoppingLists", id);
+        const docRef = doc(db, `users/${currentUserId}/shopping_lists`, id);
         const docSnap = await getDoc(docRef);
         
         if (!docSnap.exists()) {
