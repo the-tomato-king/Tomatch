@@ -204,7 +204,7 @@ Sub-Collections under users:
 - Firebase Integration
 	- Implemented Firebase Helper (CRUD functions)
 	- Integrated frontend with backend for Shopping List CRUD
-- UI Development
+- Shopping List Development
 	- Developed UI for Shopping List (ShoppingList, AddShoppingList, ShoppingListDetails)
 	- Implemented navigation between ShoppingList
 - Map and Stores Select
@@ -215,7 +215,18 @@ Sub-Collections under users:
 - Notification System
 	- Set up a notification feature to remind users to shop on their chosen shopping date
 	- Allowed users to toggle notifications on or off within the app's settings
-
+- Authentication
+	- Developed the login screen, signup screen, password reset and forget password screen
+    - Implemented user registration, login, logout, password reset, and account deletion using Firebase Authentication
+	- Restricted data access so each user only sees users own shopping lists and details (auth-based access control)
+	- Developed and integrated onboarding screen shown only on the app's first launch
+- Google Maps API
+	- Integrated Google Maps to allow users to search and view nearby stores based on their current location
+	- Fetched detailed store information (e.g., name, address) and show the information
+	- Enable selecting a store from the list highlights it on the map, and tapping a marker on the map scrolls to its entry in the list.
+- UI Modification
+	- Enhanced UI with custom icons and improved visual styling for a more user-friendly experience
+	- Added images and icon overlays to improve usability and aesthetics
 
 ## Update
 
@@ -318,8 +329,8 @@ Sub-Collections under users:
 <table>
 <tr>
 <td width="33%"><img src="https://github.com/user-attachments/assets/dc16d1ce-3119-4ddc-8450-3566f20dd921" alt="Onboarding Screen" width="100%"/><br><em>Onboarding Screen (iOS)</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/62a749c0-22e5-46cb-a004-25fea476d587" alt="Login Screen" width="100%"/><br><em>Login Screen (iOS)</em></td>
-<td width="33%"><img src="https://github.com/user-attachments/assets/f1f756e0-9343-4428-9337-f1c7adf87845" alt="Settings Screen" width="100%"/><br><em>Settings Screen (iOS)</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/62a749c0-22e5-46cb-a004-25fea476d587" alt="Login Screen" width="100%"/><br><em>Login Screen (Android)</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/f1f756e0-9343-4428-9337-f1c7adf87845" alt="Settings Screen" width="100%"/><br><em>Settings Screen (Android)</em></td>
 </tr>
 </table>
 
@@ -336,6 +347,17 @@ Sub-Collections under users:
 </table>
 
 #### Google Maps API
+
+- App requests location access to enable nearby search and centering map on user's location.
+- Users can search for nearby stores based on their current location using Google Maps Places API.
+- When a store is selected on the map, detailed information is retrieved and displayed.
+- Selecting a store from the list highlights it on the map, and tapping a marker on the map scrolls to its entry in the list.
+<table>
+<tr>
+<td width="50%"><img src="https://github.com/user-attachments/assets/30d58192-4542-4c90-9cf8-8bf618c4f331" alt="Stores Screen" width="100%"/><br><em>Stores Screen (Android)</em></td>
+<td width="50%"><img src="https://github.com/user-attachments/assets/71d779c5-ebb3-43de-a3f6-9424f7ab5a91" alt="Select Supermarket" width="100%"/><br><em>Select Supermarket (Android)</em></td>
+</tr>
+</table>
 
 
 ## Development Guide
