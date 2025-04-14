@@ -1,10 +1,10 @@
-# Scalor - You personal grocery price tracker
+# Tomatch - You personal grocery price tracker
 
 ## Project Introduction
 
-Scalor is a mobile application designed to help users track and compare grocery prices across different stores.
+Tomatch is a mobile application designed to help users track and compare grocery prices across different stores.
 
-By leveraging OCR and AI, Scalor allows users to easily record prices by snapping photos of price tags, eliminating manual data entry. With features like smart price comparisons, price history tracking, and personalized shopping lists, Scalor helps users make smarter shopping decisions and avoid overpaying by providing data-driven insights. Say goodbye to impulsive purchases and hello to smarter grocery shopping!
+By leveraging AI, Tomatch allows users to easily record prices by snapping photos of price tags, eliminating manual data entry. With features like smart price comparisons, price history tracking, and personalized shopping lists, Tomatch helps users make smarter shopping decisions and avoid overpaying by providing data-driven insights. Say goodbye to impulsive purchases and hello to smarter grocery shopping!
 
 
 ### Target Users
@@ -317,7 +317,7 @@ Sub-Collections under users:
 
 <table>
 <tr>
-<td width="33%"><img src="https://github.com/user-attachments/assets/de376738-ce40-4711-b824-fc709de555eb" alt="Onboarding Screen" width="100%"/><br><em>Onboarding Screen (iOS)</em></td>
+<td width="33%"><img src="https://github.com/user-attachments/assets/dc16d1ce-3119-4ddc-8450-3566f20dd921" alt="Onboarding Screen" width="100%"/><br><em>Onboarding Screen (iOS)</em></td>
 <td width="33%"><img src="https://github.com/user-attachments/assets/62a749c0-22e5-46cb-a004-25fea476d587" alt="Login Screen" width="100%"/><br><em>Login Screen (iOS)</em></td>
 <td width="33%"><img src="https://github.com/user-attachments/assets/f1f756e0-9343-4428-9337-f1c7adf87845" alt="Settings Screen" width="100%"/><br><em>Settings Screen (iOS)</em></td>
 </tr>
