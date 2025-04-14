@@ -45,8 +45,8 @@ const ShoppingListScreen = () => {
       return;
     }
 
-    const shoppingListsRef = collection(db, "shoppingLists");
-    const q = query(shoppingListsRef, where("userId", "==", userId));
+    const shoppingListsRef = collection(db, `users/${userId}/shopping_lists`);
+    const q = query(shoppingListsRef);
     
     const unsubscribe = onSnapshot(
       q,
