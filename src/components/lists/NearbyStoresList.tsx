@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { FlatList, ViewToken } from "react-native";
 import { NearbyStore } from "../../types/location";
 import StoreCard from "../StoreCard";
@@ -22,24 +22,52 @@ const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
   const { userLocation } = useLocation();
   const flatListRef = useRef<FlatList>(null);
 
-  // 当选中的商店变化时，滚动到该商店
+  // Calculate distances and sort stores
+  const sortedStores = useMemo(() => {
+    if (!userLocation) return stores;
+
+    return [...stores].sort((a, b) => {
+      const distanceA = calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        a.coordinate.latitude,
+        a.coordinate.longitude
+      );
+      const distanceB = calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        b.coordinate.latitude,
+        b.coordinate.longitude
+      );
+
+      // If either distance is invalid (NaN), put them at the end
+      if (isNaN(distanceA)) return 1;
+      if (isNaN(distanceB)) return -1;
+
+      return distanceA - distanceB;
+    });
+  }, [stores, userLocation]);
+
+  // when selectedStore changes, scroll to the selected store
   useEffect(() => {
     if (selectedStore && flatListRef.current) {
-      const index = stores.findIndex(store => 
-        store.id === selectedStore.id || 
-        (store.name === selectedStore.name && 
-         store.address === selectedStore.address));
-      
+      const index = sortedStores.findIndex(
+        (store) =>
+          store.id === selectedStore.id ||
+          (store.name === selectedStore.name &&
+            store.address === selectedStore.address)
+      );
+
       if (index !== -1) {
         flatListRef.current.scrollToIndex({
           index,
           animated: true,
           viewOffset: 0,
-          viewPosition: 0
+          viewPosition: 0,
         });
       }
     }
-  }, [selectedStore, stores]);
+  }, [selectedStore, sortedStores]);
 
   const isStoreAdded = (store: NearbyStore): boolean => {
     return favoriteStores.some(
@@ -63,9 +91,11 @@ const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
 
   const isSelected = (store: NearbyStore): boolean => {
     if (!selectedStore) return false;
-    return store.id === selectedStore.id || 
-           (store.name === selectedStore.name && 
-            store.address === selectedStore.address);
+    return (
+      store.id === selectedStore.id ||
+      (store.name === selectedStore.name &&
+        store.address === selectedStore.address)
+    );
   };
 
   const handleScrollToIndexFailed = (info: {
@@ -73,13 +103,13 @@ const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
     highestMeasuredFrameIndex: number;
     averageItemLength: number;
   }) => {
-    // 如果滚动失败，延迟后重试
+    // If scrolling fails, retry after a delay
     setTimeout(() => {
       if (flatListRef.current) {
         flatListRef.current.scrollToIndex({
           index: info.index,
           animated: true,
-          viewPosition: 0
+          viewPosition: 0,
         });
       }
     }, 100);
@@ -88,7 +118,7 @@ const NearbyStoresList: React.FC<NearbyStoresListProps> = ({
   return (
     <FlatList
       ref={flatListRef}
-      data={stores}
+      data={sortedStores}
       keyExtractor={(store) => store.id || `${store.name}-${store.address}`}
       onScrollToIndexFailed={handleScrollToIndexFailed}
       renderItem={({ item: store }) => {

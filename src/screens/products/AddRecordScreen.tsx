@@ -5,14 +5,12 @@ import {
   SafeAreaView,
   TextInput,
   TouchableOpacity,
-  Image,
   Alert,
   Platform,
   ActionSheetIOS,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
-  ScrollView,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import React, { useEffect, useState, useLayoutEffect } from "react";
