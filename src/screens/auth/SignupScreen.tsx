@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import {
   View,
   TextInput,
-  Button,
   Text,
   StyleSheet,
   Alert,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { auth } from "../../services/firebase/firebaseConfig";
 import {
@@ -28,6 +31,7 @@ const SignupScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation<SignupScreenNavigationProp>();
 
   const handleSignup = async () => {
@@ -39,6 +43,8 @@ const SignupScreen = () => {
       Alert.alert("Passwords do not match");
       return;
     }
+
+    setIsLoading(true);
     try {
       // 1. Create authentication user
       const userCred = await createUserWithEmailAndPassword(
@@ -69,6 +75,8 @@ const SignupScreen = () => {
       );
     } catch (error: any) {
       Alert.alert("Error", error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,92 +85,187 @@ const SignupScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create a New Account</Text>
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-        <Text style={styles.passwordHint}>
-          Password must be 6-30 characters, including uppercase, lowercase letters, and numbers.
-        </Text>
-      <TextInput
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-        style={styles.input}
-      />
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <View style={styles.contentContainer}>
+          <View style={styles.headerContainer}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Sign up to get started</Text>
+          </View>
 
-      <TouchableOpacity
-          style={styles.button}
-          onPress={handleSignup}
-        >
-        <Text style={styles.buttonText}>Sign Up</Text>
-        </TouchableOpacity>
+          <View style={styles.formContainer}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                placeholder="Enter your email"
+                value={email}
+                onChangeText={setEmail}
+                style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor="#A0A0A0"
+              />
+            </View>
 
-      <TouchableOpacity onPress={loginHandler} style={styles.smallButton}>
-        <Text style={styles.smallButtonText}>Already Registered? Login</Text>
-      </TouchableOpacity>
-    </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                placeholder="Enter your password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                style={styles.input}
+                placeholderTextColor="#A0A0A0"
+              />
+              <Text style={styles.passwordHint}>
+                Password must be 6-30 characters, including uppercase, lowercase
+                letters, and numbers.
+              </Text>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Confirm Password</Text>
+              <TextInput
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                style={styles.input}
+                placeholderTextColor="#A0A0A0"
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.signupButton}
+              onPress={handleSignup}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.signupButtonText}>Create Account</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.bottomContainer}>
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>Already have an account?</Text>
+              <TouchableOpacity
+                onPress={loginHandler}
+                style={styles.textButton}
+              >
+                <Text style={[styles.textButtonText, styles.loginButtonText]}>
+                  Sign In
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   container: {
     flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    padding: 24,
     justifyContent: "center",
-    padding: 16,
+  },
+  headerContainer: {
+    marginBottom: 40,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 32,
-    color: "#333",
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+  },
+  formContainer: {
+    marginBottom: 24,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginBottom: 8,
   },
   input: {
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    marginTop: 12,
-    paddingHorizontal: 8,
+    height: 52,
+    backgroundColor: "#f5f5f5",
     borderRadius: 12,
-  },
-  error: {
-    color: "red",
-  },
-  smallButton: {
-    position: "absolute",
-    bottom: 30,
-    alignSelf: "center",
-  },
-  smallButtonText: {
-    fontSize: 14,
-    color: "#007AFF",
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#1a1a1a",
   },
   passwordHint: {
-    marginLeft: 6,
+    marginTop: 8,
     fontSize: 12,
-    color: "#666", 
+    color: "#666",
   },
-  button: {
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
+  signupButton: {
+    height: 52,
+    backgroundColor: "#007AFF",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 24,
+    shadowColor: "#007AFF",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  buttonText: {
-    color: '#007AFF',
+  signupButtonText: {
+    color: "#fff",
     fontSize: 16,
+    fontWeight: "600",
+  },
+  bottomContainer: {
+    alignItems: "center",
+  },
+  loginContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+  },
+  loginText: {
+    color: "#666",
+    fontSize: 14,
+    marginRight: 4,
+  },
+  textButton: {
+    padding: 8,
+  },
+  textButtonText: {
+    color: "#007AFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  loginButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 
