@@ -345,7 +345,11 @@ const SettingPage = () => {
             >
               <Text style={styles.settingLabel}>Location</Text>
               <View style={styles.settingValueContainer}>
-                <Text style={styles.settingValue}>
+                <Text
+                  style={styles.settingValue}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {preferences.location
                     ? formatLocation(preferences.location)
                     : "Not set"}
@@ -447,15 +451,21 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: colors.ios.label,
     fontFamily: Platform.OS === "ios" ? undefined : "System",
+    minWidth: 80,
   },
   settingValueContainer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    flex: 1,
+    justifyContent: "flex-end",
   },
   settingValue: {
     fontSize: 17,
     color: colors.ios.secondaryLabel,
+    flex: 1,
+    textAlign: "right",
+    marginRight: 8,
   },
   chevron: {
     fontSize: 20,
