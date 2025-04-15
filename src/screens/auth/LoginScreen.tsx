@@ -178,6 +178,16 @@ const LoginScreen = () => {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            <TouchableOpacity
+              style={[
+                styles.signupButton,
+                { backgroundColor: "#4B9CD3", marginTop: 16 },
+              ]}
+              onPress={() => (navigation as any).navigate("AIDemo")}
+            >
+              <Text style={styles.signupButtonText}>Try AI Extraction</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -276,6 +286,10 @@ const styles = StyleSheet.create({
   signupButtonText: {
     fontSize: 14,
     fontWeight: "600",
+  },
+  signupButton: {
+    padding: 8,
+    borderRadius: 12,
   },
 });
 

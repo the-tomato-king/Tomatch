@@ -15,6 +15,7 @@ import SignupScreen from "../screens/auth/SignupScreen";
 import LoadingLogo from "../components/loading/LoadingLogo";
 import OnboardingScreen from "../screens/auth/OnBoardingScreen";
 import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
+import AIDemoScreen from "../screens/auth/AIDemoScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator();
@@ -24,7 +25,9 @@ const AuthNavigator = () => {
   const { hasCompletedOnboarding } = useAuth();
 
   return (
-    <AuthStack.Navigator initialRouteName={hasCompletedOnboarding ? "Login" : "Onboarding"}>
+    <AuthStack.Navigator
+      initialRouteName={hasCompletedOnboarding ? "Login" : "Onboarding"}
+    >
       <AuthStack.Screen
         name="Onboarding"
         component={OnboardingScreen}
@@ -43,7 +46,12 @@ const AuthNavigator = () => {
       <AuthStack.Screen
         name="ForgotPassword"
         component={ForgotPasswordScreen}
-        options={{ title: '' }} 
+        options={{ title: "" }}
+      />
+      <AuthStack.Screen
+        name="AIDemo"
+        component={AIDemoScreen}
+        options={{ title: "AI Demo" }}
       />
     </AuthStack.Navigator>
   );

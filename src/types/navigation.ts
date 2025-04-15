@@ -48,7 +48,7 @@ export type RootStackParamList = {
   // Root level screens for navigation container
   App: undefined;
   Auth: undefined;
-  
+
   // Auth related screens
   Onboarding: undefined;
   Login: undefined;

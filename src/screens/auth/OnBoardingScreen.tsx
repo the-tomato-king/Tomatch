@@ -14,6 +14,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
 import { ViewToken } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
+import { colors } from "../../theme/colors";
 
 type OnboardingScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -121,6 +122,20 @@ const OnboardingScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* 添加Skip按钮，只在非最后一页显示 */}
+      {currentIndex < onboardingData.length - 1 && (
+        <TouchableOpacity
+          style={styles.skipContainer}
+          onPress={() =>
+            flatListRef.current?.scrollToIndex({
+              index: onboardingData.length - 1,
+            })
+          }
+        >
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
+      )}
+
       <FlatList
         ref={flatListRef}
         data={onboardingData}
@@ -131,43 +146,37 @@ const OnboardingScreen = () => {
         keyExtractor={(item) => item.id}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewConfigRef}
+        style={styles.flatList}
       />
 
-      <View style={styles.indicatorContainer}>
-        {onboardingData.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.indicator,
-              currentIndex === index ? styles.activeIndicator : null,
-            ]}
-          />
-        ))}
-      </View>
-
-      <View style={styles.buttonContainer}>
-        {currentIndex < onboardingData.length - 1 ? (
-          <>
-            <TouchableOpacity
-              style={styles.skipButton}
-              onPress={skipOnboarding}
-            >
-              <Text style={styles.skipButtonText}>Skip</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.nextButton} onPress={nextSlide}>
-              <Text style={styles.nextButtonText}>Next</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <TouchableOpacity style={styles.loginButton} onPress={goToLogin}>
-              <Text style={styles.loginButtonText}>Login</Text>
-            </TouchableOpacity>
+      <View style={styles.bottomContainer}>
+        {currentIndex === onboardingData.length - 1 ? (
+          <View style={styles.finalPageButtons}>
             <TouchableOpacity style={styles.signupButton} onPress={goToSignup}>
-              <Text style={styles.signupButtonText}>Signup</Text>
+              <Text style={styles.signupButtonText}>
+                Sign up to get started
+              </Text>
             </TouchableOpacity>
-          </>
-        )}
+            <TouchableOpacity
+              style={styles.tryAIButton}
+              onPress={() => (navigation as any).navigate("AIDemo")}
+            >
+              <Text style={styles.tryAIText}>Try AI extraction feature</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        <View style={styles.indicatorContainer}>
+          {onboardingData.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.indicator,
+                currentIndex === index ? styles.activeIndicator : null,
+              ]}
+            />
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -176,16 +185,20 @@ const OnboardingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
+  },
+  flatList: {
+    flex: 1,
   },
   slide: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    paddingTop: 100,
   },
   imageContainer: {
-    flex: 0.6,
+    height: 250,
     justifyContent: "center",
+    marginBottom: 40,
   },
   image: {
     width: 250,
@@ -193,9 +206,9 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   textContainer: {
-    flex: 0.4,
     alignItems: "center",
     paddingHorizontal: 20,
+    minHeight: 120,
   },
   title: {
     fontSize: 24,
@@ -210,10 +223,19 @@ const styles = StyleSheet.create({
     color: "#666",
     paddingHorizontal: 20,
   },
+  bottomContainer: {
+    width: "100%",
+    paddingBottom: 40,
+    position: "absolute",
+    bottom: 0,
+    backgroundColor: "white",
+  },
   indicatorContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginVertical: 20,
+    alignItems: "center",
+    marginTop: 20,
+    height: 20,
   },
   indicator: {
     height: 8,
@@ -223,56 +245,54 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   activeIndicator: {
-    backgroundColor: "#4285F4",
+    backgroundColor: colors.primary,
     width: 20,
   },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginBottom: 40,
-  },
-  skipButton: {
-    padding: 12,
-  },
-  skipButtonText: {
-    color: "#666",
-    fontSize: 16,
-  },
-  nextButton: {
-    backgroundColor: "#4285F4",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
-  },
-  nextButtonText: {
-    color: "white",
-    fontSize: 16,
-  },
-  loginButton: {
-    marginHorizontal: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderWidth: 1,
-    borderColor: "#4285F4",
-    borderRadius: 24,
+  finalPageButtons: {
+    width: "100%",
     alignItems: "center",
-  },
-  loginButtonText: {
-    color: "#4285F4",
-    fontSize: 16,
+    paddingHorizontal: 16,
   },
   signupButton: {
-    marginHorizontal: 8,
-    backgroundColor: "#4285F4",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    borderRadius: 30,
+    width: "100%",
     alignItems: "center",
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   signupButtonText: {
     color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  tryAIButton: {
+    paddingVertical: 8,
+  },
+  tryAIText: {
+    color: "#666",
+    fontSize: 14,
+    textDecorationLine: "underline",
+  },
+  skipContainer: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    zIndex: 1,
+    padding: 8,
+  },
+  skipText: {
+    color: "#999",
     fontSize: 16,
+    fontWeight: "500",
   },
 });
 
