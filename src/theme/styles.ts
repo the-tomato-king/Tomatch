@@ -13,8 +13,16 @@ export const globalStyles = StyleSheet.create({
   },
   // Navigation styles
   headerButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerButtonText: {
     fontSize: 17,
-    marginLeft: 16,
+    color: colors.primary,
   },
   // Input styles
   inputsContainer: {
