@@ -84,7 +84,7 @@ Return ONLY a JSON object in this format:
           content: [
             {
               type: "text",
-              text: 'Analyze this receipt image and extract: product name (in its most general form), price, and unit of measure. Return ONLY a JSON object in this format: {"productName": "general item name", "priceValue": "price value", "unitValue": "numeric value only", "unitType": "unit type from allowed list"}.',
+              text: 'Analyze this price tag image and extract: product name (in its most general form), price, and unit of measure. Return ONLY a JSON object in this format: {"productName": "general item name", "priceValue": "price value", "unitValue": "numeric value only", "unitType": "unit type from allowed list"}.',
             },
             {
               type: "image_url",

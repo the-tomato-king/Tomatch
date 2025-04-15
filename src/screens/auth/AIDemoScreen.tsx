@@ -9,7 +9,7 @@ import {
   ActionSheetIOS,
   ScrollView,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { colors } from "../../theme/colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
@@ -24,6 +24,7 @@ import ImagePreview from "../../components/ImagePreview";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../../types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface AnalysisResult {
   productName?: string;
@@ -33,6 +34,9 @@ interface AnalysisResult {
 }
 
 const MAX_TRIAL_COUNT = 3;
+const DEMO_IMAGE_URL =
+  "https://picture-guan.oss-cn-hangzhou.aliyuncs.com/11273040-F38F-4E29-876F-5AD484A0DBBD_4_5005_c.jpeg";
+const TRIAL_COUNT_KEY = "@ai_demo_trial_count";
 
 const AIDemoScreen = () => {
   const navigation =
@@ -44,6 +48,31 @@ const AIDemoScreen = () => {
   );
   const [trialCount, setTrialCount] = useState<number>(0);
   const [showLoginPrompt, setShowLoginPrompt] = useState<boolean>(false);
+
+  // Load trial count when component mounts
+  useEffect(() => {
+    const loadTrialCount = async () => {
+      try {
+        const savedCount = await AsyncStorage.getItem(TRIAL_COUNT_KEY);
+        if (savedCount !== null) {
+          setTrialCount(parseInt(savedCount, 10));
+        }
+      } catch (error) {
+        console.error("Error loading trial count:", error);
+      }
+    };
+    loadTrialCount();
+  }, []);
+
+  // Update trial count in storage
+  const updateTrialCount = async (newCount: number) => {
+    try {
+      await AsyncStorage.setItem(TRIAL_COUNT_KEY, newCount.toString());
+      setTrialCount(newCount);
+    } catch (error) {
+      console.error("Error saving trial count:", error);
+    }
+  };
 
   const analyzeImage = async (
     imageUri: string,
@@ -76,7 +105,7 @@ const AIDemoScreen = () => {
 
       const receiptData = await analyzeReceiptImage(base64Data);
       setAnalysisResult(receiptData);
-      setTrialCount((prev) => prev + 1);
+      await updateTrialCount(trialCount + 1);
     } catch (error) {
       console.error("Error analyzing image:", error);
       Alert.alert(
@@ -138,11 +167,38 @@ const AIDemoScreen = () => {
     }
   };
 
+  const handleDemoImage = async () => {
+    try {
+      setImage(DEMO_IMAGE_URL);
+      const response = await fetch(DEMO_IMAGE_URL);
+      const blob = await response.blob();
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      await analyzeImage(DEMO_IMAGE_URL, base64Data);
+    } catch (error) {
+      console.error("Error loading demo image:", error);
+      Alert.alert("Error", "Failed to load demo image");
+    }
+  };
+
   const handleImagePress = () => {
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ["Cancel", "Take Photo", "Choose from Library"],
+          options: [
+            "Cancel",
+            "Take Photo",
+            "Choose from Library",
+            "Try Demo Image",
+          ],
           cancelButtonIndex: 0,
         },
         (buttonIndex) => {
@@ -150,6 +206,8 @@ const AIDemoScreen = () => {
             takePhoto();
           } else if (buttonIndex === 2) {
             pickFromLibrary();
+          } else if (buttonIndex === 3) {
+            handleDemoImage();
           }
         }
       );
@@ -165,6 +223,10 @@ const AIDemoScreen = () => {
           {
             text: "Choose from Library",
             onPress: pickFromLibrary,
+          },
+          {
+            text: "Try Demo Image",
+            onPress: handleDemoImage,
           },
           {
             text: "Cancel",
@@ -214,9 +276,9 @@ const AIDemoScreen = () => {
             <View style={styles.guideContainer}>
               <Text style={styles.guideTitle}>How to use:</Text>
               <Text style={styles.guideText}>
-                1. Take a clear photo of your receipt{"\n"}
+                1. Take a clear photo of the price tag in the store{"\n"}
                 2. Make sure the information on the tag is clearly visible{"\n"}
-                3. Try our demo image if you don't have a receipt
+                3. Try our demo image if you don't have the picture
               </Text>
             </View>
           )}
