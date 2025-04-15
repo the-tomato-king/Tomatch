@@ -10,6 +10,7 @@ import {
   Platform,
   SafeAreaView,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { auth } from "../../services/firebase/firebaseConfig";
 import {
@@ -87,84 +88,90 @@ const SignupScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.container}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <View style={styles.contentContainer}>
-          <View style={styles.headerContainer}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Sign up to get started</Text>
-          </View>
-
-          <View style={styles.formContainer}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                placeholder="Enter your email"
-                value={email}
-                onChangeText={setEmail}
-                style={styles.input}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor="#A0A0A0"
-              />
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.contentContainer}>
+            <View style={styles.headerContainer}>
+              <Text style={styles.title}>Create Account</Text>
+              <Text style={styles.subtitle}>Sign up to get started</Text>
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
-              <TextInput
-                placeholder="Enter your password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                style={styles.input}
-                placeholderTextColor="#A0A0A0"
-              />
-              <Text style={styles.passwordHint}>
-                Password must be 6-30 characters, including uppercase, lowercase
-                letters, and numbers.
-              </Text>
-            </View>
+            <View style={styles.formContainer}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                  placeholder="Enter your email"
+                  value={email}
+                  onChangeText={setEmail}
+                  style={styles.input}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor="#A0A0A0"
+                />
+              </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Confirm Password</Text>
-              <TextInput
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-                style={styles.input}
-                placeholderTextColor="#A0A0A0"
-              />
-            </View>
-
-            <TouchableOpacity
-              style={styles.signupButton}
-              onPress={handleSignup}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={styles.signupButtonText}>Create Account</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.bottomContainer}>
-            <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>Already have an account?</Text>
-              <TouchableOpacity
-                onPress={loginHandler}
-                style={styles.textButton}
-              >
-                <Text style={[styles.textButtonText, styles.loginButtonText]}>
-                  Sign In
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Password</Text>
+                <TextInput
+                  placeholder="Enter your password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  style={styles.input}
+                  placeholderTextColor="#A0A0A0"
+                />
+                <Text style={styles.passwordHint}>
+                  Password must be 6-30 characters, including uppercase,
+                  lowercase letters, and numbers.
                 </Text>
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Confirm Password</Text>
+                <TextInput
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                  style={styles.input}
+                  placeholderTextColor="#A0A0A0"
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.signupButton}
+                onPress={handleSignup}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.signupButtonText}>Create Account</Text>
+                )}
               </TouchableOpacity>
             </View>
+
+            <View style={styles.bottomContainer}>
+              <View style={styles.loginContainer}>
+                <Text style={styles.loginText}>Already have an account?</Text>
+                <TouchableOpacity
+                  onPress={loginHandler}
+                  style={styles.textButton}
+                >
+                  <Text style={[styles.textButtonText, styles.loginButtonText]}>
+                    Sign In
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -177,6 +184,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
   },
   contentContainer: {
     flex: 1,

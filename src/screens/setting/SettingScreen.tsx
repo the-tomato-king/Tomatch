@@ -5,7 +5,6 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
-  Switch,
   TouchableOpacity,
   Alert,
   Platform,
@@ -29,21 +28,16 @@ import CurrencyModal from "../../components/modals/CurrencyModal";
 import { CURRENCIES } from "../../constants/currencies";
 import { useUserPreference } from "../../hooks/useUserPreference";
 import UnitModal from "../../components/modals/UnitModal";
-import { UNITS } from "../../constants/units";
 import { useAuth } from "../../contexts/AuthContext";
 import { createUserDocument } from "../../services/userService";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  writeBatch,
-} from "firebase/firestore";
 import { AuthenticatedState } from "../../contexts/AuthContext";
 import { deleteUser, User as FirebaseUser } from "firebase/auth";
 import { AppUser } from "../../types";
 import { colors } from "../../theme/colors";
-import { updateUserDocument } from "../../services/userService";
+import {
+  updateUserDocument,
+  deleteUserAndAllData,
+} from "../../services/userService";
 
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
@@ -235,11 +229,11 @@ const SettingPage = () => {
                 return;
               }
 
-              // 1. Delete user document in Firestore (this will automatically delete all sub-collections)
+              // 1. Delete all user-related data in Firestore (including all subcollections and the main user document)
               try {
-                await deleteDoc(doc(db, COLLECTIONS.USERS, userId));
+                await deleteUserAndAllData(userId);
               } catch (error) {
-                console.error("Error deleting user document:", error);
+                console.error("Error deleting user data:", error);
                 throw error;
               }
 
@@ -263,7 +257,6 @@ const SettingPage = () => {
                     "Please log out and log in again before deleting your account.",
                     [
                       {
-                        text: "OK",
                         onPress: () => logout(),
                       },
                     ]

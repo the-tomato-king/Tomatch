@@ -15,7 +15,7 @@ const HeaderAddButton = ({
   size = 24,
 }: HeaderAddButtonProps) => {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
+    <TouchableOpacity style={styles.button} onPressOut={onPress}>
       <MaterialCommunityIcons name="plus" size={size} color={color} />
     </TouchableOpacity>
   );

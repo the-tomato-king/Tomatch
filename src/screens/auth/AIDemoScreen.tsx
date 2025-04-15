@@ -215,7 +215,7 @@ const AIDemoScreen = () => {
               <Text style={styles.guideTitle}>How to use:</Text>
               <Text style={styles.guideText}>
                 1. Take a clear photo of your receipt{"\n"}
-                2. Make sure the price tag is clearly visible{"\n"}
+                2. Make sure the information on the tag is clearly visible{"\n"}
                 3. Try our demo image if you don't have a receipt
               </Text>
             </View>
