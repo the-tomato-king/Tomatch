@@ -64,6 +64,7 @@ import { calculateStandardPrice } from "../../utils/unitConverter";
 import { useUserPreference } from "../../hooks/useUserPreference";
 import ImagePreview from "../../components/ImagePreview";
 import UnitInputGroup from "../../components/inputs/UnitInputGroup";
+import { useUserStores } from "../../hooks/useUserStores";
 
 type AddRecordScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -78,6 +79,31 @@ interface ProductState {
   productName: string;
 }
 
+// Add this component at the top of the file, before AddRecordScreen
+const EmptyStorePrompt = ({ onPress }: { onPress: () => void }) => {
+  return (
+    <TouchableOpacity style={[globalStyles.inputContainer]} onPress={onPress}>
+      <View style={globalStyles.labelContainer}>
+        <MaterialCommunityIcons
+          name="storefront"
+          size={18}
+          color={colors.primary}
+        />
+      </View>
+      <View style={styles.emptyStorePrompt}>
+        <Text style={styles.emptyStoreText}>
+          Add your first store to start recording prices
+        </Text>
+        <MaterialCommunityIcons
+          name="chevron-right"
+          size={20}
+          color={colors.mediumGray}
+        />
+      </View>
+    </TouchableOpacity>
+  );
+};
+
 const AddRecordScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -85,6 +111,8 @@ const AddRecordScreen = () => {
   const { preferences, getCurrencySymbol } = useUserPreference(
     userId as string
   );
+  const { allStores } = useUserStores();
+  console.log("Component render - allStores:", allStores);
 
   const isEditMode = route.name === "EditPriceRecord";
   const recordId = isEditMode ? route.params?.recordId : null;
@@ -667,12 +695,25 @@ const AddRecordScreen = () => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Text style={globalStyles.headerButton} onPress={handleSave}>
-          {isEditMode ? "Update" : "Save"}
-        </Text>
+        <TouchableOpacity
+          style={globalStyles.headerButton}
+          onPressIn={handleSave}
+        >
+          <Text style={globalStyles.headerButtonText}>
+            {isEditMode ? "Update" : "Save"}
+          </Text>
+        </TouchableOpacity>
       ),
     });
   }, [navigation, handleSave, isEditMode]);
+
+  // Add this handler
+  const handleNavigateToStore = () => {
+    navigation.navigate("Main", {
+      screen: "Stores",
+      params: { screen: "StoreScreen" },
+    });
+  };
 
   if (loading) {
     return <LoadingLogo />;
@@ -737,16 +778,19 @@ const AddRecordScreen = () => {
                 onSelectProduct={handleProductSelect}
                 onNavigateToLibrary={handleNavigateToLibrary}
               />
-              {/* TODO: replace with general search dropdown */}
-              <StoreSearchInput
-                inputValue={storeName}
-                onChangeInputValue={setStoreName}
-                onSelectStore={(store) => {
-                  setSelectedStore(store);
-                }}
-                initialStoreId={selectedStore?.id}
-                disabled={false}
-              />
+              {allStores.length === 0 ? (
+                <EmptyStorePrompt onPress={handleNavigateToStore} />
+              ) : (
+                <StoreSearchInput
+                  inputValue={storeName}
+                  onChangeInputValue={setStoreName}
+                  onSelectStore={(store) => {
+                    setSelectedStore(store);
+                  }}
+                  initialStoreId={selectedStore?.id}
+                  disabled={false}
+                />
+              )}
               <View style={[globalStyles.inputContainer]}>
                 <View style={globalStyles.labelContainer}>
                   <MaterialCommunityIcons
@@ -869,5 +913,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  emptyStorePrompt: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.lightGray2,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
+    paddingHorizontal: 12,
+    minHeight: 48,
+  },
+  emptyStoreText: {
+    color: colors.secondaryText,
+    fontSize: 16,
   },
 });

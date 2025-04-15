@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   recordsContainer: {
-    maxHeight: 200,
+    maxHeight: 400,
   },
   recordItem: {
     flexDirection: "row",

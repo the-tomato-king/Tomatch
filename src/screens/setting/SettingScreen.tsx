@@ -5,7 +5,6 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
-  Switch,
   TouchableOpacity,
   Alert,
   Platform,
@@ -29,21 +28,16 @@ import CurrencyModal from "../../components/modals/CurrencyModal";
 import { CURRENCIES } from "../../constants/currencies";
 import { useUserPreference } from "../../hooks/useUserPreference";
 import UnitModal from "../../components/modals/UnitModal";
-import { UNITS } from "../../constants/units";
 import { useAuth } from "../../contexts/AuthContext";
 import { createUserDocument } from "../../services/userService";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  writeBatch,
-} from "firebase/firestore";
 import { AuthenticatedState } from "../../contexts/AuthContext";
 import { deleteUser, User as FirebaseUser } from "firebase/auth";
 import { AppUser } from "../../types";
 import { colors } from "../../theme/colors";
-import { updateUserDocument } from "../../services/userService";
+import {
+  updateUserDocument,
+  deleteUserAndAllData,
+} from "../../services/userService";
 
 type SettingScreenNavigationProp =
   NativeStackNavigationProp<SettingStackParamList>;
@@ -226,62 +220,57 @@ const SettingPage = () => {
           text: "OK",
           onPress: async () => {
             try {
-              if (!user) {
+              if (!user || !firebaseUser || !userId) {
                 console.log("No user logged in");
+                Alert.alert(
+                  "Error",
+                  "You must be logged in to delete your account"
+                );
                 return;
               }
 
-              // 1. delete user data in Firestore
-              await deleteDoc(doc(db, COLLECTIONS.USERS, user.uid));
+              // 1. Delete all user-related data in Firestore (including all subcollections and the main user document)
+              try {
+                await deleteUserAndAllData(userId);
+              } catch (error) {
+                console.error("Error deleting user data:", error);
+                throw error;
+              }
 
-              // 2. delete all user_products data
-              const userProductsRef = collection(
-                db,
-                COLLECTIONS.SUB_COLLECTIONS.USER_PRODUCTS
-              );
-              const q = query(
-                userProductsRef,
-                where("user_id", "==", user.uid)
-              );
-              const querySnapshot = await getDocs(q);
-              const batch = writeBatch(db);
-              querySnapshot.forEach((doc) => {
-                batch.delete(doc.ref);
-              });
-              await batch.commit();
-
-              // 3. delete Auth account
-              await deleteUser(firebaseUser);
-
-              Alert.alert(
-                "Account Deleted",
-                "Your account has been successfully deleted.",
-                [
-                  {
-                    text: "OK",
-                    onPress: () => rootNavigation.navigate("Auth"),
-                  },
-                ]
-              );
-            } catch (error: any) {
-              console.error("Error deleting account:", error);
-              if (error.code === "auth/requires-recent-login") {
+              // 2. Delete Auth account
+              try {
+                await deleteUser(firebaseUser);
                 Alert.alert(
-                  "Re-authentication Required",
-                  "Please log out and log in again before deleting your account.",
+                  "Account Deleted",
+                  "Your account has been successfully deleted.",
                   [
                     {
                       text: "OK",
-                      onPress: () => logout(),
+                      onPress: () => rootNavigation.navigate("Auth"),
                     },
                   ]
                 );
-              } else {
-                Alert.alert(
-                  "Error",
-                  "Failed to delete account. Please try again."
-                );
+              } catch (error: any) {
+                if (error.code === "auth/requires-recent-login") {
+                  Alert.alert(
+                    "Re-authentication Required",
+                    "Please log out and log in again before deleting your account.",
+                    [
+                      {
+                        onPress: () => logout(),
+                      },
+                    ]
+                  );
+                  return;
+                }
+                throw error;
               }
+            } catch (error: any) {
+              console.error("Error deleting account:", error);
+              Alert.alert(
+                "Error",
+                "Failed to delete account. Please try again."
+              );
             }
           },
         },
@@ -356,7 +345,11 @@ const SettingPage = () => {
             >
               <Text style={styles.settingLabel}>Location</Text>
               <View style={styles.settingValueContainer}>
-                <Text style={styles.settingValue}>
+                <Text
+                  style={styles.settingValue}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {preferences.location
                     ? formatLocation(preferences.location)
                     : "Not set"}
@@ -458,15 +451,21 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: colors.ios.label,
     fontFamily: Platform.OS === "ios" ? undefined : "System",
+    minWidth: 80,
   },
   settingValueContainer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    flex: 1,
+    justifyContent: "flex-end",
   },
   settingValue: {
     fontSize: 17,
     color: colors.ios.secondaryLabel,
+    flex: 1,
+    textAlign: "right",
+    marginRight: 8,
   },
   chevron: {
     fontSize: 20,

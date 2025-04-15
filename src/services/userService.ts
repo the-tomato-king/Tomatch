@@ -1,5 +1,13 @@
 import { db } from "../services/firebase/firebaseConfig";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  collection,
+} from "firebase/firestore";
 import { BaseUser, User } from "../types";
 import { COLLECTIONS } from "../constants/firebase";
 import { UNITS } from "../constants/units";
@@ -78,3 +86,46 @@ export const updateUserDocument = async (
     throw error;
   }
 };
+
+/**
+ * Deletes all user-related data from Firestore, including all subcollections and the main user document.
+ * This function should be called before deleting the user's Auth account.
+ * @param {string} userId - The ID of the user to delete
+ * @returns {Promise<void>}
+ * @throws {Error} When deletion fails at any step
+ */
+export async function deleteUserAndAllData(userId: string): Promise<void> {
+  // List all subcollections that need to be deleted for the user
+  const subCollections = [
+    "user_products",
+    "user_stores",
+    "price_records",
+    "shopping_lists",
+    // Add more subcollections here if needed in the future
+  ];
+
+  // Delete all documents in each subcollection
+  for (const subCol of subCollections) {
+    const collectionPath = `users/${userId}/${subCol}`;
+    try {
+      // Get all documents in the subcollection
+      const querySnapshot = await getDocs(collection(db, collectionPath));
+      // Delete each document in the subcollection
+      const deletePromises = querySnapshot.docs.map((docSnapshot) =>
+        deleteDoc(doc(db, collectionPath, docSnapshot.id))
+      );
+      await Promise.all(deletePromises);
+    } catch (error) {
+      console.error(`Error deleting subcollection ${subCol}:`, error);
+      // Continue deleting other subcollections even if one fails
+    }
+  }
+
+  // Delete the main user document
+  try {
+    await deleteDoc(doc(db, "users", userId));
+  } catch (error) {
+    console.error("Error deleting main user document:", error);
+    throw error;
+  }
+}

@@ -45,6 +45,7 @@ export const isMeasurableUnit = (unit: Unit): unit is MeasurableUnit => {
 // the flat array of all units for dropdown
 export const ALL_UNITS = [
   // Weight Units
+  UNITS.WEIGHT.G,
   UNITS.WEIGHT.FHG,
   UNITS.WEIGHT.HG,
   UNITS.WEIGHT.KG,

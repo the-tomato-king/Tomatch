@@ -12,6 +12,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import { auth } from "./firebaseConfig";
 
 // create a document in the database
 export async function createDoc<T extends object>(
@@ -57,11 +58,34 @@ export async function readOneDoc<T>(
   id: string
 ): Promise<T | null> {
   try {
+    if (!auth.currentUser) {
+      console.error("No authenticated user");
+      return null;
+    }
+
+    console.log("Attempting to read document:", {
+      collectionName,
+      id,
+      currentUser: auth.currentUser.uid,
+    });
+
     const docRef = doc(db, collectionName, id);
     const docSnapshot = await getDoc(docRef);
-    return docSnapshot.exists() ? (docSnapshot.data() as T) : null;
+
+    if (!docSnapshot.exists()) {
+      console.log("Document does not exist");
+      return null;
+    }
+
+    return docSnapshot.data() as T;
   } catch (err) {
-    console.error("Error reading document:", (err as FirestoreError).message);
+    console.error("Error reading document:", {
+      error: err,
+      collectionName,
+      id,
+      errorMessage: (err as FirestoreError).message,
+      code: (err as FirestoreError).code,
+    });
     return null;
   }
 }

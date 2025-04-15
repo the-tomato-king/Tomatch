@@ -31,6 +31,7 @@ import {
   toggleStoreFavorite,
   deleteStore,
 } from "../../services/userStoreService";
+import { useBrands } from "../../hooks/useBrands";
 
 type StoreDetailRouteProp = RouteProp<StoreStackParamList, "StoreDetail">;
 type StoreDetailNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
@@ -45,6 +46,7 @@ const StoreDetailScreen = () => {
   const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { brands } = useBrands();
 
   useEffect(() => {
     const loadStoreData = async () => {
@@ -58,11 +60,7 @@ const StoreDetailScreen = () => {
         setStore(storeData);
 
         if (storeData.brand_id) {
-          const brandPath = `${COLLECTIONS.STORE_BRANDS}`;
-          const brandData = await readOneDoc<StoreBrand>(
-            brandPath,
-            storeData.brand_id
-          );
+          const brandData = brands.find((b) => b.id === storeData.brand_id);
           if (brandData) {
             setBrand(brandData);
           }
@@ -76,7 +74,7 @@ const StoreDetailScreen = () => {
     };
 
     loadStoreData();
-  }, [userId, storeId]);
+  }, [userId, storeId, brands]);
 
   useEffect(() => {
     const fetchPriceRecords = async () => {
