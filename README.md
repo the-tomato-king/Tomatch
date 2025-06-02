@@ -1,15 +1,6 @@
-<div align="center">
-  <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
-    <img src="https://picture-guan.oss-cn-hangzhou.aliyuncs.com/F4C32040-60EC-4415-9348-39CA98680520.png" width="100" alt="Tomatch Logo">
-    <div>
-      <h1 style="margin: 0;">Tomatch</h1>
-      <p style="margin: 0;">To Match, To Save, Your personal grocery price tracker</p>
-    </div>
-  </div>
-  
-</div>
+![Tomatch Banner](https://github.com/user-attachments/assets/51085dee-6c37-4b7d-8dc8-b726dd6efa2d)
 
-<br>
+
 Tomatch is a mobile application designed to help users track and compare grocery prices across different stores.
 
 By leveraging AI, Tomatch allows users to easily record prices by snapping photos of price tags, eliminating manual data entry. With features like smart price comparisons, price history tracking, and personalized shopping lists, Tomatch helps users make smarter shopping decisions and avoid overpaying by providing data-driven insights. Say goodbye to impulsive purchases and hello to smarter grocery shopping!
