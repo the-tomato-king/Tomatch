@@ -109,7 +109,7 @@ const EditProfileScreen = () => {
 
                   // update other information first
                   const updatedUserData = {
-                    name,
+                    name, 
                     phone_number: phone,
                     email,
                     updated_at: new Date(),
