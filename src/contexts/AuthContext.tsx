@@ -5,11 +5,9 @@ import {
   onAuthStateChanged,
   User,
   signOut,
-  sendEmailVerification,
 } from "firebase/auth";
 import { Alert } from "react-native";
 import {
-  updateOneDocInDB,
   readOneDoc,
 } from "../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../constants/firebase";
@@ -97,15 +95,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             currentUser.uid
           );
 
-          // 2. if the email in Firestore is different from the current email, it means the email has been updated
-          if (userData && userData.email !== currentUser.email) {
-            await signOut(auth);
-            Alert.alert(
-              "Email Changed",
-              "Your email has been updated. Please log in again with your new email."
-            );
-            return;
-          }
+          // // 2. if the email in Firestore is different from the current email, it means the email has been updated
+          // if (userData && userData.email !== currentUser.email) {
+          //   await signOut(auth);
+          //   Alert.alert(
+          //     "Email Changed",
+          //     "Your email has been updated. Please log in again with your new email."
+          //   );
+          //   return;
+          // }
 
           setUser(currentUser);
         } else {
