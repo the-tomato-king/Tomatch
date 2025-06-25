@@ -13,7 +13,6 @@ export interface AppUser {
 
 export interface BaseUser {
   name: string;
-  email: string;
   phone_number: string;
   location: UserLocation;
   preferred_unit: string;

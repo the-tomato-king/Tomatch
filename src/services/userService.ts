@@ -30,7 +30,6 @@ export const createUserDocument = async (
     // Create initial user data with minimal required info
     const newUserData: BaseUser = {
       name: email.split("@")[0], // user email prefix as default user name
-      email: email,
       phone_number: "",
       location: {
         country: "",
@@ -101,7 +100,6 @@ export async function deleteUserAndAllData(userId: string): Promise<void> {
     "user_stores",
     "price_records",
     "shopping_lists",
-    // Add more subcollections here if needed in the future
   ];
 
   // Delete all documents in each subcollection

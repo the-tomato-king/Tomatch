@@ -14,19 +14,17 @@ import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StoreStackParamList } from "../../types/navigation";
 import {
-  createDoc,
   updateOneDocInDB,
   readOneDoc,
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
-import { BaseUserStore, UserStore } from "../../types";
+import { UserStore } from "../../types";
 import SearchBar from "../../components/search/SearchBar";
 import { useBrands } from "../../hooks/useBrands";
 import { StoreBrand } from "../../types";
 import StoreLogo from "../../components/StoreLogo";
 import MapComponent from "../../components/Map";
 import { NearbyStore } from "../../types/location";
-import LocationSelector from "../../components/LocationSelector";
 import { colors } from "../../theme/colors";
 import { useAuth } from "../../contexts/AuthContext";
 

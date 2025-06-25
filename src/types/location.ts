@@ -1,5 +1,3 @@
-import { LatLng } from "react-native-maps";
-
 export interface UserLocation {
   latitude: number;
   longitude: number;

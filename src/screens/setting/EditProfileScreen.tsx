@@ -46,8 +46,11 @@ const EditProfileScreen = () => {
           if (userData) {
             setUser(userData);
             setName(userData.name || "");
-            setEmail(userData.email || "");
             setPhone(userData.phone_number || "");
+          }
+
+          if (auth.currentUser?.email) {
+            setEmail(auth.currentUser.email);
           }
         } else {
           Alert.alert("Error", "User not authenticated");
@@ -92,7 +95,7 @@ const EditProfileScreen = () => {
       setSaving(true);
 
       // check if email is modified
-      if (email !== user?.email) {
+      if (email !== auth.currentUser?.email) {
         Alert.alert(
           "Email Update",
           "We will send a verification link to your new email address. You must click that link to complete the email change.",
@@ -109,9 +112,8 @@ const EditProfileScreen = () => {
 
                   // update other information first
                   const updatedUserData = {
-                    name, 
+                    name,
                     phone_number: phone,
-                    email,
                     updated_at: new Date(),
                   };
 
@@ -168,11 +170,9 @@ const EditProfileScreen = () => {
     const updatedUserData = {
       name,
       phone_number: phone,
-      email,
       updated_at: new Date(),
     };
 
-    // note: no longer update email here, email update will be handled by Firebase after verification
     const success = await updateOneDocInDB(
       COLLECTIONS.USERS,
       userId as string,
