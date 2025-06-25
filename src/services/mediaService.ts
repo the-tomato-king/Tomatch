@@ -6,6 +6,10 @@ import {
   deleteObject,
 } from "firebase/storage";
 
+/**
+ * Interface for receipt analysis results
+ * @interface
+ */
 export interface ReceiptAnalysisResult {
   productName?: string;
   priceValue?: string;
@@ -13,6 +17,10 @@ export interface ReceiptAnalysisResult {
   unitType?: string;
 }
 
+/**
+ * Interface for image upload results
+ * @interface
+ */
 export interface ImageUploadResult {
   url: string;
   path: string;
@@ -20,10 +28,17 @@ export interface ImageUploadResult {
 
 /**
  * Uploads a product image to Firebase Storage
- * @param {string} userId - The ID of the user
- * @param {string} imageUri - The local URI of the image to upload
- * @returns {Promise<ImageUploadResult>} The upload result containing the URL
- * @throws {Error} When upload fails
+ * @param {string} userId - The ID of the user who owns the product
+ * @param {string} imageUri - The local URI or path of the image to upload
+ * @returns {Promise<ImageUploadResult>} Object containing the download URL and storage path
+ * @throws {Error} When the upload fails or the image format is invalid
+ * @example
+ * try {
+ *   const result = await uploadProductImage("user123", "file:///path/to/image.jpg");
+ *   console.log("Image URL:", result.url);
+ * } catch (error) {
+ *   console.error("Upload failed:", error);
+ * }
  */
 export const uploadProductImage = async (
   userId: string,
@@ -51,10 +66,13 @@ export const uploadProductImage = async (
 };
 
 /**
- * Gets the URL of a product image
- * @param {string} imageName - The name of the image
- * @param {string} imageType - The type of image (preset or user)
+ * Retrieves the download URL of a product image
+ * @param {string} imageName - The name or identifier of the image
+ * @param {"preset" | "user"} imageType - Whether the image is a preset or user-uploaded image
  * @returns {Promise<string>} The download URL of the image
+ * @throws {Error} When the image doesn't exist or cannot be accessed
+ * @example
+ * const imageUrl = await getProductImage("apple", "preset");
  */
 export const getProductImage = async (
   imageName: string,
@@ -72,9 +90,12 @@ export const getProductImage = async (
 };
 
 /**
- * Gets the URL of a store logo
- * @param {string} brandName - The name of the brand
+ * Retrieves the download URL of a store's logo
+ * @param {string} brandName - The name of the brand/store
  * @returns {Promise<string>} The download URL of the logo
+ * @throws {Error} When the logo doesn't exist or cannot be accessed
+ * @example
+ * const logoUrl = await getStoreLogo("walmart");
  */
 export const getStoreLogo = async (brandName: string): Promise<string> => {
   try {
@@ -87,10 +108,17 @@ export const getStoreLogo = async (brandName: string): Promise<string> => {
 };
 
 /**
- * Analyzes a receipt image using OpenAI
- * @param {string} imageBase64 - The base64 encoded image data
- * @returns {Promise<ReceiptAnalysisResult>} The analysis result
- * @throws {Error} When analysis fails or is not implemented
+ * Analyzes a receipt image to extract product information
+ * @param {string} imageBase64 - The base64 encoded image data of the receipt
+ * @returns {Promise<ReceiptAnalysisResult>} Extracted information from the receipt
+ * @throws {Error} When analysis fails or the feature is not implemented
+ * @example
+ * try {
+ *   const result = await analyzeReceiptImage(base64Data);
+ *   console.log("Product name:", result.productName);
+ * } catch (error) {
+ *   console.error("Analysis failed:", error);
+ * }
  */
 export const analyzeReceiptImage = async (
   imageBase64: string
@@ -100,9 +128,11 @@ export const analyzeReceiptImage = async (
 
 /**
  * Deletes a product image from Firebase Storage
- * @param {string} imagePath - The path of the image in storage
- * @returns {Promise<boolean>} Whether the deletion was successful
- * @throws {Error} When deletion fails
+ * @param {string} imagePath - The storage path of the image to delete
+ * @returns {Promise<boolean>} True if deletion was successful or file didn't exist
+ * @throws {Error} When deletion fails for reasons other than file not found
+ * @example
+ * const success = await deleteProductImage("products/user123/image.jpg");
  */
 export const deleteProductImage = async (
   imagePath: string
@@ -122,11 +152,18 @@ export const deleteProductImage = async (
 };
 
 /**
- * Uploads a user avatar to Firebase Storage
+ * Uploads or updates a user's avatar image
  * @param {string} userId - The ID of the user
- * @param {string} imageUri - The local URI of the image to upload
- * @returns {Promise<ImageUploadResult>} The upload result containing the URL and path
- * @throws {Error} When upload fails
+ * @param {string} imageUri - The local URI or path of the avatar image
+ * @returns {Promise<ImageUploadResult>} Object containing the download URL and storage path
+ * @throws {Error} When the upload fails or the image format is invalid
+ * @example
+ * try {
+ *   const result = await uploadUserAvatar("user123", "file:///path/to/avatar.jpg");
+ *   console.log("Avatar URL:", result.url);
+ * } catch (error) {
+ *   console.error("Upload failed:", error);
+ * }
  */
 export const uploadUserAvatar = async (
   userId: string,
@@ -154,9 +191,18 @@ export const uploadUserAvatar = async (
 
 /**
  * Deletes a user's avatar from Firebase Storage
- * @param {string} userId - The ID of the user
- * @returns {Promise<boolean>} Whether the deletion was successful
- * @throws {Error} When deletion fails
+ * @param {string} userId - The ID of the user whose avatar should be deleted
+ * @returns {Promise<boolean>} True if deletion was successful or file didn't exist
+ * @throws {Error} When deletion fails for reasons other than file not found
+ * @example
+ * try {
+ *   const success = await deleteUserAvatar("user123");
+ *   if (success) {
+ *     console.log("Avatar deleted successfully");
+ *   }
+ * } catch (error) {
+ *   console.error("Deletion failed:", error);
+ * }
  */
 export const deleteUserAvatar = async (userId: string): Promise<boolean> => {
   try {

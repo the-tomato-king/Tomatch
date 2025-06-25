@@ -9,7 +9,7 @@ import {
   MediaTypeOptions,
 } from "expo-image-picker";
 import { uploadUserAvatar, deleteUserAvatar } from "../services/mediaService";
-import { updateUserDocument } from "../services/userService";
+import { updateUser } from "../services/userService";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 interface EditAvatarProps {
@@ -98,7 +98,7 @@ export const EditAvatar = ({
       }
 
       const result = await uploadUserAvatar(userId, imageUri);
-      await updateUserDocument(userId, {
+      await updateUser(userId, {
         avatar_url: result.url,
       });
 

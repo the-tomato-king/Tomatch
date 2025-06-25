@@ -1,16 +1,14 @@
 import {
   BasePriceRecord,
   PriceRecord,
-  BaseUserProduct,
   UserProduct,
 } from "../types";
-import { Unit, isCountUnit } from "../constants/units";
+import { isCountUnit } from "../constants/units";
 import { db } from "../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../constants/firebase";
 import {
   doc,
   getDoc,
-  addDoc,
   collection,
   query,
   where,
