@@ -2,8 +2,6 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
 import { colors } from "../theme/colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import StoreLogo from "./StoreLogo";
-import { StoreBrand } from "../types";
 
 interface StoreCardProps {
   name: string;
@@ -13,7 +11,6 @@ interface StoreCardProps {
   onAdd?: () => void;
   onPress: () => void;
   isFavorite: boolean;
-  brand?: StoreBrand | null;
   onToggleFavorite: () => void;
   isHighlighted?: boolean;
 }
@@ -26,7 +23,6 @@ const StoreCard: React.FC<StoreCardProps> = ({
   onAdd,
   onPress,
   isFavorite,
-  brand,
   onToggleFavorite,
   isHighlighted = false,
 }) => {
@@ -35,13 +31,6 @@ const StoreCard: React.FC<StoreCardProps> = ({
       style={[styles.storeItem, isHighlighted && styles.highlightedItem]}
       onPress={onPress}
     >
-      <View style={styles.storeLogoContainer}>
-        {brand ? (
-          <StoreLogo brand={brand.logo} width={80} height={80} />
-        ) : (
-          <View style={styles.storeLogo}></View>
-        )}
-      </View>
       <View style={styles.storeInfo}>
         <View style={styles.storeHeader}>
           <Text style={styles.storeName}>{name}</Text>
@@ -94,15 +83,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.lightGray2,
     borderRadius: 8,
-  },
-  storeLogoContainer: {
-    marginRight: 16,
-  },
-  storeLogo: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#f0f0f0",
   },
   storeInfo: {
     flex: 1,

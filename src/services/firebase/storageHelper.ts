@@ -27,18 +27,6 @@ import { ImageType } from "../../types/index";
 //   }
 // };
 
-export const getStoreLogo = async (brand: string): Promise<string> => {
-  const storage = getStorage();
-  const logoRef = ref(storage, `store_logos/${brand}.png`);
-  try {
-    const url = await getDownloadURL(logoRef);
-    return url;
-  } catch (error) {
-    console.error("Error getting store logo:", error);
-    throw error;
-  }
-};
-
 // export const getProductImage = async (
 //   imageName: string,
 //   imageType: ImageType,

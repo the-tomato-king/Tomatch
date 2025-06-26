@@ -39,7 +39,6 @@ interface Coordinates {
 
 // User Store (sub-collection of User)
 export interface BaseUserStore {
-  brand_id: string; // references brands collection
   name: string; // e.g., "Walmart Downtown", "Walmart West Side"
   address: string;
   location: Coordinates;
@@ -142,12 +141,6 @@ export interface Product {
   image_source: string; // emoji string or image url
   plu_code: string;
   barcode: string;
-}
-
-export interface StoreBrand {
-  id: string;
-  name: string;
-  logo: string;
 }
 
 export interface Currency {

@@ -90,24 +90,6 @@ export const getProductImage = async (
 };
 
 /**
- * Retrieves the download URL of a store's logo
- * @param {string} brandName - The name of the brand/store
- * @returns {Promise<string>} The download URL of the logo
- * @throws {Error} When the logo doesn't exist or cannot be accessed
- * @example
- * const logoUrl = await getStoreLogo("walmart");
- */
-export const getStoreLogo = async (brandName: string): Promise<string> => {
-  try {
-    const logoRef = ref(storage, `brands/${brandName}/logo.png`);
-    return await getDownloadURL(logoRef);
-  } catch (error) {
-    console.error("Error getting store logo:", error);
-    throw error;
-  }
-};
-
-/**
  * Analyzes a receipt image to extract product information
  * @param {string} imageBase64 - The base64 encoded image data of the receipt
  * @returns {Promise<ReceiptAnalysisResult>} Extracted information from the receipt
