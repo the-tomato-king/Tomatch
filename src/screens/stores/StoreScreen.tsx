@@ -27,6 +27,7 @@ import { convertNearbyStoreToUserStore } from "../../utils/storeConverters";
 import NearbyStoresList from "../../components/lists/NearbyStoresList";
 import MyStoresList from "../../components/lists/MyStoresList";
 import { useAuth } from "../../contexts/AuthContext";
+import { addNearbyStoreToUserStores } from "../../services/userStoreService";
 
 type StoreScreenNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
 
@@ -106,14 +107,7 @@ const StoreScreen = () => {
 
   const handleAddStore = async (store: NearbyStore) => {
     try {
-      const userStoresRef = collection(
-        db,
-        COLLECTIONS.USERS,
-        userId as string,
-        COLLECTIONS.SUB_COLLECTIONS.USER_STORES
-      );
-
-      await addDoc(userStoresRef, convertNearbyStoreToUserStore(store));
+      await addNearbyStoreToUserStores(userId!, store);
       Alert.alert("Success", "Store added to your list");
     } catch (error) {
       console.error("Error adding store:", error);

@@ -21,7 +21,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
-import { createUserDocument } from "../../services/userService";
+import { createUser } from "../../services/userService";
 
 type SignupScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -58,7 +58,7 @@ const SignupScreen = () => {
       await sendEmailVerification(userCred.user);
 
       // 3. Create user document in Firestore
-      await createUserDocument(userCred.user.uid, email);
+      await createUser(userCred.user.uid, email);
 
       // 4. Sign out user
       await signOut(auth);

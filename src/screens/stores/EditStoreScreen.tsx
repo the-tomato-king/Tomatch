@@ -14,19 +14,14 @@ import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StoreStackParamList } from "../../types/navigation";
 import {
-  createDoc,
   updateOneDocInDB,
   readOneDoc,
 } from "../../services/firebase/firebaseHelper";
 import { COLLECTIONS } from "../../constants/firebase";
-import { BaseUserStore, UserStore } from "../../types";
+import { UserStore } from "../../types";
 import SearchBar from "../../components/search/SearchBar";
-import { useBrands } from "../../hooks/useBrands";
-import { StoreBrand } from "../../types";
-import StoreLogo from "../../components/StoreLogo";
 import MapComponent from "../../components/Map";
 import { NearbyStore } from "../../types/location";
-import LocationSelector from "../../components/LocationSelector";
 import { colors } from "../../theme/colors";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -44,20 +39,15 @@ const EditStoreScreen = () => {
   const [customStoreName, setCustomStoreName] = useState("");
   const [address, setAddress] = useState("");
   const [addressSearch, setAddressSearch] = useState("");
-  const { brands, loading: brandsLoading } = useBrands();
-  const [brandId, setBrandId] = useState<string | null>(null);
-  const [selectedBrand, setSelectedBrand] = useState<StoreBrand | null>(null);
   const [selectedMapStore, setSelectedMapStore] = useState<NearbyStore | null>(
     null
   );
 
-  // TODO: get location from user's device, now use a fixed location
   const [location, setLocation] = useState({
-    latitude: 49.2827, // Vancouver's approximate coordinates
+    latitude: 49.2827,
     longitude: -123.1207,
   });
 
-  // load existing store data
   useEffect(() => {
     const fetchStoreDetails = async () => {
       try {
@@ -65,21 +55,9 @@ const EditStoreScreen = () => {
 
         const storeData = await readOneDoc<UserStore>(storePath, storeId);
         if (storeData) {
-          setBrandId(storeData.brand_id);
           setCustomStoreName(storeData.name);
           setAddress(storeData.address);
           setLocation(storeData.location);
-
-          if (storeData.brand_id) {
-            const brandPath = COLLECTIONS.STORE_BRANDS;
-            const brandData = await readOneDoc<StoreBrand>(
-              brandPath,
-              storeData.brand_id
-            );
-            if (brandData) {
-              setSelectedBrand(brandData);
-            }
-          }
         }
       } catch (error) {
         console.error("Error fetching store details:", error);
@@ -92,17 +70,7 @@ const EditStoreScreen = () => {
     }
   }, [storeId]);
 
-  const searchAddress = (query: string) => {
-    // TODO: access google map api to search address, now treat it as a text input
-    setAddress(query);
-  };
-
   const handleSaveStore = async () => {
-    if (!selectedBrand) {
-      Alert.alert("Error", "Please select a store brand");
-      return;
-    }
-
     if (!customStoreName.trim()) {
       Alert.alert("Error", "Please enter a store name");
       return;
@@ -117,7 +85,6 @@ const EditStoreScreen = () => {
       const storePath = `${COLLECTIONS.USERS}/${userId}/${COLLECTIONS.SUB_COLLECTIONS.USER_STORES}`;
 
       const updateData = {
-        brand_id: selectedBrand?.id || brandId,
         name: customStoreName.trim(),
         address: address.trim(),
         location: location,
@@ -141,19 +108,6 @@ const EditStoreScreen = () => {
 
   const handleCancel = () => {
     navigation.goBack();
-  };
-
-  const generateDefaultStoreName = (brandName: string, address: string) => {
-    const shortAddress = address.split(",")[0];
-    return `${brandName} - ${shortAddress}`;
-  };
-
-  const handleSelectBrand = () => {
-    navigation.navigate("SelectStoreBrand", {
-      onSelect: (brand: StoreBrand) => {
-        setSelectedBrand(brand);
-      },
-    });
   };
 
   const handleStoreSelect = (store: NearbyStore) => {
@@ -181,31 +135,16 @@ const EditStoreScreen = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.formContainer}>
-          <View style={styles.headerSection}>
-            <TouchableOpacity
-              style={styles.logoContainer}
-              onPress={handleSelectBrand}
-            >
-              {selectedBrand ? (
-                <StoreLogo brand={selectedBrand.logo} width={80} height={80} />
-              ) : (
-                <View style={styles.emptyLogoContainer}>
-                  <Text style={styles.logoText}>Select Brand</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            <View style={styles.nameInputContainer}>
-              <Text style={styles.inputLabel}>
-                Store Name<Text style={styles.requiredStar}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.nameInput}
-                value={customStoreName}
-                onChangeText={setCustomStoreName}
-                placeholder="Enter store name"
-              />
-            </View>
+          <View style={styles.nameInputContainer}>
+            <Text style={styles.inputLabel}>
+              Store Name<Text style={styles.requiredStar}>*</Text>
+            </Text>
+            <TextInput
+              style={styles.nameInput}
+              value={customStoreName}
+              onChangeText={setCustomStoreName}
+              placeholder="Enter store name"
+            />
           </View>
 
           <Text style={styles.sectionTitle}>Location</Text>
@@ -257,36 +196,6 @@ const styles = StyleSheet.create({
   formContainer: {
     padding: 20,
   },
-  headerSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 15,
-    backgroundColor: "#fff",
-  },
-  emptyLogoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#F5F5F5",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderStyle: "dashed",
-  },
-  logoText: {
-    fontSize: 12,
-    color: "#757575",
-    textAlign: "center",
-  },
   nameInputContainer: {
     flex: 1,
   },
@@ -317,59 +226,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
     marginVertical: 10,
-  },
-  addressInput: {
-    borderWidth: 1,
-    borderColor: "#000",
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 15,
-    backgroundColor: "#fff",
-  },
-  locationButtonsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  locationButton: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 20,
-    padding: 10,
-    width: "48%",
-    alignItems: "center",
-    backgroundColor: "#eee",
-  },
-  buttonText: {
-    fontSize: 16,
-  },
-  bottomButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 40,
-  },
-  cancelButton: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 20,
-    padding: 10,
-    width: "48%",
-    alignItems: "center",
-    backgroundColor: "#eee",
-  },
-  saveButton: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 20,
-    padding: 10,
-    width: "48%",
-    alignItems: "center",
-    backgroundColor: "#eee",
-  },
-  cancelButtonText: {
-    fontSize: 16,
-  },
-  saveButtonText: {
-    fontSize: 16,
   },
   searchAddressContainer: {
     marginBottom: 15,

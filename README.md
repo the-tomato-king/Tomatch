@@ -93,7 +93,6 @@ By leveraging AI, Tomatch allows users to easily record prices by snapping photo
 
 #### 1.2 user_stores (sub-collection)
 - id
-- brand_id (references store_brands)
 - name (e.g., "Walmart Downtown", "Walmart West Side")
 - address
 - location
@@ -124,12 +123,7 @@ By leveraging AI, Tomatch allows users to easily record prices by snapping photo
 - photo_url
 - recorded_at
 
-### 2. Local Store Brands Library (in-app, not in Firestore)
-- id
-- name
-- logo
-
-### 3. Local Product Library (in-app, not in Firestore)
+### 2. Local Product Library (in-app, not in Firestore)
 - id
 - name
 - category

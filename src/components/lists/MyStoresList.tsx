@@ -9,14 +9,10 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../services/firebase/firebaseConfig";
 import { COLLECTIONS } from "../../constants/firebase";
 import { useLocation } from "../../contexts/LocationContext";
-import { StoreBrand } from "../../types";
-import { readOneDoc } from "../../services/firebase/firebaseHelper";
 import { useAuth } from "../../contexts/AuthContext";
 import { calculateDistance, formatDistance } from "../../utils/distance";
-import { useBrands } from "../../hooks/useBrands";
 
-interface StoreWithBrand extends UserStore {
-  brand?: StoreBrand | null;
+interface StoreWithDistance extends UserStore {
   distance?: string;
 }
 
@@ -29,18 +25,11 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<StoreStackParamList>>();
   const { userId } = useAuth();
-  const [storesWithBrands, setStoresWithBrands] = useState<StoreWithBrand[]>(
-    []
-  );
-  const { brands } = useBrands();
+  const [storesWithDistance, setStoresWithDistance] = useState<
+    StoreWithDistance[]
+  >([]);
 
   const processStores = (stores: UserStore[]) => {
-    console.log("Processing stores with location:", {
-      userLocation,
-      storesCount: stores.length,
-      firstStoreLocation: stores[0]?.location,
-    });
-
     return stores.map((store) => {
       const distance =
         userLocation && store.location
@@ -52,14 +41,6 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
             )
           : undefined;
 
-      console.log("Store distance calculation:", {
-        storeName: store.name,
-        hasUserLocation: !!userLocation,
-        hasStoreLocation: !!store.location,
-        calculatedDistance: distance,
-        formattedDistance: distance ? formatDistance(distance) : undefined,
-      });
-
       return {
         ...store,
         distance: distance ? formatDistance(distance) : undefined,
@@ -68,38 +49,9 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
   };
 
   useEffect(() => {
-    const fetchBrandsForStores = async () => {
-      console.log("Fetching brands for stores:", {
-        storesCount: stores.length,
-        hasUserLocation: !!userLocation,
-      });
-
-      const storesWithBrandPromises = processStores(stores).map(
-        async (store) => {
-          if (store.brand_id) {
-            const brandData = brands.find((b) => b.id === store.brand_id);
-            return {
-              ...store,
-              brand: brandData || null,
-            };
-          }
-          return {
-            ...store,
-            brand: null,
-          };
-        }
-      );
-
-      const results = await Promise.all(storesWithBrandPromises);
-      console.log("Final processed stores:", {
-        resultsCount: results.length,
-        firstStoreDistance: results[0]?.distance,
-      });
-      setStoresWithBrands(results);
-    };
-
-    fetchBrandsForStores();
-  }, [stores, userLocation, brands]);
+    const processedStores = processStores(stores);
+    setStoresWithDistance(processedStores);
+  }, [stores, userLocation]);
 
   const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
     try {
@@ -120,7 +72,7 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
     </Text>
   ) : (
     <FlatList
-      data={storesWithBrands}
+      data={storesWithDistance}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <StoreCard
@@ -128,7 +80,6 @@ const MyStoresList: React.FC<MyStoresListProps> = ({ stores }) => {
           distance={item.distance || null}
           address={item.address}
           isFavorite={item.is_favorite}
-          brand={item.brand}
           onToggleFavorite={() =>
             handleToggleFavorite(item.id, item.is_favorite)
           }

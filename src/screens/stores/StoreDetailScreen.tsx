@@ -5,9 +5,7 @@ import {
   View,
   SafeAreaView,
   TouchableOpacity,
-  FlatList,
   ActivityIndicator,
-  Image,
   Alert,
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
@@ -17,12 +15,9 @@ import { COLLECTIONS } from "../../constants/firebase";
 import { db } from "../../services/firebase/firebaseConfig";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { StoreStackParamList } from "../../types/navigation";
-import { readOneDoc } from "../../services/firebase/firebaseHelper";
 import { UserStore } from "../../hooks/useUserStores";
 import { PriceRecord } from "../../types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import StoreLogo from "../../components/StoreLogo";
-import { StoreBrand } from "../../types";
 import { useAuth } from "../../contexts/AuthContext";
 import { StorePriceRecordList } from "../../components/lists/StorePriceRecordList";
 import {
@@ -31,7 +26,6 @@ import {
   toggleStoreFavorite,
   deleteStore,
 } from "../../services/userStoreService";
-import { useBrands } from "../../hooks/useBrands";
 
 type StoreDetailRouteProp = RouteProp<StoreStackParamList, "StoreDetail">;
 type StoreDetailNavigationProp = NativeStackNavigationProp<StoreStackParamList>;
@@ -42,11 +36,9 @@ const StoreDetailScreen = () => {
   const { storeId } = route.params;
   const { userId } = useAuth();
   const [store, setStore] = useState<UserStore | null>(null);
-  const [brand, setBrand] = useState<StoreBrand | null>(null);
   const [priceRecords, setPriceRecords] = useState<PriceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { brands } = useBrands();
 
   useEffect(() => {
     const loadStoreData = async () => {
@@ -58,13 +50,6 @@ const StoreDetailScreen = () => {
           return;
         }
         setStore(storeData);
-
-        if (storeData.brand_id) {
-          const brandData = brands.find((b) => b.id === storeData.brand_id);
-          if (brandData) {
-            setBrand(brandData);
-          }
-        }
       } catch (err) {
         console.error("Error loading store data:", err);
         setError("Failed to load store data");
@@ -74,7 +59,7 @@ const StoreDetailScreen = () => {
     };
 
     loadStoreData();
-  }, [userId, storeId, brands]);
+  }, [userId, storeId]);
 
   useEffect(() => {
     const fetchPriceRecords = async () => {
@@ -212,13 +197,6 @@ const StoreDetailScreen = () => {
       </View>
 
       <View style={styles.storeInfoCard}>
-        <View style={styles.storeLogoContainer}>
-          {brand ? (
-            <StoreLogo brand={brand.logo} width={80} height={80} />
-          ) : (
-            <View style={styles.storeLogo}></View>
-          )}
-        </View>
         <View style={styles.storeDetails}>
           <Text style={styles.storeName}>{store.name}</Text>
           <Text style={styles.storeAddress}>{store.address}</Text>
@@ -272,22 +250,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: 16,
     borderBottomColor: colors.lightGray2,
-  },
-  storeLogoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 15,
-    backgroundColor: "#fff",
-    overflow: "hidden",
-  },
-  storeLogo: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#F5F5F5",
   },
   storeDetails: {
     flex: 1,

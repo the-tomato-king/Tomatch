@@ -29,7 +29,7 @@ import { CURRENCIES } from "../../constants/currencies";
 import { useUserPreference } from "../../hooks/useUserPreference";
 import UnitModal from "../../components/modals/UnitModal";
 import { useAuth } from "../../contexts/AuthContext";
-import { createUserDocument } from "../../services/userService";
+import { createUser } from "../../services/userService";
 import { AuthenticatedState } from "../../contexts/AuthContext";
 import { deleteUser, User as FirebaseUser } from "firebase/auth";
 import { AppUser } from "../../types";
@@ -88,22 +88,20 @@ const SettingPage = () => {
         } else {
           console.log("Creating initial user document...");
           // if user document does not exist, try to create
-          createUserDocument(userId, auth.currentUser?.email || "").catch(
-            (error) => {
-              console.error("Error creating user document:", error);
-              Alert.alert(
-                "Error",
-                "Failed to create user profile. Please try again.",
-                [
-                  {
-                    text: "Retry",
-                    onPress: () => navigation.navigate("EditProfile"),
-                  },
-                  { text: "Cancel" },
-                ]
-              );
-            }
-          );
+          createUser(userId, auth.currentUser?.email || "").catch((error) => {
+            console.error("Error creating user document:", error);
+            Alert.alert(
+              "Error",
+              "Failed to create user profile. Please try again.",
+              [
+                {
+                  text: "Retry",
+                  onPress: () => navigation.navigate("EditProfile"),
+                },
+                { text: "Cancel" },
+              ]
+            );
+          });
         }
         setLoading(false);
       },

@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
   SafeAreaView,
   ScrollView,
 } from "react-native";
@@ -40,7 +39,6 @@ const ERROR_MESSAGES: { [key: string]: string } = {
     "Network error. Please check your internet connection.",
   "auth/invalid-credential":
     "Invalid email or password. Please check your credentials.",
-  // Add more error codes and messages as needed
 };
 
 const LoginScreen = () => {
